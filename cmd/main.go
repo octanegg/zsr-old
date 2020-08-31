@@ -1,8 +1,10 @@
 package main
 
-import "log"
+import (
+	"log"
 
-import "github.com/octanegg/core/octane"
+	"github.com/octanegg/core/octane"
+)
 
 func main() {
 	db, err := connect()

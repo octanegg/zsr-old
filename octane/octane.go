@@ -10,10 +10,12 @@ type client struct {
 	DB *mongo.Client
 }
 
+// Client .
 type Client interface {
 	Ping() error
 }
 
+// NewClient .
 func NewClient(db *mongo.Client) Client {
 	return &client{
 		DB: db,
