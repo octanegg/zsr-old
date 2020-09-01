@@ -12,8 +12,9 @@ type handler struct {
 }
 
 type Handler interface {
-	GetEvent(http.ResponseWriter, *http.Request)
 	GetEvents(http.ResponseWriter, *http.Request)
+	GetPlayers(http.ResponseWriter, *http.Request)
+	GetTeams(http.ResponseWriter, *http.Request)
 }
 
 // NewHandler .

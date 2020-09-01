@@ -8,16 +8,16 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 	var (
-		events interface{}
-		err    error
+		teams interface{}
+		err   error
 	)
 
 	if vars := mux.Vars(r); len(vars) > 0 {
-		events, err = h.Client.FindEventByID(vars["id"])
+		teams, err = h.Client.FindTeamByID(vars["id"])
 	} else {
-		events, err = h.Client.FindEvents(nil)
+		teams, err = h.Client.FindTeams(nil)
 	}
 
 	if err != nil {
@@ -27,5 +27,5 @@ func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(events)
+	json.NewEncoder(w).Encode(teams)
 }

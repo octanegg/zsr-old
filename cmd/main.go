@@ -17,7 +17,21 @@ func main() {
 	)
 
 	r.HandleFunc("/events", h.GetEvents).Methods(http.MethodGet)
-	r.HandleFunc("/events/{id}", h.GetEvent).Methods(http.MethodGet)
+	r.HandleFunc("/events/{id}", h.GetEvents).Methods(http.MethodGet)
+	// r.HandleFunc("/events/{id}/matches", h.GetEvent)
+
+	// r.HandleFunc("/matches", h.GetEvent)
+	// r.HandleFunc("/matches/{id}", h.GetEvent)
+	// r.HandleFunc("/matches/{id}/games", h.GetEvent)
+
+	// r.HandleFunc("/games", h.GetEvent)
+	// r.HandleFunc("/games/{id}", h.GetEvent)
+
+	r.HandleFunc("/players", h.GetPlayers)
+	r.HandleFunc("/players/{id}", h.GetPlayers)
+
+	r.HandleFunc("/teams", h.GetTeams)
+	r.HandleFunc("/teams/{id}", h.GetTeams)
 
 	http.Handle("/", r)
 	log.Println("Starting server on port 8080")
