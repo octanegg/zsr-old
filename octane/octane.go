@@ -31,20 +31,22 @@ type Client interface {
 
 	FindEvents(bson.M) (*Events, error)
 	FindEventByID(*primitive.ObjectID) (*Event, error)
-	InsertEvent(*Event) (*ObjectID, error)
-	UpdateEvent(*primitive.ObjectID, *Event) (*ObjectID, error)
-
 	FindMatches(bson.M) (*Matches, error)
-	FindMatchByID(string) (*Match, error)
-
+	FindMatchByID(*primitive.ObjectID) (*Match, error)
 	FindGames(bson.M) (*Games, error)
-	FindGameByID(string) (*Game, error)
-
+	FindGameByID(*primitive.ObjectID) (*Game, error)
 	FindPlayers(bson.M) (*Players, error)
-	FindPlayerByID(string) (*Player, error)
-
+	FindPlayerByID(*primitive.ObjectID) (*Player, error)
 	FindTeams(bson.M) (*Teams, error)
-	FindTeamByID(string) (*Team, error)
+	FindTeamByID(*primitive.ObjectID) (*Team, error)
+
+	InsertEvent(*Event) (*ObjectID, error)
+	InsertMatch(*Match) (*ObjectID, error)
+	InsertGame(*Game) (*ObjectID, error)
+
+	UpdateEvent(*primitive.ObjectID, *Event) (*ObjectID, error)
+	UpdateMatch(*primitive.ObjectID, *Match) (*ObjectID, error)
+	UpdateGame(*primitive.ObjectID, *Game) (*ObjectID, error)
 }
 
 // NewClient .

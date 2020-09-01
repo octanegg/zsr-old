@@ -13,8 +13,8 @@ type Teams struct {
 
 // Team .
 type Team struct {
-	ID   primitive.ObjectID `json:"id" bson:"_id"`
-	Name string             `json:"name" bson:"name"`
+	ID   *primitive.ObjectID `json:"id" bson:"_id"`
+	Name *string             `json:"name" bson:"name"`
 }
 
 func (c *client) FindTeams(filter bson.M) (*Teams, error) {
@@ -33,12 +33,7 @@ func (c *client) FindTeams(filter bson.M) (*Teams, error) {
 	return &Teams{teams}, nil
 }
 
-func (c *client) FindTeamByID(id string) (*Team, error) {
-	oid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *client) FindTeamByID(oid *primitive.ObjectID) (*Team, error) {
 	teams, err := c.FindTeams(bson.M{"_id": oid})
 	if err != nil {
 		return nil, err

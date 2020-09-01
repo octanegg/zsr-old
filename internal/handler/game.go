@@ -6,6 +6,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/core/octane"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
@@ -15,7 +17,14 @@ func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if vars := mux.Vars(r); len(vars) > 0 {
-		games, err = h.Client.FindGameByID(vars["id"])
+		oid, err := primitive.ObjectIDFromHex(vars["id"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+			return
+		}
+
+		games, err = h.Client.FindGameByID(&oid)
 	} else {
 		games, err = h.Client.FindGames(nil)
 	}
@@ -28,4 +37,61 @@ func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(games)
+}
+
+func (h *handler) PutGame(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(contentType) != applicationJSON {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		json.NewEncoder(w).Encode(Error{time.Now(), errContentType})
+		return
+	}
+
+	var game octane.Game
+	if err := json.NewDecoder(r.Body).Decode(&game); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	id, err := h.Client.InsertGame(&game)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(id)
+}
+
+func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(contentType) != applicationJSON {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		json.NewEncoder(w).Encode(Error{time.Now(), errContentType})
+		return
+	}
+
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	var game octane.Game
+	if err := json.NewDecoder(r.Body).Decode(&game); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	id, err := h.Client.UpdateGame(&oid, &game)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(id)
 }

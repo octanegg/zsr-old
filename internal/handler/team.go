@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
@@ -15,7 +16,14 @@ func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if vars := mux.Vars(r); len(vars) > 0 {
-		teams, err = h.Client.FindTeamByID(vars["id"])
+		oid, err := primitive.ObjectIDFromHex(vars["id"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+			return
+		}
+
+		teams, err = h.Client.FindTeamByID(&oid)
 	} else {
 		teams, err = h.Client.FindTeams(nil)
 	}

@@ -17,40 +17,40 @@ type Events struct {
 
 // Event .
 type Event struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id"`
-	Name      string             `json:"name" bson:"name"`
-	StartDate time.Time          `json:"startDate,omitempty" bson:"startDate,omitempty"`
-	EndDate   time.Time          `json:"endDate,omitempty" bson:"endDate,omitempty"`
-	Region    string             `json:"region,omitempty" bson:"region,omitempty"`
-	Mode      int                `json:"mode,omitempty" bson:"mode,omitempty"`
-	Prize     Prize              `json:"prize,omitempty" bson:"prize,omitempty"`
-	Tier      string             `json:"tier,omitempty" bson:"tier,omitempty"`
-	Stages    []Stage            `json:"stages,omitempty" bson:"stages,omitempty"`
+	ID        *primitive.ObjectID `json:"id" bson:"_id"`
+	Name      *string             `json:"name" bson:"name"`
+	StartDate *time.Time          `json:"startDate,omitempty" bson:"startDate,omitempty"`
+	EndDate   *time.Time          `json:"endDate,omitempty" bson:"endDate,omitempty"`
+	Region    *string             `json:"region" bson:"region"`
+	Mode      *int                `json:"mode" bson:"mode"`
+	Prize     *Prize              `json:"prize,omitempty" bson:"prize,omitempty"`
+	Tier      *string             `json:"tier,omitempty" bson:"tier,omitempty"`
+	Stages    []*Stage            `json:"stages,omitempty" bson:"stages,omitempty"`
 }
 
 // Stage .
 type Stage struct {
-	Name       string     `json:"name" bson:"name"`
-	Format     string     `json:"format,omitempty" bson:"format,omitempty"`
-	Region     string     `json:"region,omitempty" bson:"region,omitempty"`
-	StartDate  time.Time  `json:"startDate,omitempty" bson:"startDate,omitempty"`
-	EndDate    time.Time  `json:"endDate,omitempty" bson:"endDate,omitempty"`
-	Prize      Prize      `json:"prize,omitempty" bson:"prize,omitempty"`
-	Liquipedia string     `json:"liquipedia,omitempty" bson:"liquipedia,omitempty"`
-	Qualifier  bool       `json:"qualifier,omitempty" bson:"qualifier,omitempty"`
-	Substages  []Substage `json:"substages,omitempty" bson:"substages,omitempty"`
+	Name       *string     `json:"name" bson:"name"`
+	Format     *string     `json:"format" bson:"format"`
+	Region     *string     `json:"region" bson:"region"`
+	StartDate  *time.Time  `json:"startDate,omitempty" bson:"startDate,omitempty"`
+	EndDate    *time.Time  `json:"endDate,omitempty" bson:"endDate,omitempty"`
+	Prize      *Prize      `json:"prize,omitempty" bson:"prize,omitempty"`
+	Liquipedia *string     `json:"liquipedia" bson:"liquipedia"`
+	Qualifier  *bool       `json:"qualifier,omitempty" bson:"qualifier,omitempty"`
+	Substages  []*Substage `json:"substages,omitempty" bson:"substages,omitempty"`
 }
 
 // Substage .
 type Substage struct {
-	Name   string `json:"name" bson:"name"`
-	Format string `json:"format" bson:"format"`
+	Name   *string `json:"name" bson:"name"`
+	Format *string `json:"format" bson:"format"`
 }
 
 // Prize .
 type Prize struct {
-	Amount   float64 `json:"amount" bson:"amount"`
-	Currency string  `json:"currency" bson:"currency"`
+	Amount   *float64 `json:"amount" bson:"amount"`
+	Currency *string  `json:"currency" bson:"currency"`
 }
 
 func (c *client) FindEvents(filter bson.M) (*Events, error) {
@@ -84,13 +84,14 @@ func (c *client) FindEventByID(oid *primitive.ObjectID) (*Event, error) {
 }
 
 func (c *client) InsertEvent(event *Event) (*ObjectID, error) {
-	event.ID = primitive.NewObjectID()
-	id, err := c.Insert("events", event)
+	id := primitive.NewObjectID()
+	event.ID = &id
+	oid, err := c.Insert("events", event)
 	if err != nil {
 		return nil, err
 	}
 
-	return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
 func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID, error) {
@@ -105,7 +106,7 @@ func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID,
 
 	filter := bson.M{"_id": oid}
 	update := updateFields(reflect.ValueOf(event).Elem(), reflect.ValueOf(fields).Elem()).(Event)
-	update.ID = *oid
+	update.ID = oid
 
 	id, err := c.Replace("events", filter, update)
 	if err != nil {

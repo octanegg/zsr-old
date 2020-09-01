@@ -25,16 +25,24 @@ func routes(h handler.Handler) *mux.Router {
 	// matches
 	r.HandleFunc("/matches", h.GetMatches).
 		Methods(http.MethodGet)
+	r.HandleFunc("/matches", h.PutMatch).
+		Methods(http.MethodPut)
 	r.HandleFunc("/matches/{id}", h.GetMatches).
 		Methods(http.MethodGet)
+	r.HandleFunc("/matches/{id}", h.UpdateMatch).
+		Methods(http.MethodPost)
 	r.HandleFunc("/matches/{id}/games", h.GetMatchGames).
 		Methods(http.MethodGet)
 
 	// games
 	r.HandleFunc("/games", h.GetGames).
 		Methods(http.MethodGet)
+	r.HandleFunc("/games", h.PutGame).
+		Methods(http.MethodPut)
 	r.HandleFunc("/games/{id}", h.GetGames).
 		Methods(http.MethodGet)
+	r.HandleFunc("/games/{id}", h.UpdateGame).
+		Methods(http.MethodPost)
 
 	// players
 	r.HandleFunc("/players", h.GetPlayers).

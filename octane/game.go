@@ -1,6 +1,8 @@
 package octane
 
 import (
+	"errors"
+	"reflect"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -15,29 +17,29 @@ type Games struct {
 
 // Game .
 type Game struct {
-	ID       primitive.ObjectID `json:"id" bson:"_id"`
-	MatchID  primitive.ObjectID `json:"match" bson:"match"`
-	EventID  primitive.ObjectID `json:"event" bson:"event"`
-	Map      string             `json:"map" bson:"map"`
-	Duration int                `json:"duration" bson:"duration"`
-	Mode     int                `json:"mode" bson:"mode"`
-	Date     time.Time          `json:"date" bson:"date"`
-	Blue     GameSide           `json:"blue" bson:"blue"`
-	Orange   GameSide           `json:"orange" bson:"orange"`
+	ID       *primitive.ObjectID `json:"id" bson:"_id"`
+	MatchID  *primitive.ObjectID `json:"match" bson:"match"`
+	EventID  *primitive.ObjectID `json:"event" bson:"event"`
+	Map      *string             `json:"map" bson:"map"`
+	Duration *int                `json:"duration" bson:"duration"`
+	Mode     *int                `json:"mode" bson:"mode"`
+	Date     *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
+	Blue     *GameSide           `json:"blue" bson:"blue"`
+	Orange   *GameSide           `json:"orange" bson:"orange"`
 }
 
 // GameSide .
 type GameSide struct {
-	Goals   int           `json:"goals" bson:"goals"`
-	Winner  bool          `json:"winner" bson:"winner"`
-	Team    Team          `json:"team" bson:"team"`
-	Players []PlayerStats `json:"players" bson:"players"`
+	Goals   *int           `json:"goals" bson:"goals"`
+	Winner  *bool          `json:"winner" bson:"winner"`
+	Team    *Team          `json:"team" bson:"team"`
+	Players []*PlayerStats `json:"players" bson:"players"`
 }
 
 // PlayerStats .
 type PlayerStats struct {
-	Player Player `json:"player" bson:"player"`
-	Stats  Stats  `json:"stats" bson:"stats"`
+	Player *Player `json:"player" bson:"player"`
+	Stats  *Stats  `json:"stats" bson:"stats"`
 }
 
 func (c *client) FindGames(filter bson.M) (*Games, error) {
@@ -56,12 +58,7 @@ func (c *client) FindGames(filter bson.M) (*Games, error) {
 	return &Games{games}, nil
 }
 
-func (c *client) FindGameByID(id string) (*Game, error) {
-	oid, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return nil, err
-	}
-
+func (c *client) FindGameByID(oid *primitive.ObjectID) (*Game, error) {
 	games, err := c.FindGames(bson.M{"_id": oid})
 	if err != nil {
 		return nil, err
@@ -73,4 +70,62 @@ func (c *client) FindGameByID(id string) (*Game, error) {
 
 	game := games.Games[0].(Game)
 	return &game, nil
+}
+
+func (c *client) InsertGame(game *Game) (*ObjectID, error) {
+	event, err := c.FindEventByID(game.EventID)
+	if err != nil {
+		return nil, err
+	}
+	if event == nil {
+		return nil, errors.New("No event found for ID")
+	}
+
+	match, err := c.FindMatchByID(game.MatchID)
+	if err != nil {
+		return nil, err
+	}
+	if match == nil {
+		return nil, errors.New("No match found for ID")
+	}
+
+	id := primitive.NewObjectID()
+	game.ID = &id
+	game.Mode = event.Mode
+	game.Date = match.Date
+
+	oid, err := c.Insert("games", game)
+	if err != nil {
+		return nil, err
+	}
+
+	// TODO: Update matches with players / Update matches score / Update matches with game IDs
+
+	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+}
+
+func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, error) {
+	game, err := c.FindGameByID(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	if game == nil {
+		return nil, errors.New("No game found for ID")
+	}
+
+	filter := bson.M{"_id": oid}
+	update := updateFields(reflect.ValueOf(game).Elem(), reflect.ValueOf(fields).Elem()).(Game)
+	update.ID = oid
+
+	id, err := c.Replace("games", filter, update)
+	if err != nil {
+		return nil, err
+	}
+
+	if id != nil {
+		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+	}
+
+	return &ObjectID{oid.Hex()}, nil
 }
