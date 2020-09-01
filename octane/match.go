@@ -21,17 +21,18 @@ type Match struct {
 	Substage int                  `json:"substage" bson:"substage"`
 	Date     time.Time            `json:"date" bson:"date"`
 	Format   string               `json:"format" bson:"format"`
-	Blue     MatchTeam            `json:"blue" bson:"blue"`
-	Orange   MatchTeam            `json:"orange" bson:"orange"`
+	Blue     MatchSide            `json:"blue" bson:"blue"`
+	Orange   MatchSide            `json:"orange" bson:"orange"`
 	Games    []primitive.ObjectID `json:"games" bson:"games"`
 	Mode     int                  `json:"mode" bson:"mode"`
 }
 
-// MatchTeam .
-type MatchTeam struct {
-	Score  int  `json:"score" bson:"score"`
-	Winner bool `json:"winner" bson:"winner"`
-	Team   Team `json:"team" bson:"team"`
+// MatchSide .
+type MatchSide struct {
+	Score   int      `json:"score" bson:"score"`
+	Winner  bool     `json:"winner" bson:"winner"`
+	Team    Team     `json:"team" bson:"team"`
+	Players []Player `json:"players" bson:"players"`
 }
 
 func (c *client) FindMatches(filter bson.M) (*Matches, error) {

@@ -1,6 +1,8 @@
 package octane
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,20 +21,21 @@ type Game struct {
 	Map      string             `json:"map" bson:"map"`
 	Duration int                `json:"duration" bson:"duration"`
 	Mode     int                `json:"mode" bson:"mode"`
-	Blue     GameTeam           `json:"blue" bson:"blue"`
-	Orange   GameTeam           `json:"orange" bson:"orange"`
+	Date     time.Time          `json:"date" bson:"date"`
+	Blue     GameSide           `json:"blue" bson:"blue"`
+	Orange   GameSide           `json:"orange" bson:"orange"`
 }
 
-// GameTeam .
-type GameTeam struct {
-	Goals   int          `json:"goals" bson:"goals"`
-	Winner  bool         `json:"winner" bson:"winner"`
-	Team    Team         `json:"team" bson:"team"`
-	Players []GamePlayer `json:"players" bson:"players"`
+// GameSide .
+type GameSide struct {
+	Goals   int           `json:"goals" bson:"goals"`
+	Winner  bool          `json:"winner" bson:"winner"`
+	Team    Team          `json:"team" bson:"team"`
+	Players []PlayerStats `json:"players" bson:"players"`
 }
 
-// GamePlayer .
-type GamePlayer struct {
+// PlayerStats .
+type PlayerStats struct {
 	Player Player `json:"player" bson:"player"`
 	Stats  Stats  `json:"stats" bson:"stats"`
 }

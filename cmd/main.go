@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/octanegg/core/internal/handler"
 	"github.com/octanegg/core/octane"
 )
@@ -13,25 +12,8 @@ func main() {
 	var (
 		c = initialize()
 		h = handler.NewHandler(c)
-		r = mux.NewRouter()
+		r = routes(h)
 	)
-
-	r.HandleFunc("/events", h.GetEvents).Methods(http.MethodGet)
-	r.HandleFunc("/events/{id}", h.GetEvents).Methods(http.MethodGet)
-	r.HandleFunc("/events/{id}/matches", h.GetEventMatches)
-
-	r.HandleFunc("/matches", h.GetMatches)
-	r.HandleFunc("/matches/{id}", h.GetMatches)
-	r.HandleFunc("/matches/{id}/games", h.GetMatchGames)
-
-	r.HandleFunc("/games", h.GetGames)
-	r.HandleFunc("/games/{id}", h.GetGames)
-
-	r.HandleFunc("/players", h.GetPlayers)
-	r.HandleFunc("/players/{id}", h.GetPlayers)
-
-	r.HandleFunc("/teams", h.GetTeams)
-	r.HandleFunc("/teams/{id}", h.GetTeams)
 
 	http.Handle("/", r)
 	log.Println("Starting server on port 8080")
