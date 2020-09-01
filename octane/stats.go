@@ -13,7 +13,7 @@ type CoreStats struct {
 	Assists            int     `json:"assists" bson:"assists"`
 	Saves              int     `json:"saves" bson:"saves"`
 	Shots              int     `json:"shots" bson:"shots"`
-	ShootingPercentage float32 `json:"shootingPercentage" bson:"shootingPercentage"`
-	GoalParticipation  float32 `json:"goalParticipation" bson:"goalParticipation"`
-	Rating             float32 `json:"rating" bson:"rating"`
+	ShootingPercentage float64 `json:"shootingPercentage" bson:"shootingPercentage"`
+	GoalParticipation  float64 `json:"goalParticipation" bson:"goalParticipation"`
+	Rating             float64 `json:"rating" bson:"rating"`
 }
