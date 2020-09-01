@@ -13,8 +13,12 @@ func routes(h handler.Handler) *mux.Router {
 	// events
 	r.HandleFunc("/events", h.GetEvents).
 		Methods(http.MethodGet)
+	r.HandleFunc("/events", h.PutEvent).
+		Methods(http.MethodPut)
 	r.HandleFunc("/events/{id}", h.GetEvents).
 		Methods(http.MethodGet)
+	r.HandleFunc("/events/{id}", h.UpdateEvent).
+		Methods(http.MethodPost)
 	r.HandleFunc("/events/{id}/matches", h.GetEventMatches).
 		Methods(http.MethodGet)
 

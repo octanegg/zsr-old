@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/core/octane"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -17,7 +18,14 @@ func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if vars := mux.Vars(r); len(vars) > 0 {
-		events, err = h.Client.FindEventByID(vars["id"])
+		oid, err := primitive.ObjectIDFromHex(vars["id"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+			return
+		}
+
+		events, err = h.Client.FindEventByID(&oid)
 	} else {
 		events, err = h.Client.FindEvents(nil)
 	}
@@ -37,6 +45,7 @@ func (h *handler) GetEventMatches(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
 	}
 
 	filter := bson.M{
@@ -52,4 +61,61 @@ func (h *handler) GetEventMatches(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(matches)
+}
+
+func (h *handler) PutEvent(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(contentType) != applicationJSON {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		json.NewEncoder(w).Encode(Error{time.Now(), errContentType})
+		return
+	}
+
+	var event octane.Event
+	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	id, err := h.Client.InsertEvent(&event)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(id)
+}
+
+func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(contentType) != applicationJSON {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		json.NewEncoder(w).Encode(Error{time.Now(), errContentType})
+		return
+	}
+
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	var event octane.Event
+	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	id, err := h.Client.UpdateEvent(&oid, &event)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(id)
 }
