@@ -23,6 +23,12 @@ type Client interface {
 	FindEvents(bson.M) (*Events, error)
 	FindEventByID(string) (*Event, error)
 
+	FindMatches(bson.M) (*Matches, error)
+	FindMatchByID(string) (*Match, error)
+
+	FindGames(bson.M) (*Games, error)
+	FindGameByID(string) (*Game, error)
+
 	FindPlayers(bson.M) (*Players, error)
 	FindPlayerByID(string) (*Player, error)
 

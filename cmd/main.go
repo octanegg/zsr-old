@@ -20,12 +20,12 @@ func main() {
 	r.HandleFunc("/events/{id}", h.GetEvents).Methods(http.MethodGet)
 	// r.HandleFunc("/events/{id}/matches", h.GetEvent)
 
-	// r.HandleFunc("/matches", h.GetEvent)
-	// r.HandleFunc("/matches/{id}", h.GetEvent)
+	r.HandleFunc("/matches", h.GetMatches)
+	r.HandleFunc("/matches/{id}", h.GetMatches)
 	// r.HandleFunc("/matches/{id}/games", h.GetEvent)
 
-	// r.HandleFunc("/games", h.GetEvent)
-	// r.HandleFunc("/games/{id}", h.GetEvent)
+	r.HandleFunc("/games", h.GetGames)
+	r.HandleFunc("/games/{id}", h.GetGames)
 
 	r.HandleFunc("/players", h.GetPlayers)
 	r.HandleFunc("/players/{id}", h.GetPlayers)
