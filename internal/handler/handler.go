@@ -19,6 +19,8 @@ type handler struct {
 
 // Handler .
 type Handler interface {
+	Health(http.ResponseWriter, *http.Request)
+
 	GetEvents(http.ResponseWriter, *http.Request)
 	GetEventMatches(http.ResponseWriter, *http.Request)
 	GetMatches(http.ResponseWriter, *http.Request)

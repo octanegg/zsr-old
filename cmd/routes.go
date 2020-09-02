@@ -10,6 +10,10 @@ import (
 func routes(h handler.Handler) *mux.Router {
 	r := mux.NewRouter()
 
+	// health
+	r.HandleFunc("/health", h.Health).
+		Methods(http.MethodGet)
+
 	// events
 	r.HandleFunc("/events", h.GetEvents).
 		Methods(http.MethodGet)
@@ -61,6 +65,8 @@ func routes(h handler.Handler) *mux.Router {
 		Methods(http.MethodGet)
 	r.HandleFunc("/teams/{id}", h.GetTeams).
 		Methods(http.MethodGet)
+
+	// TODO: Stats endpoints
 
 	return r
 }

@@ -46,3 +46,5 @@ func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
 	player := players.Players[0].(Player)
 	return &player, nil
 }
+
+// TODO: Update Players

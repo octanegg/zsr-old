@@ -1,11 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
 	"github.com/octanegg/core/internal/handler"
 	"github.com/octanegg/core/octane"
+)
+
+const (
+	port = 8080
 )
 
 func main() {
@@ -16,8 +21,8 @@ func main() {
 	)
 
 	http.Handle("/", r)
-	log.Println("Starting server on port 8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Printf("Starting server on port %d\n", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), r))
 }
 
 func initialize() octane.Client {
