@@ -30,7 +30,7 @@ jobs:
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: 053998485699.dkr.ecr.us-east-1.amazonaws.com/octanegg/core
+        ECR_REPOSITORY: octanegg/core
         IMAGE_TAG: ${{ github.sha }}
       run: |
         # Build a docker container and
