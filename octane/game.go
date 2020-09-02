@@ -58,7 +58,7 @@ func (c *client) FindGames(filter bson.M) (*Games, error) {
 	return &Games{games}, nil
 }
 
-func (c *client) FindGameByID(oid *primitive.ObjectID) (*Game, error) {
+func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
 	games, err := c.FindGames(bson.M{"_id": oid})
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (c *client) FindGameByID(oid *primitive.ObjectID) (*Game, error) {
 }
 
 func (c *client) InsertGame(game *Game) (*ObjectID, error) {
-	event, err := c.FindEventByID(game.EventID)
+	event, err := c.FindEvent(game.EventID)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,7 @@ func (c *client) InsertGame(game *Game) (*ObjectID, error) {
 		return nil, errors.New("No event found for ID")
 	}
 
-	match, err := c.FindMatchByID(game.MatchID)
+	match, err := c.FindMatch(game.MatchID)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +105,7 @@ func (c *client) InsertGame(game *Game) (*ObjectID, error) {
 }
 
 func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, error) {
-	game, err := c.FindGameByID(oid)
+	game, err := c.FindGame(oid)
 	if err != nil {
 		return nil, err
 	}
@@ -114,11 +114,10 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, e
 		return nil, errors.New("No game found for ID")
 	}
 
-	filter := bson.M{"_id": oid}
 	update := updateFields(reflect.ValueOf(game).Elem(), reflect.ValueOf(fields).Elem()).(Game)
 	update.ID = oid
 
-	id, err := c.Replace("games", filter, update)
+	id, err := c.Replace("games", oid, update)
 	if err != nil {
 		return nil, err
 	}
@@ -127,5 +126,11 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, e
 		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
 	}
 
+	// TODO: Update matches with players / Update matches score / Update matches with game IDs
+
 	return &ObjectID{oid.Hex()}, nil
+}
+
+func (c *client) DeleteGame(oid *primitive.ObjectID) (int64, error) {
+	return c.Delete("events", oid)
 }

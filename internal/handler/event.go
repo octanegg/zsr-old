@@ -25,7 +25,7 @@ func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		events, err = h.Client.FindEventByID(&oid)
+		events, err = h.Client.FindEvent(&oid)
 	} else {
 		events, err = h.Client.FindEvents(nil)
 	}
@@ -118,4 +118,26 @@ func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(id)
+}
+
+func (h *handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	amount, err := h.Client.DeleteEvent(&oid)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	if amount == 0 {
+		w.WriteHeader(http.StatusNotModified)
+	} else {
+		w.WriteHeader(http.StatusNoContent)
+	}
 }

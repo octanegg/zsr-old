@@ -53,7 +53,7 @@ func (c *client) FindMatches(filter bson.M) (*Matches, error) {
 	return &Matches{matchs}, nil
 }
 
-func (c *client) FindMatchByID(oid *primitive.ObjectID) (*Match, error) {
+func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
 	matches, err := c.FindMatches(bson.M{"_id": oid})
 	if err != nil {
 		return nil, err
@@ -68,7 +68,7 @@ func (c *client) FindMatchByID(oid *primitive.ObjectID) (*Match, error) {
 }
 
 func (c *client) InsertMatch(match *Match) (*ObjectID, error) {
-	event, err := c.FindEventByID(match.EventID)
+	event, err := c.FindEvent(match.EventID)
 	if err != nil {
 		return nil, err
 	}
@@ -86,11 +86,13 @@ func (c *client) InsertMatch(match *Match) (*ObjectID, error) {
 		return nil, err
 	}
 
+	// TODO: Update event with list of matches
+
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
 func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*ObjectID, error) {
-	match, err := c.FindMatchByID(oid)
+	match, err := c.FindMatch(oid)
 	if err != nil {
 		return nil, err
 	}
@@ -99,11 +101,10 @@ func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*ObjectID,
 		return nil, errors.New("No match found for ID")
 	}
 
-	filter := bson.M{"_id": oid}
 	update := updateFields(reflect.ValueOf(match).Elem(), reflect.ValueOf(fields).Elem()).(Match)
 	update.ID = oid
 
-	id, err := c.Replace("matches", filter, update)
+	id, err := c.Replace("matches", oid, update)
 	if err != nil {
 		return nil, err
 	}
@@ -112,5 +113,11 @@ func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*ObjectID,
 		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
 	}
 
+	// TODO: Update event with list of matches
+
 	return &ObjectID{oid.Hex()}, nil
+}
+
+func (c *client) DeleteMatch(oid *primitive.ObjectID) (int64, error) {
+	return c.Delete("events", oid)
 }

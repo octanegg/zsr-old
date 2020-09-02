@@ -23,7 +23,7 @@ func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		teams, err = h.Client.FindTeamByID(&oid)
+		teams, err = h.Client.FindTeam(&oid)
 	} else {
 		teams, err = h.Client.FindTeams(nil)
 	}

@@ -24,7 +24,7 @@ func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		games, err = h.Client.FindGameByID(&oid)
+		games, err = h.Client.FindGame(&oid)
 	} else {
 		games, err = h.Client.FindGames(nil)
 	}
@@ -94,4 +94,26 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(id)
+}
+
+func (h *handler) DeleteGame(w http.ResponseWriter, r *http.Request) {
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	amount, err := h.Client.DeleteGame(&oid)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	if amount == 0 {
+		w.WriteHeader(http.StatusNotModified)
+	} else {
+		w.WriteHeader(http.StatusNoContent)
+	}
 }

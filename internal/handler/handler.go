@@ -34,6 +34,10 @@ type Handler interface {
 	UpdateEvent(http.ResponseWriter, *http.Request)
 	UpdateMatch(http.ResponseWriter, *http.Request)
 	UpdateGame(http.ResponseWriter, *http.Request)
+
+	DeleteEvent(http.ResponseWriter, *http.Request)
+	DeleteMatch(http.ResponseWriter, *http.Request)
+	DeleteGame(http.ResponseWriter, *http.Request)
 }
 
 // NewHandler .

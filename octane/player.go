@@ -33,7 +33,7 @@ func (c *client) FindPlayers(filter bson.M) (*Players, error) {
 	return &Players{players}, nil
 }
 
-func (c *client) FindPlayerByID(oid *primitive.ObjectID) (*Player, error) {
+func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
 	players, err := c.FindPlayers(bson.M{"_id": oid})
 	if err != nil {
 		return nil, err

@@ -33,7 +33,7 @@ func (c *client) FindTeams(filter bson.M) (*Teams, error) {
 	return &Teams{teams}, nil
 }
 
-func (c *client) FindTeamByID(oid *primitive.ObjectID) (*Team, error) {
+func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
 	teams, err := c.FindTeams(bson.M{"_id": oid})
 	if err != nil {
 		return nil, err
@@ -46,3 +46,5 @@ func (c *client) FindTeamByID(oid *primitive.ObjectID) (*Team, error) {
 	team := teams.Teams[0].(Team)
 	return &team, nil
 }
+
+// TODO: Update Teams

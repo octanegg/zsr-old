@@ -23,7 +23,7 @@ func (h *handler) GetPlayers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		players, err = h.Client.FindPlayerByID(&oid)
+		players, err = h.Client.FindPlayer(&oid)
 	} else {
 		players, err = h.Client.FindPlayers(nil)
 	}

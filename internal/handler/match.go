@@ -25,7 +25,7 @@ func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		matches, err = h.Client.FindMatchByID(&oid)
+		matches, err = h.Client.FindMatch(&oid)
 	} else {
 		matches, err = h.Client.FindMatches(nil)
 	}
@@ -117,4 +117,26 @@ func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(id)
+}
+
+func (h *handler) DeleteMatch(w http.ResponseWriter, r *http.Request) {
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	amount, err := h.Client.DeleteMatch(&oid)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	if amount == 0 {
+		w.WriteHeader(http.StatusNotModified)
+	} else {
+		w.WriteHeader(http.StatusNoContent)
+	}
 }

@@ -69,7 +69,7 @@ func (c *client) FindEvents(filter bson.M) (*Events, error) {
 	return &Events{events}, nil
 }
 
-func (c *client) FindEventByID(oid *primitive.ObjectID) (*Event, error) {
+func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
 	events, err := c.FindEvents(bson.M{"_id": oid})
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (c *client) InsertEvent(event *Event) (*ObjectID, error) {
 }
 
 func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID, error) {
-	event, err := c.FindEventByID(oid)
+	event, err := c.FindEvent(oid)
 	if err != nil {
 		return nil, err
 	}
@@ -104,11 +104,10 @@ func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID,
 		return nil, errors.New("No event found for ID")
 	}
 
-	filter := bson.M{"_id": oid}
 	update := updateFields(reflect.ValueOf(event).Elem(), reflect.ValueOf(fields).Elem()).(Event)
 	update.ID = oid
 
-	id, err := c.Replace("events", filter, update)
+	id, err := c.Replace("events", oid, update)
 	if err != nil {
 		return nil, err
 	}
@@ -118,4 +117,8 @@ func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID,
 	}
 
 	return &ObjectID{oid.Hex()}, nil
+}
+
+func (c *client) DeleteEvent(oid *primitive.ObjectID) (int64, error) {
+	return c.Delete("events", oid)
 }
