@@ -12,24 +12,7 @@ import (
 )
 
 func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
-	var (
-		events interface{}
-		err    error
-	)
-
-	if vars := mux.Vars(r); len(vars) > 0 {
-		oid, err := primitive.ObjectIDFromHex(vars["id"])
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-			return
-		}
-
-		events, err = h.Client.FindEvent(&oid)
-	} else {
-		events, err = h.Client.FindEvents(nil)
-	}
-
+	events, err := h.Client.FindEvents(nil)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -38,6 +21,25 @@ func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(events)
+}
+
+func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	event, err := h.Client.FindEvent(&oid)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(event)
 }
 
 func (h *handler) GetEventMatches(w http.ResponseWriter, r *http.Request) {

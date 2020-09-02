@@ -12,24 +12,7 @@ import (
 )
 
 func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
-	var (
-		matches interface{}
-		err     error
-	)
-
-	if vars := mux.Vars(r); len(vars) > 0 {
-		oid, err := primitive.ObjectIDFromHex(vars["id"])
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-			return
-		}
-
-		matches, err = h.Client.FindMatch(&oid)
-	} else {
-		matches, err = h.Client.FindMatches(nil)
-	}
-
+	matches, err := h.Client.FindMatches(nil)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -38,6 +21,25 @@ func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(matches)
+}
+
+func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	match, err := h.Client.FindMatch(&oid)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(match)
 }
 
 func (h *handler) GetMatchGames(w http.ResponseWriter, r *http.Request) {

@@ -11,24 +11,7 @@ import (
 )
 
 func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
-	var (
-		games interface{}
-		err   error
-	)
-
-	if vars := mux.Vars(r); len(vars) > 0 {
-		oid, err := primitive.ObjectIDFromHex(vars["id"])
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-			return
-		}
-
-		games, err = h.Client.FindGame(&oid)
-	} else {
-		games, err = h.Client.FindGames(nil)
-	}
-
+	games, err := h.Client.FindGames(nil)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -37,6 +20,24 @@ func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(games)
+}
+
+func (h *handler) GetGame(w http.ResponseWriter, r *http.Request) {
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+	game, err := h.Client.FindGame(&oid)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(game)
 }
 
 func (h *handler) PutGame(w http.ResponseWriter, r *http.Request) {

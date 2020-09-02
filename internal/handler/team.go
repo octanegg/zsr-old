@@ -10,24 +10,7 @@ import (
 )
 
 func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
-	var (
-		teams interface{}
-		err   error
-	)
-
-	if vars := mux.Vars(r); len(vars) > 0 {
-		oid, err := primitive.ObjectIDFromHex(vars["id"])
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-			return
-		}
-
-		teams, err = h.Client.FindTeam(&oid)
-	} else {
-		teams, err = h.Client.FindTeams(nil)
-	}
-
+	teams, err := h.Client.FindTeams(nil)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -36,4 +19,23 @@ func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(teams)
+}
+
+func (h *handler) GetTeam(w http.ResponseWriter, r *http.Request) {
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	team, err := h.Client.FindTeam(&oid)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(team)
 }

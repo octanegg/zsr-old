@@ -19,7 +19,7 @@ func routes(h handler.Handler) *mux.Router {
 		Methods(http.MethodGet)
 	r.HandleFunc("/events", h.PutEvent).
 		Methods(http.MethodPut)
-	r.HandleFunc("/events/{id}", h.GetEvents).
+	r.HandleFunc("/events/{id}", h.GetEvent).
 		Methods(http.MethodGet)
 	r.HandleFunc("/events/{id}", h.UpdateEvent).
 		Methods(http.MethodPost)
@@ -33,7 +33,7 @@ func routes(h handler.Handler) *mux.Router {
 		Methods(http.MethodGet)
 	r.HandleFunc("/matches", h.PutMatch).
 		Methods(http.MethodPut)
-	r.HandleFunc("/matches/{id}", h.GetMatches).
+	r.HandleFunc("/matches/{id}", h.GetMatch).
 		Methods(http.MethodGet)
 	r.HandleFunc("/matches/{id}", h.UpdateMatch).
 		Methods(http.MethodPost)
@@ -47,7 +47,7 @@ func routes(h handler.Handler) *mux.Router {
 		Methods(http.MethodGet)
 	r.HandleFunc("/games", h.PutGame).
 		Methods(http.MethodPut)
-	r.HandleFunc("/games/{id}", h.GetGames).
+	r.HandleFunc("/games/{id}", h.GetGame).
 		Methods(http.MethodGet)
 	r.HandleFunc("/games/{id}", h.UpdateGame).
 		Methods(http.MethodPost)
@@ -57,13 +57,13 @@ func routes(h handler.Handler) *mux.Router {
 	// players
 	r.HandleFunc("/players", h.GetPlayers).
 		Methods(http.MethodGet)
-	r.HandleFunc("/players/{id}", h.GetPlayers).
+	r.HandleFunc("/players/{id}", h.GetPlayer).
 		Methods(http.MethodGet)
 
 	// teams
 	r.HandleFunc("/teams", h.GetTeams).
 		Methods(http.MethodGet)
-	r.HandleFunc("/teams/{id}", h.GetTeams).
+	r.HandleFunc("/teams/{id}", h.GetTeam).
 		Methods(http.MethodGet)
 
 	// TODO: Stats endpoints
