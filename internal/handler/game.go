@@ -11,7 +11,9 @@ import (
 )
 
 func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
-	games, err := h.Client.FindGames(nil)
+	// TODO: Games filters
+	page, perPage := getPaginationDetails(r.URL.Query())
+	games, err := h.Client.FindGames(nil, page, perPage)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})

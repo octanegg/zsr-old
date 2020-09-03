@@ -10,11 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Matches .
-type Matches struct {
-	Matches []interface{} `json:"matches"`
-}
-
 // Match .
 type Match struct {
 	ID       *primitive.ObjectID   `json:"id" bson:"_id"`
@@ -37,8 +32,8 @@ type MatchSide struct {
 	Players []*Player `json:"players,omitempty" bson:"players,omitempty"`
 }
 
-func (c *client) FindMatches(filter bson.M) (*Matches, error) {
-	matchs, err := c.Find("matches", filter, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindMatches(filter bson.M, page, perPage int64) (*Data, error) {
+	matches, err := c.Find("matches", filter, page, perPage, func(cursor *mongo.Cursor) (interface{}, error) {
 		var match Match
 		if err := cursor.Decode(&match); err != nil {
 			return nil, err
@@ -50,20 +45,29 @@ func (c *client) FindMatches(filter bson.M) (*Matches, error) {
 		return nil, err
 	}
 
-	return &Matches{matchs}, nil
+	if matches == nil {
+		matches = make([]interface{}, 0)
+	}
+
+	return &Data{
+		Page:     page,
+		PerPage:  perPage,
+		PageSize: len(matches),
+		Data:     matches,
+	}, nil
 }
 
 func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
-	matches, err := c.FindMatches(bson.M{"_id": oid})
+	matches, err := c.FindMatches(bson.M{"_id": oid}, 0, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(matches.Matches) == 0 {
+	if len(matches.Data) == 0 {
 		return nil, nil
 	}
 
-	match := matches.Matches[0].(Match)
+	match := matches.Data[0].(Match)
 	return &match, nil
 }
 

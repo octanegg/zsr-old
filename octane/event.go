@@ -10,17 +10,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Events .
-type Events struct {
-	Events []interface{} `json:"events"`
-}
-
 // Event .
 type Event struct {
 	ID        *primitive.ObjectID `json:"id" bson:"_id"`
 	Name      *string             `json:"name" bson:"name"`
-	StartDate *time.Time          `json:"startDate,omitempty" bson:"startDate,omitempty"`
-	EndDate   *time.Time          `json:"endDate,omitempty" bson:"endDate,omitempty"`
+	StartDate *time.Time          `json:"start_date,omitempty" bson:"startDate,omitempty"`
+	EndDate   *time.Time          `json:"end_date,omitempty" bson:"endDate,omitempty"`
 	Region    *string             `json:"region" bson:"region"`
 	Mode      *int                `json:"mode" bson:"mode"`
 	Prize     *Prize              `json:"prize,omitempty" bson:"prize,omitempty"`
@@ -33,8 +28,8 @@ type Stage struct {
 	Name       *string     `json:"name" bson:"name"`
 	Format     *string     `json:"format" bson:"format"`
 	Region     *string     `json:"region" bson:"region"`
-	StartDate  *time.Time  `json:"startDate,omitempty" bson:"startDate,omitempty"`
-	EndDate    *time.Time  `json:"endDate,omitempty" bson:"endDate,omitempty"`
+	StartDate  *time.Time  `json:"start_date,omitempty" bson:"startDate,omitempty"`
+	EndDate    *time.Time  `json:"end_date,omitempty" bson:"endDate,omitempty"`
 	Prize      *Prize      `json:"prize,omitempty" bson:"prize,omitempty"`
 	Liquipedia *string     `json:"liquipedia" bson:"liquipedia"`
 	Qualifier  *bool       `json:"qualifier,omitempty" bson:"qualifier,omitempty"`
@@ -53,8 +48,8 @@ type Prize struct {
 	Currency *string  `json:"currency" bson:"currency"`
 }
 
-func (c *client) FindEvents(filter bson.M) (*Events, error) {
-	events, err := c.Find("events", filter, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindEvents(filter bson.M, page, perPage int64) (*Data, error) {
+	events, err := c.Find("events", filter, page, perPage, func(cursor *mongo.Cursor) (interface{}, error) {
 		var event Event
 		if err := cursor.Decode(&event); err != nil {
 			return nil, err
@@ -66,20 +61,29 @@ func (c *client) FindEvents(filter bson.M) (*Events, error) {
 		return nil, err
 	}
 
-	return &Events{events}, nil
+	if events == nil {
+		events = make([]interface{}, 0)
+	}
+
+	return &Data{
+		Page:     page,
+		PerPage:  perPage,
+		PageSize: len(events),
+		Data:     events,
+	}, nil
 }
 
 func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
-	events, err := c.FindEvents(bson.M{"_id": oid})
+	events, err := c.FindEvents(bson.M{"_id": oid}, 0, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(events.Events) == 0 {
+	if len(events.Data) == 0 {
 		return nil, nil
 	}
 
-	event := events.Events[0].(Event)
+	event := events.Data[0].(Event)
 	return &event, nil
 }
 

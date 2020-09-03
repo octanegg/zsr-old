@@ -10,7 +10,9 @@ import (
 )
 
 func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
-	teams, err := h.Client.FindTeams(nil)
+	page, perPage := getPaginationDetails(r.URL.Query())
+	// TODO: Team filters
+	teams, err := h.Client.FindTeams(nil, page, perPage)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})

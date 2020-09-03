@@ -2,6 +2,8 @@ package handler
 
 import (
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/octanegg/core/octane"
@@ -12,6 +14,12 @@ const (
 	applicationJSON = "application/json"
 	errContentType  = "Content-Type header is not application/json"
 )
+
+// Error .
+type Error struct {
+	Timestamp time.Time `json:"timestamp"`
+	Error     string    `json:"error"`
+}
 
 type handler struct {
 	Client octane.Client
@@ -54,8 +62,8 @@ func NewHandler(client octane.Client) Handler {
 	}
 }
 
-// Error .
-type Error struct {
-	Timestamp time.Time `json:"timestamp"`
-	Error     string    `json:"error"`
+func getPaginationDetails(v url.Values) (int64, int64) {
+	page, _ := strconv.ParseInt(v.Get("page"), 10, 64)
+	perPage, _ := strconv.ParseInt(v.Get("per_page"), 10, 64)
+	return page, perPage
 }

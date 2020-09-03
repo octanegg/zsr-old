@@ -10,7 +10,9 @@ import (
 )
 
 func (h *handler) GetPlayers(w http.ResponseWriter, r *http.Request) {
-	players, err := h.Client.FindPlayers(nil)
+	page, perPage := getPaginationDetails(r.URL.Query())
+	// TODO: Player filters
+	players, err := h.Client.FindPlayers(nil, page, perPage)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})

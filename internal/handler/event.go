@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -11,8 +13,10 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
+// region, tier, mode
 func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
-	events, err := h.Client.FindEvents(nil)
+	page, perPage := getPaginationDetails(r.URL.Query())
+	events, err := h.Client.FindEvents(buildEventFilter(r.URL.Query()), page, perPage)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -50,11 +54,8 @@ func (h *handler) GetEventMatches(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filter := bson.M{
-		"event": oid,
-	}
-
-	matches, err := h.Client.FindMatches(filter)
+	page, perPage := getPaginationDetails(r.URL.Query())
+	matches, err := h.Client.FindMatches(bson.M{"event": oid}, page, perPage)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -142,4 +143,21 @@ func (h *handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusNoContent)
 	}
+}
+
+func buildEventFilter(v url.Values) bson.M {
+	filter := bson.M{}
+	if tier := v.Get("tier"); tier != "" {
+		filter["tier"] = tier
+	}
+	if region := v.Get("region"); region != "" {
+		filter["region"] = region
+	}
+	if mode := v.Get("mode"); mode != "" {
+		if i, err := strconv.Atoi(mode); err == nil {
+			filter["mode"] = i
+		}
+	}
+
+	return filter
 }

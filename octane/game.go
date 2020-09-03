@@ -10,11 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Games .
-type Games struct {
-	Games []interface{} `json:"games"`
-}
-
 // Game .
 type Game struct {
 	ID       *primitive.ObjectID `json:"id" bson:"_id"`
@@ -42,8 +37,8 @@ type PlayerStats struct {
 	Stats  *Stats  `json:"stats" bson:"stats"`
 }
 
-func (c *client) FindGames(filter bson.M) (*Games, error) {
-	games, err := c.Find("games", filter, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindGames(filter bson.M, page, perPage int64) (*Data, error) {
+	games, err := c.Find("games", filter, page, perPage, func(cursor *mongo.Cursor) (interface{}, error) {
 		var game Game
 		if err := cursor.Decode(&game); err != nil {
 			return nil, err
@@ -55,20 +50,29 @@ func (c *client) FindGames(filter bson.M) (*Games, error) {
 		return nil, err
 	}
 
-	return &Games{games}, nil
+	if games == nil {
+		games = make([]interface{}, 0)
+	}
+
+	return &Data{
+		Page:     page,
+		PerPage:  perPage,
+		PageSize: len(games),
+		Data:     games,
+	}, nil
 }
 
 func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
-	games, err := c.FindGames(bson.M{"_id": oid})
+	games, err := c.FindGames(bson.M{"_id": oid}, 0, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(games.Games) == 0 {
+	if len(games.Data) == 0 {
 		return nil, nil
 	}
 
-	game := games.Games[0].(Game)
+	game := games.Data[0].(Game)
 	return &game, nil
 }
 

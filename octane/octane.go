@@ -7,6 +7,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 const (
@@ -22,20 +23,28 @@ type ObjectID struct {
 	ID string `json:"_id"`
 }
 
+// Data .
+type Data struct {
+	Page     int64         `json:"page"`
+	PerPage  int64         `json:"per_page"`
+	PageSize int           `json:"page_size"`
+	Data     []interface{} `json:"data"`
+}
+
 // Client .
 type Client interface {
 	Ping() error
-	Find(string, bson.M, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
+	Find(string, bson.M, int64, int64, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
 	Insert(string, interface{}) (interface{}, error)
 	Update(string, bson.M, bson.M) (interface{}, error)
 	Replace(string, *primitive.ObjectID, interface{}) (interface{}, error)
 	Delete(string, *primitive.ObjectID) (int64, error)
 
-	FindEvents(bson.M) (*Events, error)
-	FindMatches(bson.M) (*Matches, error)
-	FindGames(bson.M) (*Games, error)
-	FindPlayers(bson.M) (*Players, error)
-	FindTeams(bson.M) (*Teams, error)
+	FindEvents(bson.M, int64, int64) (*Data, error)
+	FindMatches(bson.M, int64, int64) (*Data, error)
+	FindGames(bson.M, int64, int64) (*Data, error)
+	FindPlayers(bson.M, int64, int64) (*Data, error)
+	FindTeams(bson.M, int64, int64) (*Data, error)
 
 	FindEvent(*primitive.ObjectID) (*Event, error)
 	FindMatch(*primitive.ObjectID) (*Match, error)
@@ -67,11 +76,17 @@ func (c *client) Ping() error {
 	return c.DB.Ping(context.TODO(), nil)
 }
 
-func (c *client) Find(collection string, filter bson.M, convert func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
+func (c *client) Find(collection string, filter bson.M, page, perPage int64, convert func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
 	ctx := context.TODO()
 	coll := c.DB.Database(database).Collection(collection)
 
-	cursor, err := coll.Find(ctx, filter)
+	opts := options.Find()
+	if page > 0 && perPage > 0 {
+		opts.SetSkip((page - 1) * perPage)
+		opts.SetLimit(perPage)
+	}
+
+	cursor, err := coll.Find(ctx, filter, opts)
 	if err != nil {
 		return nil, err
 	}

@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -12,7 +14,8 @@ import (
 )
 
 func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
-	matches, err := h.Client.FindMatches(nil)
+	page, perPage := getPaginationDetails(r.URL.Query())
+	matches, err := h.Client.FindMatches(buildMatchFilter(r.URL.Query()), page, perPage)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -53,7 +56,7 @@ func (h *handler) GetMatchGames(w http.ResponseWriter, r *http.Request) {
 		"match": oid,
 	}
 
-	games, err := h.Client.FindGames(filter)
+	games, err := h.Client.FindGames(filter, 1, 500)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -141,4 +144,25 @@ func (h *handler) DeleteMatch(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusNoContent)
 	}
+}
+
+func buildMatchFilter(v url.Values) bson.M {
+	filter := bson.M{}
+	if event := v.Get("event"); event != "" {
+		if i, err := primitive.ObjectIDFromHex(event); err == nil {
+			filter["event"] = i
+		}
+	}
+	if stage := v.Get("stage"); stage != "" {
+		if i, err := strconv.Atoi(stage); err == nil {
+			filter["stage"] = i
+		}
+	}
+	if substage := v.Get("substage"); substage != "" {
+		if i, err := strconv.Atoi(substage); err == nil {
+			filter["substage"] = i
+		}
+	}
+
+	return filter
 }

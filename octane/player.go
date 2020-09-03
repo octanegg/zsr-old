@@ -6,19 +6,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// Players .
-type Players struct {
-	Players []interface{} `json:"players"`
-}
-
 // Player .
 type Player struct {
 	ID  *primitive.ObjectID `json:"id" bson:"_id"`
 	Tag *string             `json:"tag" bson:"tag"`
 }
 
-func (c *client) FindPlayers(filter bson.M) (*Players, error) {
-	players, err := c.Find("players", filter, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindPlayers(filter bson.M, page, perPage int64) (*Data, error) {
+	players, err := c.Find("players", filter, page, perPage, func(cursor *mongo.Cursor) (interface{}, error) {
 		var player Player
 		if err := cursor.Decode(&player); err != nil {
 			return nil, err
@@ -30,21 +25,30 @@ func (c *client) FindPlayers(filter bson.M) (*Players, error) {
 		return nil, err
 	}
 
-	return &Players{players}, nil
+	if players == nil {
+		players = make([]interface{}, 0)
+	}
+
+	return &Data{
+		Page:     page,
+		PerPage:  perPage,
+		PageSize: len(players),
+		Data:     players,
+	}, nil
 }
 
 func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
-	players, err := c.FindPlayers(bson.M{"_id": oid})
+	players, err := c.FindPlayers(bson.M{"_id": oid}, 0, 0)
 	if err != nil {
 		return nil, err
 	}
 
-	if len(players.Players) == 0 {
+	if len(players.Data) == 0 {
 		return nil, nil
 	}
 
-	player := players.Players[0].(Player)
+	player := players.Data[0].(Player)
 	return &player, nil
 }
 
-// TODO: Update Players
+// TODO: Update/Insert Players
