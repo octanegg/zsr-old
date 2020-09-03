@@ -11,8 +11,11 @@ import (
 
 // Player .
 type Player struct {
-	ID  *primitive.ObjectID `json:"id" bson:"_id"`
-	Tag *string             `json:"tag" bson:"tag"`
+	ID      *primitive.ObjectID `json:"id" bson:"_id"`
+	Tag     *string             `json:"tag" bson:"tag"`
+	Name    *string             `json:"name" bson:"name"`
+	Country *string             `json:"country" bson:"country"`
+	Team    *string             `json:"team" bson:"team"`
 }
 
 func (c *client) FindPlayers(filter bson.M, page, perPage int64) (*Data, error) {
