@@ -25,26 +25,31 @@ type ObjectID struct {
 
 // Data .
 type Data struct {
-	Page     int64         `json:"page"`
-	PerPage  int64         `json:"per_page"`
-	PageSize int           `json:"page_size"`
-	Data     []interface{} `json:"data"`
+	Data []interface{} `json:"data"`
+	*Pagination
+}
+
+// Pagination .
+type Pagination struct {
+	Page     int64 `json:"page"`
+	PerPage  int64 `json:"per_page"`
+	PageSize int   `json:"page_size"`
 }
 
 // Client .
 type Client interface {
 	Ping() error
-	Find(string, bson.M, int64, int64, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
+	Find(string, bson.M, *Pagination, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
 	Insert(string, interface{}) (interface{}, error)
 	Update(string, bson.M, bson.M) (interface{}, error)
 	Replace(string, *primitive.ObjectID, interface{}) (interface{}, error)
 	Delete(string, *primitive.ObjectID) (int64, error)
 
-	FindEvents(bson.M, int64, int64) (*Data, error)
-	FindMatches(bson.M, int64, int64) (*Data, error)
-	FindGames(bson.M, int64, int64) (*Data, error)
-	FindPlayers(bson.M, int64, int64) (*Data, error)
-	FindTeams(bson.M, int64, int64) (*Data, error)
+	FindEvents(bson.M, *Pagination) (*Data, error)
+	FindMatches(bson.M, *Pagination) (*Data, error)
+	FindGames(bson.M, *Pagination) (*Data, error)
+	FindPlayers(bson.M, *Pagination) (*Data, error)
+	FindTeams(bson.M, *Pagination) (*Data, error)
 
 	FindEvent(*primitive.ObjectID) (*Event, error)
 	FindMatch(*primitive.ObjectID) (*Match, error)
@@ -82,14 +87,14 @@ func (c *client) Ping() error {
 	return c.DB.Ping(context.TODO(), nil)
 }
 
-func (c *client) Find(collection string, filter bson.M, page, perPage int64, convert func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
+func (c *client) Find(collection string, filter bson.M, pagination *Pagination, convert func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
 	ctx := context.TODO()
 	coll := c.DB.Database(database).Collection(collection)
 
 	opts := options.Find()
-	if page > 0 && perPage > 0 {
-		opts.SetSkip((page - 1) * perPage)
-		opts.SetLimit(perPage)
+	if pagination != nil {
+		opts.SetSkip((pagination.Page - 1) * pagination.PerPage)
+		opts.SetLimit(pagination.PerPage)
 	}
 
 	cursor, err := coll.Find(ctx, filter, opts)

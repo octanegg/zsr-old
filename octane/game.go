@@ -38,8 +38,8 @@ type PlayerStats struct {
 	Stats  *Stats  `json:"stats" bson:"stats"`
 }
 
-func (c *client) FindGames(filter bson.M, page, perPage int64) (*Data, error) {
-	games, err := c.Find("games", filter, page, perPage, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindGames(filter bson.M, pagination *Pagination) (*Data, error) {
+	games, err := c.Find("games", filter, pagination, func(cursor *mongo.Cursor) (interface{}, error) {
 		var game Game
 		if err := cursor.Decode(&game); err != nil {
 			return nil, err
@@ -55,16 +55,18 @@ func (c *client) FindGames(filter bson.M, page, perPage int64) (*Data, error) {
 		games = make([]interface{}, 0)
 	}
 
+	if pagination != nil {
+		pagination.PageSize = len(games)
+	}
+
 	return &Data{
-		Page:     page,
-		PerPage:  perPage,
-		PageSize: len(games),
-		Data:     games,
+		games,
+		pagination,
 	}, nil
 }
 
 func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
-	games, err := c.FindGames(bson.M{"_id": oid}, 0, 0)
+	games, err := c.FindGames(bson.M{"_id": oid}, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -104,17 +106,7 @@ func (c *client) InsertGame(game *Game) (*ObjectID, error) {
 		return nil, err
 	}
 
-	if game.Blue.Winner {
-		*match.Blue.Score++
-	} else if game.Orange.Winner {
-		*match.Orange.Score++
-	}
-
-	match.Blue.Winner = *match.Blue.Score > *match.Orange.Score
-	match.Orange.Winner = *match.Orange.Score > *match.Blue.Score
-
-	_, err = c.UpdateMatch(match.ID, match)
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, err
+	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
 func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, error) {
@@ -135,25 +127,8 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, e
 		return nil, err
 	}
 
-	match, err := c.FindMatch(update.MatchID)
-	if err != nil {
-		return nil, err
-	}
-
-	if update.Blue.Winner && !game.Blue.Winner {
-		*match.Blue.Score++
-		*match.Orange.Score--
-	} else if update.Orange.Winner && !game.Orange.Winner {
-		*match.Blue.Score--
-		*match.Orange.Score++
-	}
-
-	match.Blue.Winner = *match.Blue.Score > *match.Orange.Score
-	match.Orange.Winner = *match.Orange.Score > *match.Blue.Score
-
-	_, err = c.UpdateMatch(match.ID, match)
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, err
+		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
 	}
 	return &ObjectID{oid.Hex()}, err
 }

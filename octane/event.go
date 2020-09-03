@@ -48,8 +48,8 @@ type Prize struct {
 	Currency *string  `json:"currency" bson:"currency"`
 }
 
-func (c *client) FindEvents(filter bson.M, page, perPage int64) (*Data, error) {
-	events, err := c.Find("events", filter, page, perPage, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindEvents(filter bson.M, pagination *Pagination) (*Data, error) {
+	events, err := c.Find("events", filter, pagination, func(cursor *mongo.Cursor) (interface{}, error) {
 		var event Event
 		if err := cursor.Decode(&event); err != nil {
 			return nil, err
@@ -65,16 +65,18 @@ func (c *client) FindEvents(filter bson.M, page, perPage int64) (*Data, error) {
 		events = make([]interface{}, 0)
 	}
 
+	if pagination != nil {
+		pagination.PageSize = len(events)
+	}
+
 	return &Data{
-		Page:     page,
-		PerPage:  perPage,
-		PageSize: len(events),
-		Data:     events,
+		events,
+		pagination,
 	}, nil
 }
 
 func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
-	events, err := c.FindEvents(bson.M{"_id": oid}, 0, 0)
+	events, err := c.FindEvents(bson.M{"_id": oid}, nil)
 	if err != nil {
 		return nil, err
 	}

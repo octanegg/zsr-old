@@ -15,8 +15,8 @@ type Team struct {
 	Name *string             `json:"name" bson:"name"`
 }
 
-func (c *client) FindTeams(filter bson.M, page, perPage int64) (*Data, error) {
-	teams, err := c.Find("teams", filter, page, perPage, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindTeams(filter bson.M, pagination *Pagination) (*Data, error) {
+	teams, err := c.Find("teams", filter, pagination, func(cursor *mongo.Cursor) (interface{}, error) {
 		var team Team
 		if err := cursor.Decode(&team); err != nil {
 			return nil, err
@@ -32,16 +32,18 @@ func (c *client) FindTeams(filter bson.M, page, perPage int64) (*Data, error) {
 		teams = make([]interface{}, 0)
 	}
 
+	if pagination != nil {
+		pagination.PageSize = len(teams)
+	}
+
 	return &Data{
-		Page:     page,
-		PerPage:  perPage,
-		PageSize: len(teams),
-		Data:     teams,
+		teams,
+		pagination,
 	}, nil
 }
 
 func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
-	teams, err := c.FindTeams(bson.M{"_id": oid}, 0, 0)
+	teams, err := c.FindTeams(bson.M{"_id": oid}, nil)
 	if err != nil {
 		return nil, err
 	}

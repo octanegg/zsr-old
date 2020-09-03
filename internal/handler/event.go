@@ -15,8 +15,11 @@ import (
 
 // region, tier, mode
 func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
-	page, perPage := getPaginationDetails(r.URL.Query())
-	events, err := h.Client.FindEvents(buildEventFilter(r.URL.Query()), page, perPage)
+	events, err := h.Client.FindEvents(
+		buildEventFilter(r.URL.Query()),
+		getPagination(r.URL.Query()),
+	)
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})

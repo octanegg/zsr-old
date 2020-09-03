@@ -11,8 +11,11 @@ import (
 )
 
 func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
-	page, perPage := getPaginationDetails(r.URL.Query())
-	teams, err := h.Client.FindTeams(nil, page, perPage)
+	teams, err := h.Client.FindTeams(
+		buildGameFilter(r.URL.Query()),
+		getPagination(r.URL.Query()),
+	)
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})

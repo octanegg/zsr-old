@@ -31,8 +31,8 @@ type MatchSide struct {
 	Players []*Player `json:"players,omitempty" bson:"players,omitempty"`
 }
 
-func (c *client) FindMatches(filter bson.M, page, perPage int64) (*Data, error) {
-	matches, err := c.Find("matches", filter, page, perPage, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindMatches(filter bson.M, pagination *Pagination) (*Data, error) {
+	matches, err := c.Find("matches", filter, pagination, func(cursor *mongo.Cursor) (interface{}, error) {
 		var match Match
 		if err := cursor.Decode(&match); err != nil {
 			return nil, err
@@ -48,16 +48,18 @@ func (c *client) FindMatches(filter bson.M, page, perPage int64) (*Data, error) 
 		matches = make([]interface{}, 0)
 	}
 
+	if pagination != nil {
+		pagination.PageSize = len(matches)
+	}
+
 	return &Data{
-		Page:     page,
-		PerPage:  perPage,
-		PageSize: len(matches),
-		Data:     matches,
+		matches,
+		pagination,
 	}, nil
 }
 
 func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
-	matches, err := c.FindMatches(bson.M{"_id": oid}, 0, 0)
+	matches, err := c.FindMatches(bson.M{"_id": oid}, nil)
 	if err != nil {
 		return nil, err
 	}

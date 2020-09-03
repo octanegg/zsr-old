@@ -14,8 +14,11 @@ import (
 )
 
 func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
-	page, perPage := getPaginationDetails(r.URL.Query())
-	matches, err := h.Client.FindMatches(buildMatchFilter(r.URL.Query()), page, perPage)
+	matches, err := h.Client.FindMatches(
+		buildGameFilter(r.URL.Query()),
+		getPagination(r.URL.Query()),
+	)
+
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})

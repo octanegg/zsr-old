@@ -66,8 +66,15 @@ func NewHandler(client octane.Client) Handler {
 	}
 }
 
-func getPaginationDetails(v url.Values) (int64, int64) {
+func getPagination(v url.Values) *octane.Pagination {
 	page, _ := strconv.ParseInt(v.Get("page"), 10, 64)
 	perPage, _ := strconv.ParseInt(v.Get("per_page"), 10, 64)
-	return page, perPage
+	if page == 0 || perPage == 0 {
+		return nil
+	}
+
+	return &octane.Pagination{
+		Page:    page,
+		PerPage: perPage,
+	}
 }
