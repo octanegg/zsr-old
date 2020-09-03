@@ -17,6 +17,7 @@ func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 	matches, err := h.Client.FindMatches(
 		buildGameFilter(r.URL.Query()),
 		getPagination(r.URL.Query()),
+		getSort(r.URL.Query()),
 	)
 
 	if err != nil {

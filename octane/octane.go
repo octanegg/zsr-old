@@ -32,24 +32,30 @@ type Data struct {
 // Pagination .
 type Pagination struct {
 	Page     int64 `json:"page"`
-	PerPage  int64 `json:"per_page"`
-	PageSize int   `json:"page_size"`
+	PerPage  int64 `json:"perPage"`
+	PageSize int   `json:"pageSize"`
+}
+
+// Sort .
+type Sort struct {
+	Field string
+	Order int
 }
 
 // Client .
 type Client interface {
 	Ping() error
-	Find(string, bson.M, *Pagination, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
+	Find(string, bson.M, *Pagination, *Sort, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
 	Insert(string, interface{}) (interface{}, error)
 	Update(string, bson.M, bson.M) (interface{}, error)
 	Replace(string, *primitive.ObjectID, interface{}) (interface{}, error)
 	Delete(string, *primitive.ObjectID) (int64, error)
 
-	FindEvents(bson.M, *Pagination) (*Data, error)
-	FindMatches(bson.M, *Pagination) (*Data, error)
-	FindGames(bson.M, *Pagination) (*Data, error)
-	FindPlayers(bson.M, *Pagination) (*Data, error)
-	FindTeams(bson.M, *Pagination) (*Data, error)
+	FindEvents(bson.M, *Pagination, *Sort) (*Data, error)
+	FindMatches(bson.M, *Pagination, *Sort) (*Data, error)
+	FindGames(bson.M, *Pagination, *Sort) (*Data, error)
+	FindPlayers(bson.M, *Pagination, *Sort) (*Data, error)
+	FindTeams(bson.M, *Pagination, *Sort) (*Data, error)
 
 	FindEvent(*primitive.ObjectID) (*Event, error)
 	FindMatch(*primitive.ObjectID) (*Match, error)
@@ -87,7 +93,7 @@ func (c *client) Ping() error {
 	return c.DB.Ping(context.TODO(), nil)
 }
 
-func (c *client) Find(collection string, filter bson.M, pagination *Pagination, convert func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
+func (c *client) Find(collection string, filter bson.M, pagination *Pagination, sort *Sort, convert func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
 	ctx := context.TODO()
 	coll := c.DB.Database(database).Collection(collection)
 
@@ -95,6 +101,10 @@ func (c *client) Find(collection string, filter bson.M, pagination *Pagination, 
 	if pagination != nil {
 		opts.SetSkip((pagination.Page - 1) * pagination.PerPage)
 		opts.SetLimit(pagination.PerPage)
+	}
+
+	if sort != nil {
+		opts.SetSort(bson.M{sort.Field: sort.Order})
 	}
 
 	cursor, err := coll.Find(ctx, filter, opts)

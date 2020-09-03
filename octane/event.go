@@ -14,8 +14,8 @@ import (
 type Event struct {
 	ID        *primitive.ObjectID `json:"id" bson:"_id"`
 	Name      *string             `json:"name" bson:"name"`
-	StartDate *time.Time          `json:"start_date,omitempty" bson:"startDate,omitempty"`
-	EndDate   *time.Time          `json:"end_date,omitempty" bson:"endDate,omitempty"`
+	StartDate *time.Time          `json:"startDate,omitempty" bson:"startDate,omitempty"`
+	EndDate   *time.Time          `json:"endDate,omitempty" bson:"endDate,omitempty"`
 	Region    *string             `json:"region" bson:"region"`
 	Mode      *int                `json:"mode" bson:"mode"`
 	Prize     *Prize              `json:"prize,omitempty" bson:"prize,omitempty"`
@@ -28,8 +28,8 @@ type Stage struct {
 	Name       *string     `json:"name" bson:"name"`
 	Format     *string     `json:"format" bson:"format"`
 	Region     *string     `json:"region" bson:"region"`
-	StartDate  *time.Time  `json:"start_date,omitempty" bson:"startDate,omitempty"`
-	EndDate    *time.Time  `json:"end_date,omitempty" bson:"endDate,omitempty"`
+	StartDate  *time.Time  `json:"startDate,omitempty" bson:"startDate,omitempty"`
+	EndDate    *time.Time  `json:"endDate,omitempty" bson:"endDate,omitempty"`
 	Prize      *Prize      `json:"prize,omitempty" bson:"prize,omitempty"`
 	Liquipedia *string     `json:"liquipedia" bson:"liquipedia"`
 	Qualifier  *bool       `json:"qualifier,omitempty" bson:"qualifier,omitempty"`
@@ -48,8 +48,8 @@ type Prize struct {
 	Currency *string  `json:"currency" bson:"currency"`
 }
 
-func (c *client) FindEvents(filter bson.M, pagination *Pagination) (*Data, error) {
-	events, err := c.Find("events", filter, pagination, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindEvents(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
+	events, err := c.Find("events", filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
 		var event Event
 		if err := cursor.Decode(&event); err != nil {
 			return nil, err
@@ -76,7 +76,7 @@ func (c *client) FindEvents(filter bson.M, pagination *Pagination) (*Data, error
 }
 
 func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
-	events, err := c.FindEvents(bson.M{"_id": oid}, nil)
+	events, err := c.FindEvents(bson.M{"_id": oid}, nil, nil)
 	if err != nil {
 		return nil, err
 	}

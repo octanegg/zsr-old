@@ -18,6 +18,7 @@ func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	events, err := h.Client.FindEvents(
 		buildEventFilter(r.URL.Query()),
 		getPagination(r.URL.Query()),
+		getSort(r.URL.Query()),
 	)
 
 	if err != nil {

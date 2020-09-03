@@ -14,6 +14,7 @@ func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 	teams, err := h.Client.FindTeams(
 		buildGameFilter(r.URL.Query()),
 		getPagination(r.URL.Query()),
+		getSort(r.URL.Query()),
 	)
 
 	if err != nil {

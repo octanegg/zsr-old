@@ -18,8 +18,8 @@ type Player struct {
 	Team    *string             `json:"team" bson:"team"`
 }
 
-func (c *client) FindPlayers(filter bson.M, pagination *Pagination) (*Data, error) {
-	players, err := c.Find("players", filter, pagination, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindPlayers(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
+	players, err := c.Find("players", filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
 		var player Player
 		if err := cursor.Decode(&player); err != nil {
 			return nil, err
@@ -46,7 +46,7 @@ func (c *client) FindPlayers(filter bson.M, pagination *Pagination) (*Data, erro
 }
 
 func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
-	players, err := c.FindPlayers(bson.M{"_id": oid}, nil)
+	players, err := c.FindPlayers(bson.M{"_id": oid}, nil, nil)
 	if err != nil {
 		return nil, err
 	}

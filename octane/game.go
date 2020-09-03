@@ -38,8 +38,8 @@ type PlayerStats struct {
 	Stats  *Stats  `json:"stats" bson:"stats"`
 }
 
-func (c *client) FindGames(filter bson.M, pagination *Pagination) (*Data, error) {
-	games, err := c.Find("games", filter, pagination, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindGames(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
+	games, err := c.Find("games", filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
 		var game Game
 		if err := cursor.Decode(&game); err != nil {
 			return nil, err
@@ -66,7 +66,7 @@ func (c *client) FindGames(filter bson.M, pagination *Pagination) (*Data, error)
 }
 
 func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
-	games, err := c.FindGames(bson.M{"_id": oid}, nil)
+	games, err := c.FindGames(bson.M{"_id": oid}, nil, nil)
 	if err != nil {
 		return nil, err
 	}

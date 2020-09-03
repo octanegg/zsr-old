@@ -14,6 +14,7 @@ func (h *handler) GetPlayers(w http.ResponseWriter, r *http.Request) {
 	players, err := h.Client.FindPlayers(
 		buildGameFilter(r.URL.Query()),
 		getPagination(r.URL.Query()),
+		getSort(r.URL.Query()),
 	)
 
 	if err != nil {

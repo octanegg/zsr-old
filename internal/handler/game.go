@@ -16,6 +16,7 @@ func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 	games, err := h.Client.FindGames(
 		buildGameFilter(r.URL.Query()),
 		getPagination(r.URL.Query()),
+		getSort(r.URL.Query()),
 	)
 
 	if err != nil {

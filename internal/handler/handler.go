@@ -78,3 +78,20 @@ func getPagination(v url.Values) *octane.Pagination {
 		PerPage: perPage,
 	}
 }
+
+func getSort(v url.Values) *octane.Sort {
+	var order int
+	switch v.Get("order") {
+	case "asc":
+		order = 1
+	case "desc":
+		order = -1
+	default:
+		return nil
+	}
+
+	return &octane.Sort{
+		Field: v.Get("sort"),
+		Order: order,
+	}
+}
