@@ -123,5 +123,5 @@ func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*ObjectID,
 }
 
 func (c *client) DeleteMatch(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete("events", oid)
+	return c.Delete("matches", oid)
 }

@@ -43,14 +43,20 @@ type Handler interface {
 	PutEvent(http.ResponseWriter, *http.Request)
 	PutMatch(http.ResponseWriter, *http.Request)
 	PutGame(http.ResponseWriter, *http.Request)
+	PutPlayer(http.ResponseWriter, *http.Request)
+	PutTeam(http.ResponseWriter, *http.Request)
 
 	UpdateEvent(http.ResponseWriter, *http.Request)
 	UpdateMatch(http.ResponseWriter, *http.Request)
 	UpdateGame(http.ResponseWriter, *http.Request)
+	UpdatePlayer(http.ResponseWriter, *http.Request)
+	UpdateTeam(http.ResponseWriter, *http.Request)
 
 	DeleteEvent(http.ResponseWriter, *http.Request)
 	DeleteMatch(http.ResponseWriter, *http.Request)
 	DeleteGame(http.ResponseWriter, *http.Request)
+	DeletePlayer(http.ResponseWriter, *http.Request)
+	DeleteTeam(http.ResponseWriter, *http.Request)
 }
 
 // NewHandler .

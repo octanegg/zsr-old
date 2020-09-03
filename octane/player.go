@@ -1,6 +1,9 @@
 package octane
 
 import (
+	"errors"
+	"reflect"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -51,4 +54,43 @@ func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
 	return &player, nil
 }
 
-// TODO: Update/Insert Players
+func (c *client) InsertPlayer(player *Player) (*ObjectID, error) {
+	id := primitive.NewObjectID()
+	player.ID = &id
+
+	oid, err := c.Insert("players", player)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+}
+
+func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*ObjectID, error) {
+	player, err := c.FindPlayer(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	if player == nil {
+		return nil, errors.New("No player found for ID")
+	}
+
+	update := updateFields(reflect.ValueOf(player).Elem(), reflect.ValueOf(fields).Elem()).(Player)
+	update.ID = oid
+
+	id, err := c.Replace("players", oid, update)
+	if err != nil {
+		return nil, err
+	}
+
+	if id != nil {
+		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+	}
+
+	return &ObjectID{oid.Hex()}, nil
+}
+
+func (c *client) DeletePlayer(oid *primitive.ObjectID) (int64, error) {
+	return c.Delete("players", oid)
+}

@@ -55,14 +55,20 @@ type Client interface {
 	InsertEvent(*Event) (*ObjectID, error)
 	InsertMatch(*Match) (*ObjectID, error)
 	InsertGame(*Game) (*ObjectID, error)
+	InsertPlayer(*Player) (*ObjectID, error)
+	InsertTeam(*Team) (*ObjectID, error)
 
 	UpdateEvent(*primitive.ObjectID, *Event) (*ObjectID, error)
 	UpdateMatch(*primitive.ObjectID, *Match) (*ObjectID, error)
 	UpdateGame(*primitive.ObjectID, *Game) (*ObjectID, error)
+	UpdatePlayer(*primitive.ObjectID, *Player) (*ObjectID, error)
+	UpdateTeam(*primitive.ObjectID, *Team) (*ObjectID, error)
 
 	DeleteEvent(*primitive.ObjectID) (int64, error)
 	DeleteMatch(*primitive.ObjectID) (int64, error)
 	DeleteGame(*primitive.ObjectID) (int64, error)
+	DeletePlayer(*primitive.ObjectID) (int64, error)
+	DeleteTeam(*primitive.ObjectID) (int64, error)
 }
 
 // NewClient .

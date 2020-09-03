@@ -136,5 +136,5 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, e
 }
 
 func (c *client) DeleteGame(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete("events", oid)
+	return c.Delete("games", oid)
 }
