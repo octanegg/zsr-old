@@ -12,7 +12,6 @@ import (
 
 func (h *handler) GetPlayers(w http.ResponseWriter, r *http.Request) {
 	page, perPage := getPaginationDetails(r.URL.Query())
-	// TODO: Player filters
 	players, err := h.Client.FindPlayers(nil, page, perPage)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

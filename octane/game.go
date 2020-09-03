@@ -13,6 +13,7 @@ import (
 // Game .
 type Game struct {
 	ID       *primitive.ObjectID `json:"id" bson:"_id"`
+	Number   *int                `json:"number" bson:"number"`
 	MatchID  *primitive.ObjectID `json:"match" bson:"match"`
 	EventID  *primitive.ObjectID `json:"event" bson:"event"`
 	Map      *string             `json:"map" bson:"map"`
@@ -26,7 +27,7 @@ type Game struct {
 // GameSide .
 type GameSide struct {
 	Goals   *int           `json:"goals" bson:"goals"`
-	Winner  *bool          `json:"winner" bson:"winner"`
+	Winner  bool           `json:"winner" bson:"winner"`
 	Team    *Team          `json:"team" bson:"team"`
 	Players []*PlayerStats `json:"players" bson:"players"`
 }
@@ -103,9 +104,17 @@ func (c *client) InsertGame(game *Game) (*ObjectID, error) {
 		return nil, err
 	}
 
-	// TODO: Update matches with players / Update matches score / Update matches with game IDs
+	if game.Blue.Winner {
+		*match.Blue.Score++
+	} else if game.Orange.Winner {
+		*match.Orange.Score++
+	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	match.Blue.Winner = *match.Blue.Score > *match.Orange.Score
+	match.Orange.Winner = *match.Orange.Score > *match.Blue.Score
+
+	_, err = c.UpdateMatch(match.ID, match)
+	return &ObjectID{oid.(primitive.ObjectID).Hex()}, err
 }
 
 func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, error) {
@@ -126,13 +135,27 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, e
 		return nil, err
 	}
 
-	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+	match, err := c.FindMatch(update.MatchID)
+	if err != nil {
+		return nil, err
 	}
 
-	// TODO: Update matches with players / Update matches score / Update matches with game IDs
+	if update.Blue.Winner && !game.Blue.Winner {
+		*match.Blue.Score++
+		*match.Orange.Score--
+	} else if update.Orange.Winner && !game.Orange.Winner {
+		*match.Blue.Score--
+		*match.Orange.Score++
+	}
 
-	return &ObjectID{oid.Hex()}, nil
+	match.Blue.Winner = *match.Blue.Score > *match.Orange.Score
+	match.Orange.Winner = *match.Orange.Score > *match.Blue.Score
+
+	_, err = c.UpdateMatch(match.ID, match)
+	if id != nil {
+		return &ObjectID{id.(primitive.ObjectID).Hex()}, err
+	}
+	return &ObjectID{oid.Hex()}, err
 }
 
 func (c *client) DeleteGame(oid *primitive.ObjectID) (int64, error) {

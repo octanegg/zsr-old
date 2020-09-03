@@ -12,7 +12,6 @@ import (
 
 func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 	page, perPage := getPaginationDetails(r.URL.Query())
-	// TODO: Team filters
 	teams, err := h.Client.FindTeams(nil, page, perPage)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

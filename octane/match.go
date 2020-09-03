@@ -12,22 +12,21 @@ import (
 
 // Match .
 type Match struct {
-	ID       *primitive.ObjectID   `json:"id" bson:"_id"`
-	EventID  *primitive.ObjectID   `json:"event" bson:"event"`
-	Stage    *int                  `json:"stage" bson:"stage"`
-	Substage *int                  `json:"substage,omitempty" bson:"substage,omitempty"`
-	Date     *time.Time            `json:"date,omitempty" bson:"date,omitempty"`
-	Format   *string               `json:"format" bson:"format"`
-	Blue     *MatchSide            `json:"blue,omitempty" bson:"blue,omitempty"`
-	Orange   *MatchSide            `json:"orange,omitempty" bson:"orange,omitempty"`
-	Games    []*primitive.ObjectID `json:"games,omitempty" bson:"games,omitempty"`
-	Mode     *int                  `json:"mode" bson:"mode"`
+	ID       *primitive.ObjectID `json:"id" bson:"_id"`
+	EventID  *primitive.ObjectID `json:"event" bson:"event"`
+	Stage    *int                `json:"stage" bson:"stage"`
+	Substage *int                `json:"substage,omitempty" bson:"substage,omitempty"`
+	Date     *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
+	Format   *string             `json:"format" bson:"format"`
+	Blue     *MatchSide          `json:"blue,omitempty" bson:"blue,omitempty"`
+	Orange   *MatchSide          `json:"orange,omitempty" bson:"orange,omitempty"`
+	Mode     *int                `json:"mode" bson:"mode"`
 }
 
 // MatchSide .
 type MatchSide struct {
 	Score   *int      `json:"score,omitempty" bson:"score,omitempty"`
-	Winner  *bool     `json:"winner,omitempty" bson:"winner,omitempty"`
+	Winner  bool      `json:"winner,omitempty" bson:"winner,omitempty"`
 	Team    *Team     `json:"team,omitempty" bson:"team,omitempty"`
 	Players []*Player `json:"players,omitempty" bson:"players,omitempty"`
 }
@@ -90,8 +89,6 @@ func (c *client) InsertMatch(match *Match) (*ObjectID, error) {
 		return nil, err
 	}
 
-	// TODO: Update event with list of matches
-
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
@@ -116,8 +113,6 @@ func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*ObjectID,
 	if id != nil {
 		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
 	}
-
-	// TODO: Update event with list of matches
 
 	return &ObjectID{oid.Hex()}, nil
 }
