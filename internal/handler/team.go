@@ -3,16 +3,18 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/octanegg/core/octane"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 	teams, err := h.Client.FindTeams(
-		buildGameFilter(r.URL.Query()),
+		buildTeamFilter(r.URL.Query()),
 		getPagination(r.URL.Query()),
 		getSort(r.URL.Query()),
 	)
@@ -123,4 +125,10 @@ func (h *handler) DeleteTeam(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusNoContent)
 	}
+}
+
+func buildTeamFilter(v url.Values) bson.M {
+	filter := bson.M{}
+
+	return filter
 }

@@ -128,10 +128,8 @@ func (h *handler) DeleteGame(w http.ResponseWriter, r *http.Request) {
 
 func buildGameFilter(v url.Values) bson.M {
 	filter := bson.M{}
-	if match := v.Get("match"); match != "" {
-		if i, err := primitive.ObjectIDFromHex(match); err == nil {
-			filter["match"] = i
-		}
+	if match, err := primitive.ObjectIDFromHex(v.Get("match")); err == nil {
+		filter["match"] = match
 	}
 
 	return filter

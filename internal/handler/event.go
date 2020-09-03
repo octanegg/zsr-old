@@ -137,10 +137,8 @@ func buildEventFilter(v url.Values) bson.M {
 	if region := v.Get("region"); region != "" {
 		filter["region"] = region
 	}
-	if mode := v.Get("mode"); mode != "" {
-		if i, err := strconv.Atoi(mode); err == nil {
-			filter["mode"] = i
-		}
+	if mode, err := strconv.Atoi(v.Get("mode")); err == nil {
+		filter["mode"] = mode
 	}
 
 	return filter

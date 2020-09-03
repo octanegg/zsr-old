@@ -15,7 +15,7 @@ import (
 
 func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 	matches, err := h.Client.FindMatches(
-		buildGameFilter(r.URL.Query()),
+		buildMatchFilter(r.URL.Query()),
 		getPagination(r.URL.Query()),
 		getSort(r.URL.Query()),
 	)
@@ -130,20 +130,14 @@ func (h *handler) DeleteMatch(w http.ResponseWriter, r *http.Request) {
 
 func buildMatchFilter(v url.Values) bson.M {
 	filter := bson.M{}
-	if event := v.Get("event"); event != "" {
-		if i, err := primitive.ObjectIDFromHex(event); err == nil {
-			filter["event"] = i
-		}
+	if event, err := primitive.ObjectIDFromHex(v.Get("event")); err == nil {
+		filter["event"] = event
 	}
-	if stage := v.Get("stage"); stage != "" {
-		if i, err := strconv.Atoi(stage); err == nil {
-			filter["stage"] = i
-		}
+	if stage, err := strconv.Atoi(v.Get("stage")); err == nil {
+		filter["stage"] = stage
 	}
-	if substage := v.Get("substage"); substage != "" {
-		if i, err := strconv.Atoi(substage); err == nil {
-			filter["substage"] = i
-		}
+	if substage, err := strconv.Atoi(v.Get("substage")); err == nil {
+		filter["substage"] = substage
 	}
 
 	return filter
