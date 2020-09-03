@@ -26,10 +26,10 @@ type Game struct {
 
 // GameSide .
 type GameSide struct {
-	Goals   *int           `json:"goals" bson:"goals"`
-	Winner  bool           `json:"winner" bson:"winner"`
-	Team    *Team          `json:"team" bson:"team"`
-	Players []*PlayerStats `json:"players" bson:"players"`
+	Goals   *int                `json:"goals" bson:"goals"`
+	Winner  bool                `json:"winner" bson:"winner"`
+	Team    *primitive.ObjectID `json:"team" bson:"team"`
+	Players []*PlayerStats      `json:"players" bson:"players"`
 }
 
 // PlayerStats .

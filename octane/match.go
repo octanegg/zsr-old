@@ -25,10 +25,10 @@ type Match struct {
 
 // MatchSide .
 type MatchSide struct {
-	Score   *int      `json:"score,omitempty" bson:"score,omitempty"`
-	Winner  bool      `json:"winner,omitempty" bson:"winner,omitempty"`
-	Team    *Team     `json:"team,omitempty" bson:"team,omitempty"`
-	Players []*Player `json:"players,omitempty" bson:"players,omitempty"`
+	Score   *int                  `json:"score,omitempty" bson:"score,omitempty"`
+	Winner  bool                  `json:"winner,omitempty" bson:"winner,omitempty"`
+	Team    *primitive.ObjectID   `json:"team,omitempty" bson:"team,omitempty"`
+	Players []*primitive.ObjectID `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
