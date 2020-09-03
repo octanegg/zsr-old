@@ -3,17 +3,18 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/octanegg/core/octane"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
-	// TODO: Games filters
 	page, perPage := getPaginationDetails(r.URL.Query())
-	games, err := h.Client.FindGames(nil, page, perPage)
+	games, err := h.Client.FindGames(buildGameFilter(r.URL.Query()), page, perPage)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -119,4 +120,15 @@ func (h *handler) DeleteGame(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusNoContent)
 	}
+}
+
+func buildGameFilter(v url.Values) bson.M {
+	filter := bson.M{}
+	if match := v.Get("match"); match != "" {
+		if i, err := primitive.ObjectIDFromHex(match); err == nil {
+			filter["match"] = i
+		}
+	}
+
+	return filter
 }

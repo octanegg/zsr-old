@@ -45,28 +45,6 @@ func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(match)
 }
 
-func (h *handler) GetMatchGames(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-	}
-
-	filter := bson.M{
-		"match": oid,
-	}
-
-	games, err := h.Client.FindGames(filter, 1, 500)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(games)
-}
-
 func (h *handler) PutMatch(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get(contentType) != applicationJSON {
 		w.WriteHeader(http.StatusUnsupportedMediaType)

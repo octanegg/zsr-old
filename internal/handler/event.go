@@ -46,26 +46,6 @@ func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(event)
 }
 
-func (h *handler) GetEventMatches(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	page, perPage := getPaginationDetails(r.URL.Query())
-	matches, err := h.Client.FindMatches(bson.M{"event": oid}, page, perPage)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(matches)
-}
-
 func (h *handler) PutEvent(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get(contentType) != applicationJSON {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
