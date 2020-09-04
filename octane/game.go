@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -39,7 +40,7 @@ type PlayerStats struct {
 }
 
 func (c *client) FindGames(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	games, err := c.Find("games", filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+	games, err := c.Find(config.CollectionGames, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
 		var game Game
 		if err := cursor.Decode(&game); err != nil {
 			return nil, err
@@ -66,7 +67,7 @@ func (c *client) FindGames(filter bson.M, pagination *Pagination, sort *Sort) (*
 }
 
 func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
-	games, err := c.FindGames(bson.M{"_id": oid}, nil, nil)
+	games, err := c.FindGames(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +102,7 @@ func (c *client) InsertGame(game *Game) (*ObjectID, error) {
 	game.Mode = event.Mode
 	game.Date = match.Date
 
-	oid, err := c.Insert("games", game)
+	oid, err := c.Insert(config.CollectionGames, game)
 	if err != nil {
 		return nil, err
 	}
@@ -116,13 +117,13 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, e
 	}
 
 	if game == nil {
-		return nil, errors.New("No game found for ID")
+		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
 	update := updateFields(reflect.ValueOf(game).Elem(), reflect.ValueOf(fields).Elem()).(Game)
 	update.ID = oid
 
-	id, err := c.Replace("games", oid, update)
+	id, err := c.Replace(config.CollectionGames, oid, update)
 	if err != nil {
 		return nil, err
 	}
@@ -134,5 +135,5 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, e
 }
 
 func (c *client) DeleteGame(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete("games", oid)
+	return c.Delete(config.CollectionGames, oid)
 }

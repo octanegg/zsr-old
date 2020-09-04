@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/core/internal/config"
 	"github.com/octanegg/core/octane"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -30,7 +31,7 @@ func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetTeam(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -49,9 +50,9 @@ func (h *handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PutTeam(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(contentType) != applicationJSON {
+	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), errContentType})
+		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
 		return
 	}
 
@@ -74,13 +75,13 @@ func (h *handler) PutTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(contentType) != applicationJSON {
+	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), errContentType})
+		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
 		return
 	}
 
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -106,7 +107,7 @@ func (h *handler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) DeleteTeam(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})

@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"time"
 
+	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -49,7 +50,7 @@ type Prize struct {
 }
 
 func (c *client) FindEvents(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	events, err := c.Find("events", filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+	events, err := c.Find(config.CollectionEvents, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
 		var event Event
 		if err := cursor.Decode(&event); err != nil {
 			return nil, err
@@ -76,7 +77,7 @@ func (c *client) FindEvents(filter bson.M, pagination *Pagination, sort *Sort) (
 }
 
 func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
-	events, err := c.FindEvents(bson.M{"_id": oid}, nil, nil)
+	events, err := c.FindEvents(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +93,7 @@ func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
 func (c *client) InsertEvent(event *Event) (*ObjectID, error) {
 	id := primitive.NewObjectID()
 	event.ID = &id
-	oid, err := c.Insert("events", event)
+	oid, err := c.Insert(config.CollectionEvents, event)
 	if err != nil {
 		return nil, err
 	}
@@ -107,13 +108,13 @@ func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID,
 	}
 
 	if event == nil {
-		return nil, errors.New("No event found for ID")
+		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
 	update := updateFields(reflect.ValueOf(event).Elem(), reflect.ValueOf(fields).Elem()).(Event)
 	update.ID = oid
 
-	id, err := c.Replace("events", oid, update)
+	id, err := c.Replace(config.CollectionEvents, oid, update)
 	if err != nil {
 		return nil, err
 	}
@@ -126,5 +127,5 @@ func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID,
 }
 
 func (c *client) DeleteEvent(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete("events", oid)
+	return c.Delete(config.CollectionEvents, oid)
 }

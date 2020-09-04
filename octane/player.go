@@ -4,6 +4,7 @@ import (
 	"errors"
 	"reflect"
 
+	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -19,7 +20,7 @@ type Player struct {
 }
 
 func (c *client) FindPlayers(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	players, err := c.Find("players", filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+	players, err := c.Find(config.CollectionPlayers, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
 		var player Player
 		if err := cursor.Decode(&player); err != nil {
 			return nil, err
@@ -46,7 +47,7 @@ func (c *client) FindPlayers(filter bson.M, pagination *Pagination, sort *Sort) 
 }
 
 func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
-	players, err := c.FindPlayers(bson.M{"_id": oid}, nil, nil)
+	players, err := c.FindPlayers(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -63,7 +64,7 @@ func (c *client) InsertPlayer(player *Player) (*ObjectID, error) {
 	id := primitive.NewObjectID()
 	player.ID = &id
 
-	oid, err := c.Insert("players", player)
+	oid, err := c.Insert(config.CollectionPlayers, player)
 	if err != nil {
 		return nil, err
 	}
@@ -78,13 +79,13 @@ func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*ObjectI
 	}
 
 	if player == nil {
-		return nil, errors.New("No player found for ID")
+		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
 	update := updateFields(reflect.ValueOf(player).Elem(), reflect.ValueOf(fields).Elem()).(Player)
 	update.ID = oid
 
-	id, err := c.Replace("players", oid, update)
+	id, err := c.Replace(config.CollectionPlayers, oid, update)
 	if err != nil {
 		return nil, err
 	}
@@ -97,5 +98,5 @@ func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*ObjectI
 }
 
 func (c *client) DeletePlayer(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete("players", oid)
+	return c.Delete(config.CollectionPlayers, oid)
 }

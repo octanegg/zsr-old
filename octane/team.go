@@ -4,6 +4,7 @@ import (
 	"errors"
 	"reflect"
 
+	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -16,7 +17,7 @@ type Team struct {
 }
 
 func (c *client) FindTeams(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	teams, err := c.Find("teams", filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+	teams, err := c.Find(config.CollectionTeams, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
 		var team Team
 		if err := cursor.Decode(&team); err != nil {
 			return nil, err
@@ -43,7 +44,7 @@ func (c *client) FindTeams(filter bson.M, pagination *Pagination, sort *Sort) (*
 }
 
 func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
-	teams, err := c.FindTeams(bson.M{"_id": oid}, nil, nil)
+	teams, err := c.FindTeams(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -60,7 +61,7 @@ func (c *client) InsertTeam(team *Team) (*ObjectID, error) {
 	id := primitive.NewObjectID()
 	team.ID = &id
 
-	oid, err := c.Insert("teams", team)
+	oid, err := c.Insert(config.CollectionTeams, team)
 	if err != nil {
 		return nil, err
 	}
@@ -75,13 +76,13 @@ func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*ObjectID, e
 	}
 
 	if team == nil {
-		return nil, errors.New("No team found for ID")
+		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
 	update := updateFields(reflect.ValueOf(team).Elem(), reflect.ValueOf(fields).Elem()).(Team)
 	update.ID = oid
 
-	id, err := c.Replace("teams", oid, update)
+	id, err := c.Replace(config.CollectionTeams, oid, update)
 	if err != nil {
 		return nil, err
 	}
@@ -94,5 +95,5 @@ func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*ObjectID, e
 }
 
 func (c *client) DeleteTeam(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete("teams", oid)
+	return c.Delete(config.CollectionTeams, oid)
 }

@@ -6,13 +6,8 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/octanegg/core/internal/config"
 	"github.com/octanegg/core/octane"
-)
-
-const (
-	contentType     = "Content-Type"
-	applicationJSON = "application/json"
-	errContentType  = "Content-Type header is not application/json"
 )
 
 // Error .
@@ -67,8 +62,8 @@ func NewHandler(client octane.Client) Handler {
 }
 
 func getPagination(v url.Values) *octane.Pagination {
-	page, _ := strconv.ParseInt(v.Get("page"), 10, 64)
-	perPage, _ := strconv.ParseInt(v.Get("per_page"), 10, 64)
+	page, _ := strconv.ParseInt(v.Get(config.ParamPage), 10, 64)
+	perPage, _ := strconv.ParseInt(v.Get(config.ParamPage), 10, 64)
 	if page == 0 || perPage == 0 {
 		return nil
 	}
@@ -81,17 +76,17 @@ func getPagination(v url.Values) *octane.Pagination {
 
 func getSort(v url.Values) *octane.Sort {
 	var order int
-	switch v.Get("order") {
-	case "asc":
+	switch v.Get(config.ParamOrder) {
+	case config.ParamAscending:
 		order = 1
-	case "desc":
+	case config.ParamDescending:
 		order = -1
 	default:
 		return nil
 	}
 
 	return &octane.Sort{
-		Field: v.Get("sort"),
+		Field: v.Get(config.ParamSort),
 		Order: order,
 	}
 }

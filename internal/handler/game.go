@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/core/internal/config"
 	"github.com/octanegg/core/octane"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -30,7 +31,7 @@ func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetGame(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -48,9 +49,9 @@ func (h *handler) GetGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PutGame(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(contentType) != applicationJSON {
+	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), errContentType})
+		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
 		return
 	}
 
@@ -73,13 +74,13 @@ func (h *handler) PutGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(contentType) != applicationJSON {
+	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), errContentType})
+		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
 		return
 	}
 
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -105,7 +106,7 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) DeleteGame(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -128,8 +129,8 @@ func (h *handler) DeleteGame(w http.ResponseWriter, r *http.Request) {
 
 func buildGameFilter(v url.Values) bson.M {
 	filter := bson.M{}
-	if match, err := primitive.ObjectIDFromHex(v.Get("match")); err == nil {
-		filter["match"] = match
+	if match, err := primitive.ObjectIDFromHex(v.Get(config.ParamMatch)); err == nil {
+		filter[config.ParamMatch] = match
 	}
 
 	return filter

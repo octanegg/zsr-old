@@ -8,12 +8,12 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/core/internal/config"
 	"github.com/octanegg/core/octane"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
-// region, tier, mode
 func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 	events, err := h.Client.FindEvents(
 		buildEventFilter(r.URL.Query()),
@@ -32,7 +32,7 @@ func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -51,9 +51,9 @@ func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PutEvent(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(contentType) != applicationJSON {
+	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), errContentType})
+		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
 		return
 	}
 
@@ -76,13 +76,13 @@ func (h *handler) PutEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(contentType) != applicationJSON {
+	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), errContentType})
+		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
 		return
 	}
 
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -108,7 +108,7 @@ func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -131,14 +131,14 @@ func (h *handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
 
 func buildEventFilter(v url.Values) bson.M {
 	filter := bson.M{}
-	if tier := v.Get("tier"); tier != "" {
-		filter["tier"] = tier
+	if tier := v.Get(config.ParamTier); tier != "" {
+		filter[config.ParamTier] = tier
 	}
-	if region := v.Get("region"); region != "" {
-		filter["region"] = region
+	if region := v.Get(config.ParamRegion); region != "" {
+		filter[config.ParamRegion] = region
 	}
-	if mode, err := strconv.Atoi(v.Get("mode")); err == nil {
-		filter["mode"] = mode
+	if mode, err := strconv.Atoi(v.Get(config.ParamMode)); err == nil {
+		filter[config.ParamMode] = mode
 	}
 
 	return filter

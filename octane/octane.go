@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -20,7 +21,7 @@ type client struct {
 
 // ObjectID .
 type ObjectID struct {
-	ID string `json:"_id"`
+	ID string `json:"id"`
 }
 
 // Data .
@@ -141,7 +142,7 @@ func (c *client) Replace(collection string, oid *primitive.ObjectID, update inte
 	ctx := context.TODO()
 	coll := c.DB.Database(database).Collection(collection)
 
-	res, err := coll.ReplaceOne(ctx, bson.M{"_id": oid}, update)
+	res, err := coll.ReplaceOne(ctx, bson.M{config.KeyID: oid}, update)
 	if err != nil {
 		return nil, err
 	}
@@ -165,7 +166,7 @@ func (c *client) Delete(collection string, oid *primitive.ObjectID) (int64, erro
 	ctx := context.TODO()
 	coll := c.DB.Database(database).Collection(collection)
 
-	res, err := coll.DeleteOne(ctx, bson.M{"_id": oid})
+	res, err := coll.DeleteOne(ctx, bson.M{config.KeyID: oid})
 	if err != nil {
 		return 0, err
 	}
