@@ -37,8 +37,8 @@ type GameSide struct {
 
 // PlayerStats .
 type PlayerStats struct {
-	Player *Player `json:"player" bson:"player"`
-	Stats  *Stats  `json:"stats" bson:"stats"`
+	Player *primitive.ObjectID `json:"player" bson:"player"`
+	Stats  *Stats              `json:"stats" bson:"stats"`
 }
 
 func (c *client) FindGames(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {

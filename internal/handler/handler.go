@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"net/url"
-	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -23,6 +21,14 @@ type Error struct {
 
 type handler struct {
 	Client octane.Client
+}
+
+// FindContext .
+type FindContext struct {
+	Do         func(bson.M, *octane.Pagination, *octane.Sort) (*octane.Data, error)
+	Filter     bson.M
+	Pagination *octane.Pagination
+	Sort       *octane.Sort
 }
 
 // Handler .
@@ -66,9 +72,8 @@ func NewHandler(client octane.Client) Handler {
 	}
 }
 
-func (h *handler) Get(w http.ResponseWriter, r *http.Request, do func(bson.M, *octane.Pagination, *octane.Sort) (*octane.Data, error)) {
-	v := r.URL.Query()
-	data, err := do(getFilter(v), getPagination(v), getSort(v))
+func (h *handler) Get(w http.ResponseWriter, r *http.Request, ctx *FindContext) {
+	data, err := ctx.Do(ctx.Filter, ctx.Pagination, ctx.Sort)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -162,71 +167,5 @@ func (h *handler) Delete(w http.ResponseWriter, r *http.Request, do func(*primit
 		w.WriteHeader(http.StatusNotModified)
 	} else {
 		w.WriteHeader(http.StatusNoContent)
-	}
-}
-
-func getFilter(v url.Values) bson.M {
-	filter := bson.M{}
-	if tier := v.Get(config.ParamTier); tier != "" {
-		filter[config.ParamTier] = tier
-	}
-	if region := v.Get(config.ParamRegion); region != "" {
-		filter[config.ParamRegion] = region
-	}
-	if mode, err := strconv.Atoi(v.Get(config.ParamMode)); err == nil {
-		filter[config.ParamMode] = mode
-	}
-
-	if event, err := primitive.ObjectIDFromHex(v.Get(config.ParamEvent)); err == nil {
-		filter[config.ParamEvent] = event
-	}
-	if stage, err := strconv.Atoi(v.Get(config.ParamStage)); err == nil {
-		filter[config.ParamStage] = stage
-	}
-	if substage, err := strconv.Atoi(v.Get(config.ParamSubstage)); err == nil {
-		filter[config.ParamSubstage] = substage
-	}
-
-	if match, err := primitive.ObjectIDFromHex(v.Get(config.ParamMatch)); err == nil {
-		filter[config.ParamMatch] = match
-	}
-
-	if country := v.Get(config.ParamCountry); country != "" {
-		filter[config.ParamCountry] = country
-	}
-	if team := v.Get(config.ParamTeam); team != "" {
-		filter[config.ParamTeam] = team
-	}
-
-	return filter
-}
-
-func getPagination(v url.Values) *octane.Pagination {
-	page, _ := strconv.ParseInt(v.Get(config.ParamPage), 10, 64)
-	perPage, _ := strconv.ParseInt(v.Get(config.ParamPage), 10, 64)
-	if page == 0 || perPage == 0 {
-		return nil
-	}
-
-	return &octane.Pagination{
-		Page:    page,
-		PerPage: perPage,
-	}
-}
-
-func getSort(v url.Values) *octane.Sort {
-	var order int
-	switch v.Get(config.ParamOrder) {
-	case config.ParamAscending:
-		order = 1
-	case config.ParamDescending:
-		order = -1
-	default:
-		return nil
-	}
-
-	return &octane.Sort{
-		Field: v.Get(config.ParamSort),
-		Order: order,
 	}
 }

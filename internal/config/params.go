@@ -2,6 +2,9 @@ package config
 
 const (
 
+	// ParamActiveTeam .
+	ParamActiveTeam = "activeTeam"
+
 	// ParamAscending .
 	ParamAscending = "asc"
 
@@ -23,6 +26,9 @@ const (
 	// ParamMode .
 	ParamMode = "mode"
 
+	// ParamOpponent .
+	ParamOpponent = "opponent"
+
 	// ParamOrder .
 	ParamOrder = "order"
 
@@ -31,6 +37,9 @@ const (
 
 	// ParamPerPage .
 	ParamPerPage = "perPage"
+
+	// ParamPlayer .
+	ParamPlayer = "player"
 
 	// ParamRegion .
 	ParamRegion = "region"
@@ -44,9 +53,15 @@ const (
 	// ParamSubstage .
 	ParamSubstage = "substage"
 
+	// ParamTag .
+	ParamTag = "tag"
+
 	// ParamTeam .
 	ParamTeam = "team"
 
 	// ParamTier .
 	ParamTier = "tier"
+
+	// ParamVs .
+	ParamVs = "vs"
 )

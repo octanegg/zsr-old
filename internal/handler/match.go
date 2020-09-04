@@ -2,10 +2,13 @@ package handler
 
 import (
 	"net/http"
+	"net/url"
+
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
-	h.Get(w, r, h.Client.FindMatches)
+	h.Get(w, r, h.contextFindMatches(r.URL.Query()))
 }
 
 func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
@@ -22,4 +25,18 @@ func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) DeleteMatch(w http.ResponseWriter, r *http.Request) {
 	h.Delete(w, r, h.Client.DeleteMatch)
+}
+
+func (h *handler) contextFindMatches(v url.Values) *FindContext {
+	a := bson.A{getBasicFilters(v)}
+	if playersFilter := getPTFilters(v); playersFilter != nil {
+		a = append(a, playersFilter)
+	}
+
+	return &FindContext{
+		Do:         h.Client.FindMatches,
+		Filter:     bson.M{"$and": a},
+		Pagination: getPagination(v),
+		Sort:       getSort(v),
+	}
 }
