@@ -17,8 +17,8 @@ import (
 type Event struct {
 	ID        *primitive.ObjectID `json:"id" bson:"_id"`
 	Name      *string             `json:"name" bson:"name"`
-	StartDate *time.Time          `json:"startDate,omitempty" bson:"startDate,omitempty"`
-	EndDate   *time.Time          `json:"endDate,omitempty" bson:"endDate,omitempty"`
+	StartDate *time.Time          `json:"start_date,omitempty" bson:"start_date,omitempty"`
+	EndDate   *time.Time          `json:"end_date,omitempty" bson:"end_date,omitempty"`
 	Region    *string             `json:"region" bson:"region"`
 	Mode      *int                `json:"mode" bson:"mode"`
 	Prize     *Prize              `json:"prize,omitempty" bson:"prize,omitempty"`
@@ -31,8 +31,8 @@ type Stage struct {
 	Name       *string     `json:"name" bson:"name"`
 	Format     *string     `json:"format" bson:"format"`
 	Region     *string     `json:"region" bson:"region"`
-	StartDate  *time.Time  `json:"startDate,omitempty" bson:"startDate,omitempty"`
-	EndDate    *time.Time  `json:"endDate,omitempty" bson:"endDate,omitempty"`
+	StartDate  *time.Time  `json:"start_date,omitempty" bson:"start_date,omitempty"`
+	EndDate    *time.Time  `json:"end_date,omitempty" bson:"end_date,omitempty"`
 	Prize      *Prize      `json:"prize,omitempty" bson:"prize,omitempty"`
 	Liquipedia *string     `json:"liquipedia" bson:"liquipedia"`
 	Qualifier  *bool       `json:"qualifier,omitempty" bson:"qualifier,omitempty"`

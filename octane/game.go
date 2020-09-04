@@ -29,16 +29,21 @@ type Game struct {
 
 // GameSide .
 type GameSide struct {
-	Goals   *int                `json:"goals" bson:"goals"`
-	Winner  bool                `json:"winner" bson:"winner"`
-	Team    *primitive.ObjectID `json:"team" bson:"team"`
-	Players []*PlayerStats      `json:"players" bson:"players"`
+	Goals   *int           `json:"goals" bson:"goals"`
+	Winner  bool           `json:"winner" bson:"winner"`
+	Team    *TeamStats     `json:"team" bson:"team"`
+	Players []*PlayerStats `json:"players" bson:"players"`
 }
 
 // PlayerStats .
 type PlayerStats struct {
 	Player *primitive.ObjectID `json:"player" bson:"player"`
 	Stats  *Stats              `json:"stats" bson:"stats"`
+}
+
+// TeamStats .
+type TeamStats struct {
+	ID *primitive.ObjectID `json:"id" bson:"id"`
 }
 
 func (c *client) FindGames(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
