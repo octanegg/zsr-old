@@ -7,6 +7,12 @@ const (
 	// KeyID .
 	KeyID = "_id"
 
+	// KeyAnd .
+	KeyAnd = "$and"
+
+	// KeyOr .
+	KeyOr = "$or"
+
 	// Database .
 	Database = "octane"
 

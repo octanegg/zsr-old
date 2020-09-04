@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -36,7 +37,7 @@ func (h *handler) contextFindGames(v url.Values) *FindContext {
 
 	return &FindContext{
 		Do:         h.Client.FindGames,
-		Filter:     bson.M{"$and": a},
+		Filter:     bson.M{config.KeyAnd: a},
 		Pagination: getPagination(v),
 		Sort:       getSort(v),
 	}

@@ -77,7 +77,7 @@ func getPTFilters(v url.Values) bson.M {
 		orange["blue.team"] = bson.M{"$in": vs}
 	}
 
-	return bson.M{"$or": bson.A{blue, orange}}
+	return bson.M{config.KeyOr: bson.A{blue, orange}}
 }
 
 func getPTFiltersWithElemMatch(v url.Values) bson.M {
@@ -118,7 +118,7 @@ func getPTFiltersWithElemMatch(v url.Values) bson.M {
 		orange["blue.team"] = bson.M{"$in": vs}
 	}
 
-	return bson.M{"$or": bson.A{blue, orange}}
+	return bson.M{config.KeyOr: bson.A{blue, orange}}
 
 }
 
