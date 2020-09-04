@@ -1,135 +1,25 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
-	"net/url"
-	"time"
-
-	"github.com/gorilla/mux"
-	"github.com/octanegg/core/internal/config"
-	"github.com/octanegg/core/octane"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
-	teams, err := h.Client.FindTeams(
-		buildTeamFilter(r.URL.Query()),
-		getPagination(r.URL.Query()),
-		getSort(r.URL.Query()),
-	)
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(teams)
+	h.Get(w, r, h.Client.FindTeams)
 }
 
 func (h *handler) GetTeam(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	team, err := h.Client.FindTeam(&oid)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(team)
+	h.GetID(w, r, h.Client.FindTeam)
 }
 
 func (h *handler) PutTeam(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
-		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
-		return
-	}
-
-	var team octane.Team
-	if err := json.NewDecoder(r.Body).Decode(&team); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	id, err := h.Client.InsertTeam(&team)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(id)
+	h.Put(w, r, h.Client.InsertTeam)
 }
 
 func (h *handler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
-		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
-		return
-	}
-
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	var team octane.Team
-	if err := json.NewDecoder(r.Body).Decode(&team); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	id, err := h.Client.UpdateTeam(&oid, &team)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(id)
+	h.Update(w, r, h.Client.UpdateTeam)
 }
 
 func (h *handler) DeleteTeam(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	amount, err := h.Client.DeleteTeam(&oid)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	if amount == 0 {
-		w.WriteHeader(http.StatusNotModified)
-	} else {
-		w.WriteHeader(http.StatusNoContent)
-	}
-}
-
-func buildTeamFilter(v url.Values) bson.M {
-	filter := bson.M{}
-
-	return filter
+	h.Delete(w, r, h.Client.DeleteTeam)
 }

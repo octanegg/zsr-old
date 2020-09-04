@@ -2,6 +2,7 @@ package octane
 
 import (
 	"context"
+	"io"
 	"reflect"
 
 	"github.com/octanegg/core/internal/config"
@@ -9,10 +10,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-)
-
-const (
-	database = "octane"
 )
 
 type client struct {
@@ -58,23 +55,23 @@ type Client interface {
 	FindPlayers(bson.M, *Pagination, *Sort) (*Data, error)
 	FindTeams(bson.M, *Pagination, *Sort) (*Data, error)
 
-	FindEvent(*primitive.ObjectID) (*Event, error)
-	FindMatch(*primitive.ObjectID) (*Match, error)
-	FindGame(*primitive.ObjectID) (*Game, error)
-	FindPlayer(*primitive.ObjectID) (*Player, error)
-	FindTeam(*primitive.ObjectID) (*Team, error)
+	FindEvent(*primitive.ObjectID) (interface{}, error)
+	FindMatch(*primitive.ObjectID) (interface{}, error)
+	FindGame(*primitive.ObjectID) (interface{}, error)
+	FindPlayer(*primitive.ObjectID) (interface{}, error)
+	FindTeam(*primitive.ObjectID) (interface{}, error)
 
-	InsertEvent(*Event) (*ObjectID, error)
-	InsertMatch(*Match) (*ObjectID, error)
-	InsertGame(*Game) (*ObjectID, error)
-	InsertPlayer(*Player) (*ObjectID, error)
-	InsertTeam(*Team) (*ObjectID, error)
+	InsertEvent(io.ReadCloser) (*ObjectID, error)
+	InsertMatch(io.ReadCloser) (*ObjectID, error)
+	InsertGame(io.ReadCloser) (*ObjectID, error)
+	InsertPlayer(io.ReadCloser) (*ObjectID, error)
+	InsertTeam(io.ReadCloser) (*ObjectID, error)
 
-	UpdateEvent(*primitive.ObjectID, *Event) (*ObjectID, error)
-	UpdateMatch(*primitive.ObjectID, *Match) (*ObjectID, error)
-	UpdateGame(*primitive.ObjectID, *Game) (*ObjectID, error)
-	UpdatePlayer(*primitive.ObjectID, *Player) (*ObjectID, error)
-	UpdateTeam(*primitive.ObjectID, *Team) (*ObjectID, error)
+	UpdateEvent(*primitive.ObjectID, io.ReadCloser) (*ObjectID, error)
+	UpdateMatch(*primitive.ObjectID, io.ReadCloser) (*ObjectID, error)
+	UpdateGame(*primitive.ObjectID, io.ReadCloser) (*ObjectID, error)
+	UpdatePlayer(*primitive.ObjectID, io.ReadCloser) (*ObjectID, error)
+	UpdateTeam(*primitive.ObjectID, io.ReadCloser) (*ObjectID, error)
 
 	DeleteEvent(*primitive.ObjectID) (int64, error)
 	DeleteMatch(*primitive.ObjectID) (int64, error)
@@ -96,7 +93,7 @@ func (c *client) Ping() error {
 
 func (c *client) Find(collection string, filter bson.M, pagination *Pagination, sort *Sort, convert func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
 	ctx := context.TODO()
-	coll := c.DB.Database(database).Collection(collection)
+	coll := c.DB.Database(config.Database).Collection(collection)
 
 	opts := options.Find()
 	if pagination != nil {
@@ -128,7 +125,7 @@ func (c *client) Find(collection string, filter bson.M, pagination *Pagination, 
 
 func (c *client) Insert(collection string, document interface{}) (interface{}, error) {
 	ctx := context.TODO()
-	coll := c.DB.Database(database).Collection(collection)
+	coll := c.DB.Database(config.Database).Collection(collection)
 
 	res, err := coll.InsertOne(ctx, document)
 	if err != nil {
@@ -140,7 +137,7 @@ func (c *client) Insert(collection string, document interface{}) (interface{}, e
 
 func (c *client) Replace(collection string, oid *primitive.ObjectID, update interface{}) (interface{}, error) {
 	ctx := context.TODO()
-	coll := c.DB.Database(database).Collection(collection)
+	coll := c.DB.Database(config.Database).Collection(collection)
 
 	res, err := coll.ReplaceOne(ctx, bson.M{config.KeyID: oid}, update)
 	if err != nil {
@@ -152,7 +149,7 @@ func (c *client) Replace(collection string, oid *primitive.ObjectID, update inte
 
 func (c *client) Update(collection string, filter, update bson.M) (interface{}, error) {
 	ctx := context.TODO()
-	coll := c.DB.Database(database).Collection(collection)
+	coll := c.DB.Database(config.Database).Collection(collection)
 
 	res, err := coll.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -164,7 +161,7 @@ func (c *client) Update(collection string, filter, update bson.M) (interface{}, 
 
 func (c *client) Delete(collection string, oid *primitive.ObjectID) (int64, error) {
 	ctx := context.TODO()
-	coll := c.DB.Database(database).Collection(collection)
+	coll := c.DB.Database(config.Database).Collection(collection)
 
 	res, err := coll.DeleteOne(ctx, bson.M{config.KeyID: oid})
 	if err != nil {

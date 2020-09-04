@@ -1,137 +1,26 @@
 package handler
 
 import (
-	"encoding/json"
 	"net/http"
-	"net/url"
-	"time"
-
-	"github.com/gorilla/mux"
-	"github.com/octanegg/core/internal/config"
-	"github.com/octanegg/core/octane"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
-	games, err := h.Client.FindGames(
-		buildGameFilter(r.URL.Query()),
-		getPagination(r.URL.Query()),
-		getSort(r.URL.Query()),
-	)
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(games)
+	h.Get(w, r, h.Client.FindGames)
 }
 
 func (h *handler) GetGame(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-	game, err := h.Client.FindGame(&oid)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(game)
+	h.GetID(w, r, h.Client.FindGame)
 }
 
 func (h *handler) PutGame(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
-		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
-		return
-	}
-
-	var game octane.Game
-	if err := json.NewDecoder(r.Body).Decode(&game); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	id, err := h.Client.InsertGame(&game)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(id)
+	h.Put(w, r, h.Client.InsertGame)
 }
 
 func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
-		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
-		return
-	}
-
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	var game octane.Game
-	if err := json.NewDecoder(r.Body).Decode(&game); err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	id, err := h.Client.UpdateGame(&oid, &game)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(id)
+	h.Update(w, r, h.Client.UpdateGame)
 }
 
 func (h *handler) DeleteGame(w http.ResponseWriter, r *http.Request) {
-	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
+	h.Delete(w, r, h.Client.DeleteGame)
 
-	amount, err := h.Client.DeleteGame(&oid)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
-
-	if amount == 0 {
-		w.WriteHeader(http.StatusNotModified)
-	} else {
-		w.WriteHeader(http.StatusNoContent)
-	}
-}
-
-func buildGameFilter(v url.Values) bson.M {
-	filter := bson.M{}
-	if match, err := primitive.ObjectIDFromHex(v.Get(config.ParamMatch)); err == nil {
-		filter[config.ParamMatch] = match
-	}
-
-	return filter
 }

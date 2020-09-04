@@ -1,7 +1,9 @@
 package octane
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"reflect"
 
 	"github.com/octanegg/core/internal/config"
@@ -43,7 +45,7 @@ func (c *client) FindTeams(filter bson.M, pagination *Pagination, sort *Sort) (*
 	}, nil
 }
 
-func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
+func (c *client) FindTeam(oid *primitive.ObjectID) (interface{}, error) {
 	teams, err := c.FindTeams(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
@@ -53,14 +55,17 @@ func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
 		return nil, nil
 	}
 
-	team := teams.Data[0].(Team)
-	return &team, nil
+	return teams.Data[0].(Team), nil
 }
 
-func (c *client) InsertTeam(team *Team) (*ObjectID, error) {
+func (c *client) InsertTeam(body io.ReadCloser) (*ObjectID, error) {
+	var team Team
+	if err := json.NewDecoder(body).Decode(&team); err != nil {
+		return nil, err
+	}
+
 	id := primitive.NewObjectID()
 	team.ID = &id
-
 	oid, err := c.Insert(config.CollectionTeams, team)
 	if err != nil {
 		return nil, err
@@ -69,17 +74,23 @@ func (c *client) InsertTeam(team *Team) (*ObjectID, error) {
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
-func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*ObjectID, error) {
-	team, err := c.FindTeam(oid)
+func (c *client) UpdateTeam(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+	data, err := c.FindTeam(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if team == nil {
+	if data == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	update := updateFields(reflect.ValueOf(team).Elem(), reflect.ValueOf(fields).Elem()).(Team)
+	var fields Team
+	if err := json.NewDecoder(body).Decode(&fields); err != nil {
+		return nil, err
+	}
+
+	team := data.(Team)
+	update := updateFields(reflect.ValueOf(&team).Elem(), reflect.ValueOf(&fields).Elem()).(Team)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionTeams, oid, update)

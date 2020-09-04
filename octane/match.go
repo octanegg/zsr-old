@@ -1,7 +1,9 @@
 package octane
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"reflect"
 	"time"
 
@@ -59,7 +61,7 @@ func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) 
 	}, nil
 }
 
-func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
+func (c *client) FindMatch(oid *primitive.ObjectID) (interface{}, error) {
 	matches, err := c.FindMatches(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
@@ -69,24 +71,17 @@ func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
 		return nil, nil
 	}
 
-	match := matches.Data[0].(Match)
-	return &match, nil
+	return matches.Data[0].(Match), nil
 }
 
-func (c *client) InsertMatch(match *Match) (*ObjectID, error) {
-	event, err := c.FindEvent(match.EventID)
-	if err != nil {
+func (c *client) InsertMatch(body io.ReadCloser) (*ObjectID, error) {
+	var match Match
+	if err := json.NewDecoder(body).Decode(&match); err != nil {
 		return nil, err
-	}
-
-	if event == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
 	id := primitive.NewObjectID()
 	match.ID = &id
-	match.Mode = event.Mode
-
 	oid, err := c.Insert(config.CollectionMatches, match)
 	if err != nil {
 		return nil, err
@@ -95,17 +90,23 @@ func (c *client) InsertMatch(match *Match) (*ObjectID, error) {
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
-func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*ObjectID, error) {
-	match, err := c.FindMatch(oid)
+func (c *client) UpdateMatch(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+	data, err := c.FindMatch(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if match == nil {
-		return nil, errors.New("No match found for ID")
+	if data == nil {
+		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	update := updateFields(reflect.ValueOf(match).Elem(), reflect.ValueOf(fields).Elem()).(Match)
+	var fields Match
+	if err := json.NewDecoder(body).Decode(&fields); err != nil {
+		return nil, err
+	}
+
+	match := data.(Match)
+	update := updateFields(reflect.ValueOf(&match).Elem(), reflect.ValueOf(&fields).Elem()).(Match)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionMatches, oid, update)

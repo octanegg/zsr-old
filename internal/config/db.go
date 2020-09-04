@@ -7,6 +7,9 @@ const (
 	// KeyID .
 	KeyID = "_id"
 
+	// Database .
+	Database = "octane"
+
 	// CollectionEvents .
 	CollectionEvents = "events"
 

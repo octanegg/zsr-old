@@ -1,7 +1,9 @@
 package octane
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"reflect"
 
 	"github.com/octanegg/core/internal/config"
@@ -46,7 +48,7 @@ func (c *client) FindPlayers(filter bson.M, pagination *Pagination, sort *Sort) 
 	}, nil
 }
 
-func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
+func (c *client) FindPlayer(oid *primitive.ObjectID) (interface{}, error) {
 	players, err := c.FindPlayers(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
@@ -56,14 +58,17 @@ func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
 		return nil, nil
 	}
 
-	player := players.Data[0].(Player)
-	return &player, nil
+	return players.Data[0].(Player), nil
 }
 
-func (c *client) InsertPlayer(player *Player) (*ObjectID, error) {
+func (c *client) InsertPlayer(body io.ReadCloser) (*ObjectID, error) {
+	var player Player
+	if err := json.NewDecoder(body).Decode(&player); err != nil {
+		return nil, err
+	}
+
 	id := primitive.NewObjectID()
 	player.ID = &id
-
 	oid, err := c.Insert(config.CollectionPlayers, player)
 	if err != nil {
 		return nil, err
@@ -72,17 +77,23 @@ func (c *client) InsertPlayer(player *Player) (*ObjectID, error) {
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
-func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*ObjectID, error) {
-	player, err := c.FindPlayer(oid)
+func (c *client) UpdatePlayer(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+	data, err := c.FindPlayer(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if player == nil {
+	if data == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	update := updateFields(reflect.ValueOf(player).Elem(), reflect.ValueOf(fields).Elem()).(Player)
+	var fields Player
+	if err := json.NewDecoder(body).Decode(&fields); err != nil {
+		return nil, err
+	}
+
+	player := data.(Player)
+	update := updateFields(reflect.ValueOf(&player).Elem(), reflect.ValueOf(&fields).Elem()).(Player)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionPlayers, oid, update)

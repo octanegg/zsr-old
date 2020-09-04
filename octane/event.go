@@ -1,7 +1,9 @@
 package octane
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"reflect"
 	"time"
 
@@ -76,7 +78,7 @@ func (c *client) FindEvents(filter bson.M, pagination *Pagination, sort *Sort) (
 	}, nil
 }
 
-func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
+func (c *client) FindEvent(oid *primitive.ObjectID) (interface{}, error) {
 	events, err := c.FindEvents(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
@@ -86,11 +88,15 @@ func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
 		return nil, nil
 	}
 
-	event := events.Data[0].(Event)
-	return &event, nil
+	return events.Data[0], nil
 }
 
-func (c *client) InsertEvent(event *Event) (*ObjectID, error) {
+func (c *client) InsertEvent(body io.ReadCloser) (*ObjectID, error) {
+	var event Event
+	if err := json.NewDecoder(body).Decode(&event); err != nil {
+		return nil, err
+	}
+
 	id := primitive.NewObjectID()
 	event.ID = &id
 	oid, err := c.Insert(config.CollectionEvents, event)
@@ -101,17 +107,23 @@ func (c *client) InsertEvent(event *Event) (*ObjectID, error) {
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
-func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID, error) {
-	event, err := c.FindEvent(oid)
+func (c *client) UpdateEvent(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+	data, err := c.FindEvent(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if event == nil {
+	if data == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	update := updateFields(reflect.ValueOf(event).Elem(), reflect.ValueOf(fields).Elem()).(Event)
+	var fields Event
+	if err := json.NewDecoder(body).Decode(&fields); err != nil {
+		return nil, err
+	}
+
+	event := data.(Event)
+	update := updateFields(reflect.ValueOf(&event).Elem(), reflect.ValueOf(&fields).Elem()).(Event)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionEvents, oid, update)

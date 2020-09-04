@@ -1,7 +1,9 @@
 package octane
 
 import (
+	"encoding/json"
 	"errors"
+	"io"
 	"reflect"
 	"time"
 
@@ -66,7 +68,7 @@ func (c *client) FindGames(filter bson.M, pagination *Pagination, sort *Sort) (*
 	}, nil
 }
 
-func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
+func (c *client) FindGame(oid *primitive.ObjectID) (interface{}, error) {
 	games, err := c.FindGames(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
@@ -76,32 +78,17 @@ func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
 		return nil, nil
 	}
 
-	game := games.Data[0].(Game)
-	return &game, nil
+	return games.Data[0].(Game), nil
 }
 
-func (c *client) InsertGame(game *Game) (*ObjectID, error) {
-	event, err := c.FindEvent(game.EventID)
-	if err != nil {
+func (c *client) InsertGame(body io.ReadCloser) (*ObjectID, error) {
+	var game Game
+	if err := json.NewDecoder(body).Decode(&game); err != nil {
 		return nil, err
-	}
-	if event == nil {
-		return nil, errors.New("No event found for ID")
-	}
-
-	match, err := c.FindMatch(game.MatchID)
-	if err != nil {
-		return nil, err
-	}
-	if match == nil {
-		return nil, errors.New("No match found for ID")
 	}
 
 	id := primitive.NewObjectID()
 	game.ID = &id
-	game.Mode = event.Mode
-	game.Date = match.Date
-
 	oid, err := c.Insert(config.CollectionGames, game)
 	if err != nil {
 		return nil, err
@@ -110,17 +97,23 @@ func (c *client) InsertGame(game *Game) (*ObjectID, error) {
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
-func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, error) {
-	game, err := c.FindGame(oid)
+func (c *client) UpdateGame(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+	data, err := c.FindGame(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if game == nil {
+	if data == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	update := updateFields(reflect.ValueOf(game).Elem(), reflect.ValueOf(fields).Elem()).(Game)
+	var fields Game
+	if err := json.NewDecoder(body).Decode(&fields); err != nil {
+		return nil, err
+	}
+
+	game := data.(Game)
+	update := updateFields(reflect.ValueOf(&game).Elem(), reflect.ValueOf(&fields).Elem()).(Game)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionGames, oid, update)
