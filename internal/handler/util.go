@@ -47,6 +47,7 @@ func getBasicFilters(v url.Values) bson.M {
 	put(&filter, v, config.ParamCountry)
 	put(&filter, v, config.ParamTag)
 	put(&filter, v, config.ParamActiveTeam)
+	put(&filter, v, config.ParamName)
 	put(&filter, v, config.ParamAccountID)
 	put(&filter, v, config.ParamAccountPlatform)
 	putInt(&filter, v, config.ParamMode)

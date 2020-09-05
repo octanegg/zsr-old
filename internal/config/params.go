@@ -32,6 +32,9 @@ const (
 	// ParamMode .
 	ParamMode = "mode"
 
+	// ParamName .
+	ParamName = "name"
+
 	// ParamOpponent .
 	ParamOpponent = "opponent"
 
