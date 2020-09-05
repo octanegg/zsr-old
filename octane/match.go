@@ -16,6 +16,7 @@ import (
 // Match .
 type Match struct {
 	ID       *primitive.ObjectID `json:"id" bson:"_id"`
+	OctaneID string              `json:"octane_id" bson:"octane_id"`
 	EventID  *primitive.ObjectID `json:"event" bson:"event"`
 	Stage    int                 `json:"stage" bson:"stage"`
 	Substage int                 `json:"substage,omitempty" bson:"substage,omitempty"`
