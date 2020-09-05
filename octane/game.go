@@ -89,7 +89,7 @@ func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
 	return &game, nil
 }
 
-func (c *client) InsertGameWithReader(body io.ReadCloser) (*ObjectID, error) {
+func (c *client) InsertGameWithReader(body io.ReadCloser) (*primitive.ObjectID, error) {
 	var game Game
 	if err := json.NewDecoder(body).Decode(&game); err != nil {
 		return nil, err
@@ -102,10 +102,10 @@ func (c *client) InsertGameWithReader(body io.ReadCloser) (*ObjectID, error) {
 		return nil, err
 	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) UpdateGameWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+func (c *client) UpdateGameWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
 	game, err := c.FindGame(oid)
 	if err != nil {
 		return nil, err
@@ -129,12 +129,12 @@ func (c *client) UpdateGameWithReader(oid *primitive.ObjectID, body io.ReadClose
 	}
 
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+		return id, nil
 	}
-	return &ObjectID{oid.Hex()}, err
+	return oid, err
 }
 
-func (c *client) InsertGame(game *Game) (*ObjectID, error) {
+func (c *client) InsertGame(game *Game) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	game.ID = &id
 	oid, err := c.Insert(config.CollectionGames, game)
@@ -142,10 +142,10 @@ func (c *client) InsertGame(game *Game) (*ObjectID, error) {
 		return nil, err
 	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, error) {
+func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*primitive.ObjectID, error) {
 	game, err := c.FindGame(oid)
 	if err != nil {
 		return nil, err
@@ -164,9 +164,9 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, e
 	}
 
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+		return id, nil
 	}
-	return &ObjectID{oid.Hex()}, err
+	return oid, err
 }
 
 func (c *client) DeleteGame(oid *primitive.ObjectID) (int64, error) {

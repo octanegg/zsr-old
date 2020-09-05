@@ -16,11 +16,6 @@ type client struct {
 	DB *mongo.Client
 }
 
-// ObjectID .
-type ObjectID struct {
-	ID string `json:"id"`
-}
-
 // Data .
 type Data struct {
 	Data []interface{} `json:"data"`
@@ -44,9 +39,9 @@ type Sort struct {
 type Client interface {
 	Ping() error
 	Find(string, bson.M, *Pagination, *Sort, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
-	Insert(string, interface{}) (interface{}, error)
-	Update(string, bson.M, bson.M) (interface{}, error)
-	Replace(string, *primitive.ObjectID, interface{}) (interface{}, error)
+	Insert(string, interface{}) (*primitive.ObjectID, error)
+	Update(string, bson.M, bson.M) (*primitive.ObjectID, error)
+	Replace(string, *primitive.ObjectID, interface{}) (*primitive.ObjectID, error)
 	Delete(string, *primitive.ObjectID) (int64, error)
 
 	FindEvents(bson.M, *Pagination, *Sort) (*Data, error)
@@ -61,29 +56,29 @@ type Client interface {
 	FindPlayer(*primitive.ObjectID) (*Player, error)
 	FindTeam(*primitive.ObjectID) (*Team, error)
 
-	InsertEvent(*Event) (*ObjectID, error)
-	InsertMatch(*Match) (*ObjectID, error)
-	InsertGame(*Game) (*ObjectID, error)
-	InsertPlayer(*Player) (*ObjectID, error)
-	InsertTeam(*Team) (*ObjectID, error)
+	InsertEvent(*Event) (*primitive.ObjectID, error)
+	InsertMatch(*Match) (*primitive.ObjectID, error)
+	InsertGame(*Game) (*primitive.ObjectID, error)
+	InsertPlayer(*Player) (*primitive.ObjectID, error)
+	InsertTeam(*Team) (*primitive.ObjectID, error)
 
-	UpdateEvent(*primitive.ObjectID, *Event) (*ObjectID, error)
-	UpdateMatch(*primitive.ObjectID, *Match) (*ObjectID, error)
-	UpdateGame(*primitive.ObjectID, *Game) (*ObjectID, error)
-	UpdatePlayer(*primitive.ObjectID, *Player) (*ObjectID, error)
-	UpdateTeam(*primitive.ObjectID, *Team) (*ObjectID, error)
+	UpdateEvent(*primitive.ObjectID, *Event) (*primitive.ObjectID, error)
+	UpdateMatch(*primitive.ObjectID, *Match) (*primitive.ObjectID, error)
+	UpdateGame(*primitive.ObjectID, *Game) (*primitive.ObjectID, error)
+	UpdatePlayer(*primitive.ObjectID, *Player) (*primitive.ObjectID, error)
+	UpdateTeam(*primitive.ObjectID, *Team) (*primitive.ObjectID, error)
 
-	InsertEventWithReader(io.ReadCloser) (*ObjectID, error)
-	InsertMatchWithReader(io.ReadCloser) (*ObjectID, error)
-	InsertGameWithReader(io.ReadCloser) (*ObjectID, error)
-	InsertPlayerWithReader(io.ReadCloser) (*ObjectID, error)
-	InsertTeamWithReader(io.ReadCloser) (*ObjectID, error)
+	InsertEventWithReader(io.ReadCloser) (*primitive.ObjectID, error)
+	InsertMatchWithReader(io.ReadCloser) (*primitive.ObjectID, error)
+	InsertGameWithReader(io.ReadCloser) (*primitive.ObjectID, error)
+	InsertPlayerWithReader(io.ReadCloser) (*primitive.ObjectID, error)
+	InsertTeamWithReader(io.ReadCloser) (*primitive.ObjectID, error)
 
-	UpdateEventWithReader(*primitive.ObjectID, io.ReadCloser) (*ObjectID, error)
-	UpdateMatchWithReader(*primitive.ObjectID, io.ReadCloser) (*ObjectID, error)
-	UpdateGameWithReader(*primitive.ObjectID, io.ReadCloser) (*ObjectID, error)
-	UpdatePlayerWithReader(*primitive.ObjectID, io.ReadCloser) (*ObjectID, error)
-	UpdateTeamWithReader(*primitive.ObjectID, io.ReadCloser) (*ObjectID, error)
+	UpdateEventWithReader(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)
+	UpdateMatchWithReader(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)
+	UpdateGameWithReader(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)
+	UpdatePlayerWithReader(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)
+	UpdateTeamWithReader(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)
 
 	DeleteEvent(*primitive.ObjectID) (int64, error)
 	DeleteMatch(*primitive.ObjectID) (int64, error)
@@ -135,7 +130,7 @@ func (c *client) Find(collection string, filter bson.M, pagination *Pagination, 
 	return res, nil
 }
 
-func (c *client) Insert(collection string, document interface{}) (interface{}, error) {
+func (c *client) Insert(collection string, document interface{}) (*primitive.ObjectID, error) {
 	ctx := context.TODO()
 	coll := c.DB.Database(config.Database).Collection(collection)
 
@@ -144,10 +139,12 @@ func (c *client) Insert(collection string, document interface{}) (interface{}, e
 		return nil, err
 	}
 
-	return res.InsertedID, nil
+	newID := res.InsertedID.(primitive.ObjectID)
+
+	return &newID, nil
 }
 
-func (c *client) Replace(collection string, oid *primitive.ObjectID, update interface{}) (interface{}, error) {
+func (c *client) Replace(collection string, oid *primitive.ObjectID, update interface{}) (*primitive.ObjectID, error) {
 	ctx := context.TODO()
 	coll := c.DB.Database(config.Database).Collection(collection)
 
@@ -156,10 +153,12 @@ func (c *client) Replace(collection string, oid *primitive.ObjectID, update inte
 		return nil, err
 	}
 
-	return res.UpsertedID, nil
+	newID := res.UpsertedID.(primitive.ObjectID)
+
+	return &newID, nil
 }
 
-func (c *client) Update(collection string, filter, update bson.M) (interface{}, error) {
+func (c *client) Update(collection string, filter, update bson.M) (*primitive.ObjectID, error) {
 	ctx := context.TODO()
 	coll := c.DB.Database(config.Database).Collection(collection)
 
@@ -168,7 +167,9 @@ func (c *client) Update(collection string, filter, update bson.M) (interface{}, 
 		return nil, err
 	}
 
-	return res.UpsertedID, nil
+	newID := res.UpsertedID.(primitive.ObjectID)
+
+	return &newID, nil
 }
 
 func (c *client) Delete(collection string, oid *primitive.ObjectID) (int64, error) {

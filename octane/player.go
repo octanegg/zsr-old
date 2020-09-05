@@ -69,7 +69,7 @@ func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
 	return &player, nil
 }
 
-func (c *client) InsertPlayerWithReader(body io.ReadCloser) (*ObjectID, error) {
+func (c *client) InsertPlayerWithReader(body io.ReadCloser) (*primitive.ObjectID, error) {
 	var player Player
 	if err := json.NewDecoder(body).Decode(&player); err != nil {
 		return nil, err
@@ -82,10 +82,10 @@ func (c *client) InsertPlayerWithReader(body io.ReadCloser) (*ObjectID, error) {
 		return nil, err
 	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) UpdatePlayerWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+func (c *client) UpdatePlayerWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
 	player, err := c.FindPlayer(oid)
 	if err != nil {
 		return nil, err
@@ -109,13 +109,13 @@ func (c *client) UpdatePlayerWithReader(oid *primitive.ObjectID, body io.ReadClo
 	}
 
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+		return id, nil
 	}
 
-	return &ObjectID{oid.Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) InsertPlayer(player *Player) (*ObjectID, error) {
+func (c *client) InsertPlayer(player *Player) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	player.ID = &id
 	oid, err := c.Insert(config.CollectionPlayers, player)
@@ -123,10 +123,10 @@ func (c *client) InsertPlayer(player *Player) (*ObjectID, error) {
 		return nil, err
 	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*ObjectID, error) {
+func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*primitive.ObjectID, error) {
 	player, err := c.FindPlayer(oid)
 	if err != nil {
 		return nil, err
@@ -145,10 +145,10 @@ func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*ObjectI
 	}
 
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+		return id, nil
 	}
 
-	return &ObjectID{oid.Hex()}, nil
+	return oid, nil
 }
 
 func (c *client) DeletePlayer(oid *primitive.ObjectID) (int64, error) {

@@ -92,7 +92,7 @@ func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
 	return &event, nil
 }
 
-func (c *client) InsertEventWithReader(body io.ReadCloser) (*ObjectID, error) {
+func (c *client) InsertEventWithReader(body io.ReadCloser) (*primitive.ObjectID, error) {
 	var event Event
 	if err := json.NewDecoder(body).Decode(&event); err != nil {
 		return nil, err
@@ -105,10 +105,10 @@ func (c *client) InsertEventWithReader(body io.ReadCloser) (*ObjectID, error) {
 		return nil, err
 	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) UpdateEventWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+func (c *client) UpdateEventWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
 	event, err := c.FindEvent(oid)
 	if err != nil {
 		return nil, err
@@ -132,13 +132,13 @@ func (c *client) UpdateEventWithReader(oid *primitive.ObjectID, body io.ReadClos
 	}
 
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+		return id, nil
 	}
 
-	return &ObjectID{oid.Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) InsertEvent(event *Event) (*ObjectID, error) {
+func (c *client) InsertEvent(event *Event) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	event.ID = &id
 	oid, err := c.Insert(config.CollectionEvents, event)
@@ -146,10 +146,10 @@ func (c *client) InsertEvent(event *Event) (*ObjectID, error) {
 		return nil, err
 	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID, error) {
+func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*primitive.ObjectID, error) {
 	event, err := c.FindEvent(oid)
 	if err != nil {
 		return nil, err
@@ -168,10 +168,10 @@ func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID,
 	}
 
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+		return id, nil
 	}
 
-	return &ObjectID{oid.Hex()}, nil
+	return oid, nil
 }
 
 func (c *client) DeleteEvent(oid *primitive.ObjectID) (int64, error) {

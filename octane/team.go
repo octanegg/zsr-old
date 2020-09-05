@@ -59,7 +59,7 @@ func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
 	return &team, nil
 }
 
-func (c *client) InsertTeamWithReader(body io.ReadCloser) (*ObjectID, error) {
+func (c *client) InsertTeamWithReader(body io.ReadCloser) (*primitive.ObjectID, error) {
 	var team Team
 	if err := json.NewDecoder(body).Decode(&team); err != nil {
 		return nil, err
@@ -72,10 +72,10 @@ func (c *client) InsertTeamWithReader(body io.ReadCloser) (*ObjectID, error) {
 		return nil, err
 	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) UpdateTeamWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+func (c *client) UpdateTeamWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
 	team, err := c.FindTeam(oid)
 	if err != nil {
 		return nil, err
@@ -99,13 +99,13 @@ func (c *client) UpdateTeamWithReader(oid *primitive.ObjectID, body io.ReadClose
 	}
 
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+		return id, nil
 	}
 
-	return &ObjectID{oid.Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) InsertTeam(team *Team) (*ObjectID, error) {
+func (c *client) InsertTeam(team *Team) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	team.ID = &id
 	oid, err := c.Insert(config.CollectionTeams, team)
@@ -113,10 +113,10 @@ func (c *client) InsertTeam(team *Team) (*ObjectID, error) {
 		return nil, err
 	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*ObjectID, error) {
+func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*primitive.ObjectID, error) {
 	team, err := c.FindTeam(oid)
 	if err != nil {
 		return nil, err
@@ -135,10 +135,10 @@ func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*ObjectID, e
 	}
 
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+		return id, nil
 	}
 
-	return &ObjectID{oid.Hex()}, nil
+	return oid, nil
 }
 
 func (c *client) DeleteTeam(oid *primitive.ObjectID) (int64, error) {

@@ -77,7 +77,7 @@ func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
 	return &match, nil
 }
 
-func (c *client) InsertMatchWithReader(body io.ReadCloser) (*ObjectID, error) {
+func (c *client) InsertMatchWithReader(body io.ReadCloser) (*primitive.ObjectID, error) {
 	var match Match
 	if err := json.NewDecoder(body).Decode(&match); err != nil {
 		return nil, err
@@ -90,10 +90,10 @@ func (c *client) InsertMatchWithReader(body io.ReadCloser) (*ObjectID, error) {
 		return nil, err
 	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) UpdateMatchWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+func (c *client) UpdateMatchWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
 	match, err := c.FindMatch(oid)
 	if err != nil {
 		return nil, err
@@ -117,13 +117,13 @@ func (c *client) UpdateMatchWithReader(oid *primitive.ObjectID, body io.ReadClos
 	}
 
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+		return id, nil
 	}
 
-	return &ObjectID{oid.Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) InsertMatch(match *Match) (*ObjectID, error) {
+func (c *client) InsertMatch(match *Match) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	match.ID = &id
 	oid, err := c.Insert(config.CollectionMatches, match)
@@ -131,10 +131,10 @@ func (c *client) InsertMatch(match *Match) (*ObjectID, error) {
 		return nil, err
 	}
 
-	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+	return oid, nil
 }
 
-func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*ObjectID, error) {
+func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*primitive.ObjectID, error) {
 	match, err := c.FindMatch(oid)
 	if err != nil {
 		return nil, err
@@ -153,10 +153,10 @@ func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*ObjectID,
 	}
 
 	if id != nil {
-		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+		return id, nil
 	}
 
-	return &ObjectID{oid.Hex()}, nil
+	return oid, nil
 }
 
 func (c *client) DeleteMatch(oid *primitive.ObjectID) (int64, error) {

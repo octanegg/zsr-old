@@ -108,7 +108,7 @@ func (h *handler) GetID(w http.ResponseWriter, r *http.Request, do func(bson.M, 
 	}
 }
 
-func (h *handler) Put(w http.ResponseWriter, r *http.Request, do func(io.ReadCloser) (*octane.ObjectID, error)) {
+func (h *handler) Put(w http.ResponseWriter, r *http.Request, do func(io.ReadCloser) (*primitive.ObjectID, error)) {
 	defer r.Body.Close()
 
 	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
@@ -128,7 +128,7 @@ func (h *handler) Put(w http.ResponseWriter, r *http.Request, do func(io.ReadClo
 	json.NewEncoder(w).Encode(id)
 }
 
-func (h *handler) Update(w http.ResponseWriter, r *http.Request, do func(*primitive.ObjectID, io.ReadCloser) (*octane.ObjectID, error)) {
+func (h *handler) Update(w http.ResponseWriter, r *http.Request, do func(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)) {
 	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
