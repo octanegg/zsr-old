@@ -55,11 +55,11 @@ type Client interface {
 	FindPlayers(bson.M, *Pagination, *Sort) (*Data, error)
 	FindTeams(bson.M, *Pagination, *Sort) (*Data, error)
 
-	FindEvent(*primitive.ObjectID) (interface{}, error)
-	FindMatch(*primitive.ObjectID) (interface{}, error)
-	FindGame(*primitive.ObjectID) (interface{}, error)
-	FindPlayer(*primitive.ObjectID) (interface{}, error)
-	FindTeam(*primitive.ObjectID) (interface{}, error)
+	FindEvent(*primitive.ObjectID) (*Event, error)
+	FindMatch(*primitive.ObjectID) (*Match, error)
+	FindGame(*primitive.ObjectID) (*Game, error)
+	FindPlayer(*primitive.ObjectID) (*Player, error)
+	FindTeam(*primitive.ObjectID) (*Team, error)
 
 	InsertEvent(*Event) (*ObjectID, error)
 	InsertMatch(*Match) (*ObjectID, error)

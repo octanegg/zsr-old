@@ -13,7 +13,7 @@ func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetGame(w http.ResponseWriter, r *http.Request) {
-	h.GetID(w, r, h.Client.FindGame)
+	h.GetID(w, r, h.Client.FindGames)
 }
 
 func (h *handler) PutGame(w http.ResponseWriter, r *http.Request) {

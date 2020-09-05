@@ -55,7 +55,7 @@ func (c *client) FindPlayers(filter bson.M, pagination *Pagination, sort *Sort) 
 	}, nil
 }
 
-func (c *client) FindPlayer(oid *primitive.ObjectID) (interface{}, error) {
+func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
 	players, err := c.FindPlayers(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,8 @@ func (c *client) FindPlayer(oid *primitive.ObjectID) (interface{}, error) {
 		return nil, nil
 	}
 
-	return players.Data[0].(Player), nil
+	player := players.Data[0].(Player)
+	return &player, nil
 }
 
 func (c *client) InsertPlayerWithReader(body io.ReadCloser) (*ObjectID, error) {
@@ -85,12 +86,12 @@ func (c *client) InsertPlayerWithReader(body io.ReadCloser) (*ObjectID, error) {
 }
 
 func (c *client) UpdatePlayerWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
-	data, err := c.FindPlayer(oid)
+	player, err := c.FindPlayer(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if data == nil {
+	if player == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
@@ -99,7 +100,6 @@ func (c *client) UpdatePlayerWithReader(oid *primitive.ObjectID, body io.ReadClo
 		return nil, err
 	}
 
-	player := data.(Player)
 	update := updateFields(reflect.ValueOf(&player).Elem(), reflect.ValueOf(&fields).Elem()).(Player)
 	update.ID = oid
 
@@ -127,16 +127,15 @@ func (c *client) InsertPlayer(player *Player) (*ObjectID, error) {
 }
 
 func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*ObjectID, error) {
-	data, err := c.FindPlayer(oid)
+	player, err := c.FindPlayer(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if data == nil {
+	if player == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	player := data.(Player)
 	update := updateFields(reflect.ValueOf(&player).Elem(), reflect.ValueOf(fields).Elem()).(Player)
 	update.ID = oid
 

@@ -45,7 +45,7 @@ func (c *client) FindTeams(filter bson.M, pagination *Pagination, sort *Sort) (*
 	}, nil
 }
 
-func (c *client) FindTeam(oid *primitive.ObjectID) (interface{}, error) {
+func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
 	teams, err := c.FindTeams(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,8 @@ func (c *client) FindTeam(oid *primitive.ObjectID) (interface{}, error) {
 		return nil, nil
 	}
 
-	return teams.Data[0].(Team), nil
+	team := teams.Data[0].(Team)
+	return &team, nil
 }
 
 func (c *client) InsertTeamWithReader(body io.ReadCloser) (*ObjectID, error) {
@@ -75,12 +76,12 @@ func (c *client) InsertTeamWithReader(body io.ReadCloser) (*ObjectID, error) {
 }
 
 func (c *client) UpdateTeamWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
-	data, err := c.FindTeam(oid)
+	team, err := c.FindTeam(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if data == nil {
+	if team == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
@@ -89,7 +90,6 @@ func (c *client) UpdateTeamWithReader(oid *primitive.ObjectID, body io.ReadClose
 		return nil, err
 	}
 
-	team := data.(Team)
 	update := updateFields(reflect.ValueOf(&team).Elem(), reflect.ValueOf(&fields).Elem()).(Team)
 	update.ID = oid
 
@@ -117,16 +117,15 @@ func (c *client) InsertTeam(team *Team) (*ObjectID, error) {
 }
 
 func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*ObjectID, error) {
-	data, err := c.FindTeam(oid)
+	team, err := c.FindTeam(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if data == nil {
+	if team == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	team := data.(Team)
 	update := updateFields(reflect.ValueOf(&team).Elem(), reflect.ValueOf(fields).Elem()).(Team)
 	update.ID = oid
 

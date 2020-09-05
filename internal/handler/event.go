@@ -10,7 +10,7 @@ func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
-	h.GetID(w, r, h.Client.FindEvent)
+	h.GetID(w, r, h.Client.FindEvents)
 }
 
 func (h *handler) PutEvent(w http.ResponseWriter, r *http.Request) {

@@ -61,7 +61,7 @@ func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) 
 	}, nil
 }
 
-func (c *client) FindMatch(oid *primitive.ObjectID) (interface{}, error) {
+func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
 	matches, err := c.FindMatches(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
@@ -71,7 +71,8 @@ func (c *client) FindMatch(oid *primitive.ObjectID) (interface{}, error) {
 		return nil, nil
 	}
 
-	return matches.Data[0].(Match), nil
+	match := matches.Data[0].(Match)
+	return &match, nil
 }
 
 func (c *client) InsertMatchWithReader(body io.ReadCloser) (*ObjectID, error) {
@@ -91,12 +92,12 @@ func (c *client) InsertMatchWithReader(body io.ReadCloser) (*ObjectID, error) {
 }
 
 func (c *client) UpdateMatchWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
-	data, err := c.FindMatch(oid)
+	match, err := c.FindMatch(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if data == nil {
+	if match == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
@@ -105,7 +106,6 @@ func (c *client) UpdateMatchWithReader(oid *primitive.ObjectID, body io.ReadClos
 		return nil, err
 	}
 
-	match := data.(Match)
 	update := updateFields(reflect.ValueOf(&match).Elem(), reflect.ValueOf(&fields).Elem()).(Match)
 	update.ID = oid
 
@@ -133,16 +133,15 @@ func (c *client) InsertMatch(match *Match) (*ObjectID, error) {
 }
 
 func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*ObjectID, error) {
-	data, err := c.FindMatch(oid)
+	match, err := c.FindMatch(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if data == nil {
+	if match == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	match := data.(Match)
 	update := updateFields(reflect.ValueOf(&match).Elem(), reflect.ValueOf(fields).Elem()).(Match)
 	update.ID = oid
 

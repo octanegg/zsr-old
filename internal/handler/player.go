@@ -10,7 +10,7 @@ func (h *handler) GetPlayers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
-	h.GetID(w, r, h.Client.FindPlayer)
+	h.GetID(w, r, h.Client.FindPlayers)
 }
 
 func (h *handler) PutPlayer(w http.ResponseWriter, r *http.Request) {

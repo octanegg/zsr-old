@@ -36,14 +36,15 @@ type Handler interface {
 	Health(http.ResponseWriter, *http.Request)
 
 	GetEvent(http.ResponseWriter, *http.Request)
-	GetEvents(http.ResponseWriter, *http.Request)
 	GetMatch(http.ResponseWriter, *http.Request)
-	GetMatches(http.ResponseWriter, *http.Request)
 	GetGame(http.ResponseWriter, *http.Request)
-	GetGames(http.ResponseWriter, *http.Request)
 	GetPlayer(http.ResponseWriter, *http.Request)
-	GetPlayers(http.ResponseWriter, *http.Request)
 	GetTeam(http.ResponseWriter, *http.Request)
+
+	GetEvents(http.ResponseWriter, *http.Request)
+	GetMatches(http.ResponseWriter, *http.Request)
+	GetGames(http.ResponseWriter, *http.Request)
+	GetPlayers(http.ResponseWriter, *http.Request)
 	GetTeams(http.ResponseWriter, *http.Request)
 
 	PutEvent(http.ResponseWriter, *http.Request)
@@ -84,7 +85,7 @@ func (h *handler) Get(w http.ResponseWriter, r *http.Request, ctx *FindContext) 
 	json.NewEncoder(w).Encode(data)
 }
 
-func (h *handler) GetID(w http.ResponseWriter, r *http.Request, do func(*primitive.ObjectID) (interface{}, error)) {
+func (h *handler) GetID(w http.ResponseWriter, r *http.Request, do func(bson.M, *octane.Pagination, *octane.Sort) (*octane.Data, error)) {
 	oid, err := primitive.ObjectIDFromHex(mux.Vars(r)[config.ParamID])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -92,15 +93,19 @@ func (h *handler) GetID(w http.ResponseWriter, r *http.Request, do func(*primiti
 		return
 	}
 
-	data, err := do(&oid)
+	data, err := do(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(data)
+	if len(data.Data) == 0 {
+		w.WriteHeader(http.StatusNotFound)
+	} else {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(data.Data[0])
+	}
 }
 
 func (h *handler) Put(w http.ResponseWriter, r *http.Request, do func(io.ReadCloser) (*octane.ObjectID, error)) {

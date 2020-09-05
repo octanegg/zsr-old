@@ -10,7 +10,7 @@ func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetTeam(w http.ResponseWriter, r *http.Request) {
-	h.GetID(w, r, h.Client.FindTeam)
+	h.GetID(w, r, h.Client.FindTeams)
 }
 
 func (h *handler) PutTeam(w http.ResponseWriter, r *http.Request) {

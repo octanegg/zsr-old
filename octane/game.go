@@ -92,7 +92,7 @@ func (c *client) FindGames(filter bson.M, pagination *Pagination, sort *Sort) (*
 	}, nil
 }
 
-func (c *client) FindGame(oid *primitive.ObjectID) (interface{}, error) {
+func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
 	games, err := c.FindGames(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
@@ -102,7 +102,8 @@ func (c *client) FindGame(oid *primitive.ObjectID) (interface{}, error) {
 		return nil, nil
 	}
 
-	return games.Data[0].(Game), nil
+	game := games.Data[0].(Game)
+	return &game, nil
 }
 
 func (c *client) InsertGameWithReader(body io.ReadCloser) (*ObjectID, error) {
@@ -122,12 +123,12 @@ func (c *client) InsertGameWithReader(body io.ReadCloser) (*ObjectID, error) {
 }
 
 func (c *client) UpdateGameWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
-	data, err := c.FindGame(oid)
+	game, err := c.FindGame(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if data == nil {
+	if game == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
@@ -136,7 +137,6 @@ func (c *client) UpdateGameWithReader(oid *primitive.ObjectID, body io.ReadClose
 		return nil, err
 	}
 
-	game := data.(Game)
 	update := updateFields(reflect.ValueOf(&game).Elem(), reflect.ValueOf(&fields).Elem()).(Game)
 	update.ID = oid
 
@@ -163,16 +163,15 @@ func (c *client) InsertGame(game *Game) (*ObjectID, error) {
 }
 
 func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, error) {
-	data, err := c.FindGame(oid)
+	game, err := c.FindGame(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if data == nil {
+	if game == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	game := data.(Game)
 	update := updateFields(reflect.ValueOf(&game).Elem(), reflect.ValueOf(fields).Elem()).(Game)
 	update.ID = oid
 

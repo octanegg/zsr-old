@@ -13,7 +13,7 @@ func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
-	h.GetID(w, r, h.Client.FindMatch)
+	h.GetID(w, r, h.Client.FindMatches)
 }
 
 func (h *handler) PutMatch(w http.ResponseWriter, r *http.Request) {

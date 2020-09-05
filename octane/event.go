@@ -78,7 +78,7 @@ func (c *client) FindEvents(filter bson.M, pagination *Pagination, sort *Sort) (
 	}, nil
 }
 
-func (c *client) FindEvent(oid *primitive.ObjectID) (interface{}, error) {
+func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
 	events, err := c.FindEvents(bson.M{config.KeyID: oid}, nil, nil)
 	if err != nil {
 		return nil, err
@@ -88,7 +88,8 @@ func (c *client) FindEvent(oid *primitive.ObjectID) (interface{}, error) {
 		return nil, nil
 	}
 
-	return events.Data[0], nil
+	event := events.Data[0].(Event)
+	return &event, nil
 }
 
 func (c *client) InsertEventWithReader(body io.ReadCloser) (*ObjectID, error) {
@@ -108,12 +109,12 @@ func (c *client) InsertEventWithReader(body io.ReadCloser) (*ObjectID, error) {
 }
 
 func (c *client) UpdateEventWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
-	data, err := c.FindEvent(oid)
+	event, err := c.FindEvent(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if data == nil {
+	if event == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
@@ -122,7 +123,6 @@ func (c *client) UpdateEventWithReader(oid *primitive.ObjectID, body io.ReadClos
 		return nil, err
 	}
 
-	event := data.(Event)
 	update := updateFields(reflect.ValueOf(&event).Elem(), reflect.ValueOf(&fields).Elem()).(Event)
 	update.ID = oid
 
@@ -150,16 +150,15 @@ func (c *client) InsertEvent(event *Event) (*ObjectID, error) {
 }
 
 func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID, error) {
-	data, err := c.FindEvent(oid)
+	event, err := c.FindEvent(oid)
 	if err != nil {
 		return nil, err
 	}
 
-	if data == nil {
+	if event == nil {
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	event := data.(Event)
 	update := updateFields(reflect.ValueOf(&event).Elem(), reflect.ValueOf(fields).Elem()).(Event)
 	update.ID = oid
 
