@@ -15,7 +15,7 @@ import (
 // Team .
 type Team struct {
 	ID   *primitive.ObjectID `json:"id" bson:"_id"`
-	Name *string             `json:"name" bson:"name"`
+	Name string              `json:"name" bson:"name"`
 }
 
 func (c *client) FindTeams(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {

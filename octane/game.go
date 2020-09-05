@@ -16,12 +16,12 @@ import (
 // Game .
 type Game struct {
 	ID            *primitive.ObjectID `json:"id" bson:"_id"`
-	Number        *int                `json:"number" bson:"number"`
+	Number        int                 `json:"number" bson:"number"`
 	MatchID       *primitive.ObjectID `json:"match" bson:"match"`
 	EventID       *primitive.ObjectID `json:"event" bson:"event"`
-	Map           *string             `json:"map" bson:"map"`
-	Duration      *int                `json:"duration" bson:"duration"`
-	Mode          *int                `json:"mode" bson:"mode"`
+	Map           string              `json:"map" bson:"map"`
+	Duration      int                 `json:"duration" bson:"duration"`
+	Mode          int                 `json:"mode" bson:"mode"`
 	Date          *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
 	Blue          *GameSide           `json:"blue" bson:"blue"`
 	Orange        *GameSide           `json:"orange" bson:"orange"`
@@ -30,7 +30,7 @@ type Game struct {
 
 // GameSide .
 type GameSide struct {
-	Goals   *int           `json:"goals" bson:"goals"`
+	Goals   int            `json:"goals" bson:"goals"`
 	Winner  bool           `json:"winner" bson:"winner"`
 	Team    *TeamStats     `json:"team" bson:"team"`
 	Players []*PlayerStats `json:"players" bson:"players"`
@@ -49,15 +49,15 @@ type Stats struct {
 
 // CoreStats .
 type CoreStats struct {
-	Score              *int     `json:"score" bson:"score"`
-	Goals              *int     `json:"goals" bson:"goals"`
-	Assists            *int     `json:"assists" bson:"assists"`
-	Saves              *int     `json:"saves" bson:"saves"`
-	Shots              *int     `json:"shots" bson:"shots"`
-	ShootingPercentage *float64 `json:"shooting_percentage" bson:"shooting_percentage"`
-	GoalParticipation  *float64 `json:"goal_participation" bson:"goal_participation"`
-	Rating             *float64 `json:"rating" bson:"rating"`
-	MVP                *bool    `json:"mvp" bson:"mvp"`
+	Score              int     `json:"score" bson:"score"`
+	Goals              int     `json:"goals" bson:"goals"`
+	Assists            int     `json:"assists" bson:"assists"`
+	Saves              int     `json:"saves" bson:"saves"`
+	Shots              int     `json:"shots" bson:"shots"`
+	ShootingPercentage float64 `json:"shooting_percentage" bson:"shooting_percentage"`
+	GoalParticipation  float64 `json:"goal_participation" bson:"goal_participation"`
+	Rating             float64 `json:"rating" bson:"rating"`
+	MVP                bool    `json:"mvp" bson:"mvp"`
 }
 
 // TeamStats .

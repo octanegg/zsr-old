@@ -17,18 +17,18 @@ import (
 type Match struct {
 	ID       *primitive.ObjectID `json:"id" bson:"_id"`
 	EventID  *primitive.ObjectID `json:"event" bson:"event"`
-	Stage    *int                `json:"stage" bson:"stage"`
-	Substage *int                `json:"substage,omitempty" bson:"substage,omitempty"`
+	Stage    int                 `json:"stage" bson:"stage"`
+	Substage int                 `json:"substage,omitempty" bson:"substage,omitempty"`
 	Date     *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
-	Format   *string             `json:"format" bson:"format"`
+	Format   string              `json:"format" bson:"format"`
 	Blue     *MatchSide          `json:"blue,omitempty" bson:"blue,omitempty"`
 	Orange   *MatchSide          `json:"orange,omitempty" bson:"orange,omitempty"`
-	Mode     *int                `json:"mode" bson:"mode"`
+	Mode     int                 `json:"mode" bson:"mode"`
 }
 
 // MatchSide .
 type MatchSide struct {
-	Score   *int                  `json:"score,omitempty" bson:"score,omitempty"`
+	Score   int                   `json:"score,omitempty" bson:"score,omitempty"`
 	Winner  bool                  `json:"winner,omitempty" bson:"winner,omitempty"`
 	Team    *primitive.ObjectID   `json:"team,omitempty" bson:"team,omitempty"`
 	Players []*primitive.ObjectID `json:"players,omitempty" bson:"players,omitempty"`

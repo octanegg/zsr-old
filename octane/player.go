@@ -15,10 +15,10 @@ import (
 // Player .
 type Player struct {
 	ID      *primitive.ObjectID `json:"id" bson:"_id"`
-	Tag     *string             `json:"tag" bson:"tag"`
-	Name    *string             `json:"name,omitempty" bson:"name,omitempty"`
-	Country *string             `json:"country,omitempty" bson:"country,omitempty"`
-	Team    *string             `json:"team,omitempty" bson:"team,omitempty"`
+	Tag     string              `json:"tag" bson:"tag"`
+	Name    string              `json:"name,omitempty" bson:"name,omitempty"`
+	Country string              `json:"country,omitempty" bson:"country,omitempty"`
+	Team    string              `json:"team,omitempty" bson:"team,omitempty"`
 	Account *Account            `json:"account" bson:"account"`
 }
 
