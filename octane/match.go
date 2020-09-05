@@ -25,6 +25,7 @@ type Match struct {
 	Blue     *MatchSide          `json:"blue,omitempty" bson:"blue,omitempty"`
 	Orange   *MatchSide          `json:"orange,omitempty" bson:"orange,omitempty"`
 	Mode     int                 `json:"mode" bson:"mode"`
+	Number   int                 `json:"number" bson:"number"`
 }
 
 // MatchSide .
