@@ -74,7 +74,7 @@ func (c *client) FindMatch(oid *primitive.ObjectID) (interface{}, error) {
 	return matches.Data[0].(Match), nil
 }
 
-func (c *client) InsertMatch(body io.ReadCloser) (*ObjectID, error) {
+func (c *client) InsertMatchWithReader(body io.ReadCloser) (*ObjectID, error) {
 	var match Match
 	if err := json.NewDecoder(body).Decode(&match); err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (c *client) InsertMatch(body io.ReadCloser) (*ObjectID, error) {
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
-func (c *client) UpdateMatch(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+func (c *client) UpdateMatchWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
 	data, err := c.FindMatch(oid)
 	if err != nil {
 		return nil, err
@@ -107,6 +107,43 @@ func (c *client) UpdateMatch(oid *primitive.ObjectID, body io.ReadCloser) (*Obje
 
 	match := data.(Match)
 	update := updateFields(reflect.ValueOf(&match).Elem(), reflect.ValueOf(&fields).Elem()).(Match)
+	update.ID = oid
+
+	id, err := c.Replace(config.CollectionMatches, oid, update)
+	if err != nil {
+		return nil, err
+	}
+
+	if id != nil {
+		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+	}
+
+	return &ObjectID{oid.Hex()}, nil
+}
+
+func (c *client) InsertMatch(match *Match) (*ObjectID, error) {
+	id := primitive.NewObjectID()
+	match.ID = &id
+	oid, err := c.Insert(config.CollectionMatches, match)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+}
+
+func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*ObjectID, error) {
+	data, err := c.FindMatch(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	if data == nil {
+		return nil, errors.New(config.ErrNoObjectFoundForID)
+	}
+
+	match := data.(Match)
+	update := updateFields(reflect.ValueOf(&match).Elem(), reflect.ValueOf(fields).Elem()).(Match)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionMatches, oid, update)

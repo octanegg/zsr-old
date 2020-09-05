@@ -17,11 +17,11 @@ func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PutMatch(w http.ResponseWriter, r *http.Request) {
-	h.Put(w, r, h.Client.InsertMatch)
+	h.Put(w, r, h.Client.InsertMatchWithReader)
 }
 
 func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
-	h.Update(w, r, h.Client.UpdateMatch)
+	h.Update(w, r, h.Client.UpdateMatchWithReader)
 }
 
 func (h *handler) DeleteMatch(w http.ResponseWriter, r *http.Request) {

@@ -14,11 +14,11 @@ func (h *handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PutTeam(w http.ResponseWriter, r *http.Request) {
-	h.Put(w, r, h.Client.InsertTeam)
+	h.Put(w, r, h.Client.InsertTeamWithReader)
 }
 
 func (h *handler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
-	h.Update(w, r, h.Client.UpdateTeam)
+	h.Update(w, r, h.Client.UpdateTeamWithReader)
 }
 
 func (h *handler) DeleteTeam(w http.ResponseWriter, r *http.Request) {

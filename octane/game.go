@@ -15,16 +15,17 @@ import (
 
 // Game .
 type Game struct {
-	ID       *primitive.ObjectID `json:"id" bson:"_id"`
-	Number   *int                `json:"number" bson:"number"`
-	MatchID  *primitive.ObjectID `json:"match" bson:"match"`
-	EventID  *primitive.ObjectID `json:"event" bson:"event"`
-	Map      *string             `json:"map" bson:"map"`
-	Duration *int                `json:"duration" bson:"duration"`
-	Mode     *int                `json:"mode" bson:"mode"`
-	Date     *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
-	Blue     *GameSide           `json:"blue" bson:"blue"`
-	Orange   *GameSide           `json:"orange" bson:"orange"`
+	ID            *primitive.ObjectID `json:"id" bson:"_id"`
+	Number        *int                `json:"number" bson:"number"`
+	MatchID       *primitive.ObjectID `json:"match" bson:"match"`
+	EventID       *primitive.ObjectID `json:"event" bson:"event"`
+	Map           *string             `json:"map" bson:"map"`
+	Duration      *int                `json:"duration" bson:"duration"`
+	Mode          *int                `json:"mode" bson:"mode"`
+	Date          *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
+	Blue          *GameSide           `json:"blue" bson:"blue"`
+	Orange        *GameSide           `json:"orange" bson:"orange"`
+	BallchasingID string              `json:"ballchasing,omitempty" bson:"ballchasing,omitempty"`
 }
 
 // GameSide .
@@ -39,6 +40,24 @@ type GameSide struct {
 type PlayerStats struct {
 	Player *primitive.ObjectID `json:"player" bson:"player"`
 	Stats  *Stats              `json:"stats" bson:"stats"`
+}
+
+// Stats .
+type Stats struct {
+	Core *CoreStats `json:"core" bson:"core"`
+}
+
+// CoreStats .
+type CoreStats struct {
+	Score              *int     `json:"score" bson:"score"`
+	Goals              *int     `json:"goals" bson:"goals"`
+	Assists            *int     `json:"assists" bson:"assists"`
+	Saves              *int     `json:"saves" bson:"saves"`
+	Shots              *int     `json:"shots" bson:"shots"`
+	ShootingPercentage *float64 `json:"shooting_percentage" bson:"shooting_percentage"`
+	GoalParticipation  *float64 `json:"goal_participation" bson:"goal_participation"`
+	Rating             *float64 `json:"rating" bson:"rating"`
+	MVP                *bool    `json:"mvp" bson:"mvp"`
 }
 
 // TeamStats .
@@ -86,7 +105,7 @@ func (c *client) FindGame(oid *primitive.ObjectID) (interface{}, error) {
 	return games.Data[0].(Game), nil
 }
 
-func (c *client) InsertGame(body io.ReadCloser) (*ObjectID, error) {
+func (c *client) InsertGameWithReader(body io.ReadCloser) (*ObjectID, error) {
 	var game Game
 	if err := json.NewDecoder(body).Decode(&game); err != nil {
 		return nil, err
@@ -102,7 +121,7 @@ func (c *client) InsertGame(body io.ReadCloser) (*ObjectID, error) {
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
-func (c *client) UpdateGame(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+func (c *client) UpdateGameWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
 	data, err := c.FindGame(oid)
 	if err != nil {
 		return nil, err
@@ -119,6 +138,42 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, body io.ReadCloser) (*Objec
 
 	game := data.(Game)
 	update := updateFields(reflect.ValueOf(&game).Elem(), reflect.ValueOf(&fields).Elem()).(Game)
+	update.ID = oid
+
+	id, err := c.Replace(config.CollectionGames, oid, update)
+	if err != nil {
+		return nil, err
+	}
+
+	if id != nil {
+		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+	}
+	return &ObjectID{oid.Hex()}, err
+}
+
+func (c *client) InsertGame(game *Game) (*ObjectID, error) {
+	id := primitive.NewObjectID()
+	game.ID = &id
+	oid, err := c.Insert(config.CollectionGames, game)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+}
+
+func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*ObjectID, error) {
+	data, err := c.FindGame(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	if data == nil {
+		return nil, errors.New(config.ErrNoObjectFoundForID)
+	}
+
+	game := data.(Game)
+	update := updateFields(reflect.ValueOf(&game).Elem(), reflect.ValueOf(fields).Elem()).(Game)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionGames, oid, update)

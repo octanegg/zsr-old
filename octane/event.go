@@ -91,7 +91,7 @@ func (c *client) FindEvent(oid *primitive.ObjectID) (interface{}, error) {
 	return events.Data[0], nil
 }
 
-func (c *client) InsertEvent(body io.ReadCloser) (*ObjectID, error) {
+func (c *client) InsertEventWithReader(body io.ReadCloser) (*ObjectID, error) {
 	var event Event
 	if err := json.NewDecoder(body).Decode(&event); err != nil {
 		return nil, err
@@ -107,7 +107,7 @@ func (c *client) InsertEvent(body io.ReadCloser) (*ObjectID, error) {
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
-func (c *client) UpdateEvent(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+func (c *client) UpdateEventWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
 	data, err := c.FindEvent(oid)
 	if err != nil {
 		return nil, err
@@ -124,6 +124,43 @@ func (c *client) UpdateEvent(oid *primitive.ObjectID, body io.ReadCloser) (*Obje
 
 	event := data.(Event)
 	update := updateFields(reflect.ValueOf(&event).Elem(), reflect.ValueOf(&fields).Elem()).(Event)
+	update.ID = oid
+
+	id, err := c.Replace(config.CollectionEvents, oid, update)
+	if err != nil {
+		return nil, err
+	}
+
+	if id != nil {
+		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+	}
+
+	return &ObjectID{oid.Hex()}, nil
+}
+
+func (c *client) InsertEvent(event *Event) (*ObjectID, error) {
+	id := primitive.NewObjectID()
+	event.ID = &id
+	oid, err := c.Insert(config.CollectionEvents, event)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+}
+
+func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*ObjectID, error) {
+	data, err := c.FindEvent(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	if data == nil {
+		return nil, errors.New(config.ErrNoObjectFoundForID)
+	}
+
+	event := data.(Event)
+	update := updateFields(reflect.ValueOf(&event).Elem(), reflect.ValueOf(fields).Elem()).(Event)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionEvents, oid, update)

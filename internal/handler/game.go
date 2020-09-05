@@ -17,11 +17,11 @@ func (h *handler) GetGame(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PutGame(w http.ResponseWriter, r *http.Request) {
-	h.Put(w, r, h.Client.InsertGame)
+	h.Put(w, r, h.Client.InsertGameWithReader)
 }
 
 func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
-	h.Update(w, r, h.Client.UpdateGame)
+	h.Update(w, r, h.Client.UpdateGameWithReader)
 }
 
 func (h *handler) DeleteGame(w http.ResponseWriter, r *http.Request) {

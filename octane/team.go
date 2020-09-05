@@ -58,7 +58,7 @@ func (c *client) FindTeam(oid *primitive.ObjectID) (interface{}, error) {
 	return teams.Data[0].(Team), nil
 }
 
-func (c *client) InsertTeam(body io.ReadCloser) (*ObjectID, error) {
+func (c *client) InsertTeamWithReader(body io.ReadCloser) (*ObjectID, error) {
 	var team Team
 	if err := json.NewDecoder(body).Decode(&team); err != nil {
 		return nil, err
@@ -74,7 +74,7 @@ func (c *client) InsertTeam(body io.ReadCloser) (*ObjectID, error) {
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
-func (c *client) UpdateTeam(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+func (c *client) UpdateTeamWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
 	data, err := c.FindTeam(oid)
 	if err != nil {
 		return nil, err
@@ -91,6 +91,43 @@ func (c *client) UpdateTeam(oid *primitive.ObjectID, body io.ReadCloser) (*Objec
 
 	team := data.(Team)
 	update := updateFields(reflect.ValueOf(&team).Elem(), reflect.ValueOf(&fields).Elem()).(Team)
+	update.ID = oid
+
+	id, err := c.Replace(config.CollectionTeams, oid, update)
+	if err != nil {
+		return nil, err
+	}
+
+	if id != nil {
+		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+	}
+
+	return &ObjectID{oid.Hex()}, nil
+}
+
+func (c *client) InsertTeam(team *Team) (*ObjectID, error) {
+	id := primitive.NewObjectID()
+	team.ID = &id
+	oid, err := c.Insert(config.CollectionTeams, team)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+}
+
+func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*ObjectID, error) {
+	data, err := c.FindTeam(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	if data == nil {
+		return nil, errors.New(config.ErrNoObjectFoundForID)
+	}
+
+	team := data.(Team)
+	update := updateFields(reflect.ValueOf(&team).Elem(), reflect.ValueOf(fields).Elem()).(Team)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionTeams, oid, update)

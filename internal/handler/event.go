@@ -14,11 +14,11 @@ func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PutEvent(w http.ResponseWriter, r *http.Request) {
-	h.Put(w, r, h.Client.InsertEvent)
+	h.Put(w, r, h.Client.InsertEventWithReader)
 }
 
 func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
-	h.Update(w, r, h.Client.UpdateEvent)
+	h.Update(w, r, h.Client.UpdateEventWithReader)
 }
 
 func (h *handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {

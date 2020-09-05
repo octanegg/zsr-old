@@ -14,11 +14,11 @@ func (h *handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) PutPlayer(w http.ResponseWriter, r *http.Request) {
-	h.Put(w, r, h.Client.InsertPlayer)
+	h.Put(w, r, h.Client.InsertPlayerWithReader)
 }
 
 func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
-	h.Update(w, r, h.Client.UpdatePlayer)
+	h.Update(w, r, h.Client.UpdatePlayerWithReader)
 }
 
 func (h *handler) DeletePlayer(w http.ResponseWriter, r *http.Request) {

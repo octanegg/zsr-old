@@ -19,6 +19,13 @@ type Player struct {
 	Name    *string             `json:"name,omitempty" bson:"name,omitempty"`
 	Country *string             `json:"country,omitempty" bson:"country,omitempty"`
 	Team    *string             `json:"team,omitempty" bson:"team,omitempty"`
+	Account *Account            `json:"account" bson:"account"`
+}
+
+// Account .
+type Account struct {
+	Platform string `json:"platform" bson:"platform"`
+	ID       string `json:"id" bson:"id"`
 }
 
 func (c *client) FindPlayers(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
@@ -61,7 +68,7 @@ func (c *client) FindPlayer(oid *primitive.ObjectID) (interface{}, error) {
 	return players.Data[0].(Player), nil
 }
 
-func (c *client) InsertPlayer(body io.ReadCloser) (*ObjectID, error) {
+func (c *client) InsertPlayerWithReader(body io.ReadCloser) (*ObjectID, error) {
 	var player Player
 	if err := json.NewDecoder(body).Decode(&player); err != nil {
 		return nil, err
@@ -77,7 +84,7 @@ func (c *client) InsertPlayer(body io.ReadCloser) (*ObjectID, error) {
 	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
 }
 
-func (c *client) UpdatePlayer(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
+func (c *client) UpdatePlayerWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*ObjectID, error) {
 	data, err := c.FindPlayer(oid)
 	if err != nil {
 		return nil, err
@@ -94,6 +101,43 @@ func (c *client) UpdatePlayer(oid *primitive.ObjectID, body io.ReadCloser) (*Obj
 
 	player := data.(Player)
 	update := updateFields(reflect.ValueOf(&player).Elem(), reflect.ValueOf(&fields).Elem()).(Player)
+	update.ID = oid
+
+	id, err := c.Replace(config.CollectionPlayers, oid, update)
+	if err != nil {
+		return nil, err
+	}
+
+	if id != nil {
+		return &ObjectID{id.(primitive.ObjectID).Hex()}, nil
+	}
+
+	return &ObjectID{oid.Hex()}, nil
+}
+
+func (c *client) InsertPlayer(player *Player) (*ObjectID, error) {
+	id := primitive.NewObjectID()
+	player.ID = &id
+	oid, err := c.Insert(config.CollectionPlayers, player)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ObjectID{oid.(primitive.ObjectID).Hex()}, nil
+}
+
+func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*ObjectID, error) {
+	data, err := c.FindPlayer(oid)
+	if err != nil {
+		return nil, err
+	}
+
+	if data == nil {
+		return nil, errors.New(config.ErrNoObjectFoundForID)
+	}
+
+	player := data.(Player)
+	update := updateFields(reflect.ValueOf(&player).Elem(), reflect.ValueOf(fields).Elem()).(Player)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionPlayers, oid, update)
