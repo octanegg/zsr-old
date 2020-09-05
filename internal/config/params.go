@@ -2,6 +2,12 @@ package config
 
 const (
 
+	// ParamAccountID .
+	ParamAccountID = "account.id"
+
+	// ParamAccountPlatform .
+	ParamAccountPlatform = "account.platform"
+
 	// ParamActiveTeam .
 	ParamActiveTeam = "activeTeam"
 
