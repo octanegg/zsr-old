@@ -159,7 +159,7 @@ func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*primitive
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	update := updateFields(reflect.ValueOf(&event).Elem(), reflect.ValueOf(fields).Elem()).(Event)
+	update := updateFields(reflect.ValueOf(event).Elem(), reflect.ValueOf(fields).Elem()).(Event)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionEvents, oid, update)

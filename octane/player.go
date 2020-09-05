@@ -136,7 +136,7 @@ func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*primiti
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	update := updateFields(reflect.ValueOf(&player).Elem(), reflect.ValueOf(fields).Elem()).(Player)
+	update := updateFields(reflect.ValueOf(player).Elem(), reflect.ValueOf(fields).Elem()).(Player)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionPlayers, oid, update)

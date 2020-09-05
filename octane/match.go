@@ -144,7 +144,7 @@ func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*primitive
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	update := updateFields(reflect.ValueOf(&match).Elem(), reflect.ValueOf(fields).Elem()).(Match)
+	update := updateFields(reflect.ValueOf(match).Elem(), reflect.ValueOf(fields).Elem()).(Match)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionMatches, oid, update)

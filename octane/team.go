@@ -126,7 +126,7 @@ func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*primitive.O
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	update := updateFields(reflect.ValueOf(&team).Elem(), reflect.ValueOf(fields).Elem()).(Team)
+	update := updateFields(reflect.ValueOf(team).Elem(), reflect.ValueOf(fields).Elem()).(Team)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionTeams, oid, update)

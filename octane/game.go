@@ -155,7 +155,7 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*primitive.O
 		return nil, errors.New(config.ErrNoObjectFoundForID)
 	}
 
-	update := updateFields(reflect.ValueOf(&game).Elem(), reflect.ValueOf(fields).Elem()).(Game)
+	update := updateFields(reflect.ValueOf(game).Elem(), reflect.ValueOf(fields).Elem()).(Game)
 	update.ID = oid
 
 	id, err := c.Replace(config.CollectionGames, oid, update)
