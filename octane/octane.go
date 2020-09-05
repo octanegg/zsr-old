@@ -87,8 +87,8 @@ type Client interface {
 	DeleteTeam(*primitive.ObjectID) (int64, error)
 }
 
-// NewClient .
-func NewClient(db *mongo.Client) Client {
+// New .
+func New(db *mongo.Client) Client {
 	return &client{
 		DB: db,
 	}

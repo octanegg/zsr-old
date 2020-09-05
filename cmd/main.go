@@ -28,7 +28,7 @@ func initialize() octane.Client {
 		log.Fatal(err)
 	}
 
-	c := octane.NewClient(db)
+	c := octane.New(db)
 	if err = c.Ping(); err != nil {
 		log.Fatal(err)
 	}
