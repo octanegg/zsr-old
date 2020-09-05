@@ -126,13 +126,8 @@ func (c *client) UpdateEventWithReader(oid *primitive.ObjectID, body io.ReadClos
 	update := updateFields(reflect.ValueOf(&event).Elem(), reflect.ValueOf(&fields).Elem()).(Event)
 	update.ID = oid
 
-	id, err := c.Replace(config.CollectionEvents, oid, update)
-	if err != nil {
+	if err := c.Replace(config.CollectionEvents, oid, update); err != nil {
 		return nil, err
-	}
-
-	if id != nil {
-		return id, nil
 	}
 
 	return oid, nil
@@ -162,13 +157,8 @@ func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*primitive
 	update := updateFields(reflect.ValueOf(event).Elem(), reflect.ValueOf(fields).Elem()).(Event)
 	update.ID = oid
 
-	id, err := c.Replace(config.CollectionEvents, oid, update)
-	if err != nil {
+	if err := c.Replace(config.CollectionEvents, oid, update); err != nil {
 		return nil, err
-	}
-
-	if id != nil {
-		return id, nil
 	}
 
 	return oid, nil

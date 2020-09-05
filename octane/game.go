@@ -123,14 +123,10 @@ func (c *client) UpdateGameWithReader(oid *primitive.ObjectID, body io.ReadClose
 	update := updateFields(reflect.ValueOf(&game).Elem(), reflect.ValueOf(&fields).Elem()).(Game)
 	update.ID = oid
 
-	id, err := c.Replace(config.CollectionGames, oid, update)
-	if err != nil {
+	if err := c.Replace(config.CollectionGames, oid, update); err != nil {
 		return nil, err
 	}
 
-	if id != nil {
-		return id, nil
-	}
 	return oid, err
 }
 
@@ -158,14 +154,10 @@ func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*primitive.O
 	update := updateFields(reflect.ValueOf(game).Elem(), reflect.ValueOf(fields).Elem()).(Game)
 	update.ID = oid
 
-	id, err := c.Replace(config.CollectionGames, oid, update)
-	if err != nil {
+	if err := c.Replace(config.CollectionGames, oid, update); err != nil {
 		return nil, err
 	}
 
-	if id != nil {
-		return id, nil
-	}
 	return oid, err
 }
 

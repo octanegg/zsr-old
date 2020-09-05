@@ -93,13 +93,8 @@ func (c *client) UpdateTeamWithReader(oid *primitive.ObjectID, body io.ReadClose
 	update := updateFields(reflect.ValueOf(&team).Elem(), reflect.ValueOf(&fields).Elem()).(Team)
 	update.ID = oid
 
-	id, err := c.Replace(config.CollectionTeams, oid, update)
-	if err != nil {
+	if err := c.Replace(config.CollectionTeams, oid, update); err != nil {
 		return nil, err
-	}
-
-	if id != nil {
-		return id, nil
 	}
 
 	return oid, nil
@@ -129,13 +124,8 @@ func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*primitive.O
 	update := updateFields(reflect.ValueOf(team).Elem(), reflect.ValueOf(fields).Elem()).(Team)
 	update.ID = oid
 
-	id, err := c.Replace(config.CollectionTeams, oid, update)
-	if err != nil {
+	if err := c.Replace(config.CollectionTeams, oid, update); err != nil {
 		return nil, err
-	}
-
-	if id != nil {
-		return id, nil
 	}
 
 	return oid, nil

@@ -103,13 +103,8 @@ func (c *client) UpdatePlayerWithReader(oid *primitive.ObjectID, body io.ReadClo
 	update := updateFields(reflect.ValueOf(&player).Elem(), reflect.ValueOf(&fields).Elem()).(Player)
 	update.ID = oid
 
-	id, err := c.Replace(config.CollectionPlayers, oid, update)
-	if err != nil {
+	if err := c.Replace(config.CollectionPlayers, oid, update); err != nil {
 		return nil, err
-	}
-
-	if id != nil {
-		return id, nil
 	}
 
 	return oid, nil
@@ -139,13 +134,8 @@ func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*primiti
 	update := updateFields(reflect.ValueOf(player).Elem(), reflect.ValueOf(fields).Elem()).(Player)
 	update.ID = oid
 
-	id, err := c.Replace(config.CollectionPlayers, oid, update)
-	if err != nil {
+	if err := c.Replace(config.CollectionPlayers, oid, update); err != nil {
 		return nil, err
-	}
-
-	if id != nil {
-		return id, nil
 	}
 
 	return oid, nil

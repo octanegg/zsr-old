@@ -41,7 +41,7 @@ type Client interface {
 	Find(string, bson.M, *Pagination, *Sort, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
 	Insert(string, interface{}) (*primitive.ObjectID, error)
 	Update(string, bson.M, bson.M) (*primitive.ObjectID, error)
-	Replace(string, *primitive.ObjectID, interface{}) (*primitive.ObjectID, error)
+	Replace(string, *primitive.ObjectID, interface{}) error
 	Delete(string, *primitive.ObjectID) (int64, error)
 
 	FindEvents(bson.M, *Pagination, *Sort) (*Data, error)
@@ -144,18 +144,16 @@ func (c *client) Insert(collection string, document interface{}) (*primitive.Obj
 	return &newID, nil
 }
 
-func (c *client) Replace(collection string, oid *primitive.ObjectID, update interface{}) (*primitive.ObjectID, error) {
+func (c *client) Replace(collection string, oid *primitive.ObjectID, update interface{}) error {
 	ctx := context.TODO()
 	coll := c.DB.Database(config.Database).Collection(collection)
 
-	res, err := coll.ReplaceOne(ctx, bson.M{config.KeyID: oid}, update)
+	_, err := coll.ReplaceOne(ctx, bson.M{config.KeyID: oid}, update)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	newID := res.UpsertedID.(primitive.ObjectID)
-
-	return &newID, nil
+	return nil
 }
 
 func (c *client) Update(collection string, filter, update bson.M) (*primitive.ObjectID, error) {

@@ -111,13 +111,8 @@ func (c *client) UpdateMatchWithReader(oid *primitive.ObjectID, body io.ReadClos
 	update := updateFields(reflect.ValueOf(&match).Elem(), reflect.ValueOf(&fields).Elem()).(Match)
 	update.ID = oid
 
-	id, err := c.Replace(config.CollectionMatches, oid, update)
-	if err != nil {
+	if err := c.Replace(config.CollectionMatches, oid, update); err != nil {
 		return nil, err
-	}
-
-	if id != nil {
-		return id, nil
 	}
 
 	return oid, nil
@@ -147,13 +142,8 @@ func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*primitive
 	update := updateFields(reflect.ValueOf(match).Elem(), reflect.ValueOf(fields).Elem()).(Match)
 	update.ID = oid
 
-	id, err := c.Replace(config.CollectionMatches, oid, update)
-	if err != nil {
+	if err := c.Replace(config.CollectionMatches, oid, update); err != nil {
 		return nil, err
-	}
-
-	if id != nil {
-		return id, nil
 	}
 
 	return oid, nil
