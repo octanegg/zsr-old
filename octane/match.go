@@ -30,9 +30,9 @@ type Match struct {
 
 // MatchSide .
 type MatchSide struct {
-	Score   int                   `json:"score,omitempty" bson:"score,omitempty"`
-	Winner  bool                  `json:"winner,omitempty" bson:"winner,omitempty"`
-	Team    *primitive.ObjectID   `json:"team,omitempty" bson:"team,omitempty"`
+	Score   int                   `json:"score" bson:"score"`
+	Winner  bool                  `json:"winner" bson:"winner"`
+	Team    *primitive.ObjectID   `json:"team" bson:"team"`
 	Players []*primitive.ObjectID `json:"players,omitempty" bson:"players,omitempty"`
 }
 
