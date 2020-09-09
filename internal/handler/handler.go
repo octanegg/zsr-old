@@ -20,7 +20,7 @@ type Error struct {
 }
 
 type handler struct {
-	Client octane.Client
+	Octane octane.Client
 }
 
 // FindContext .
@@ -66,11 +66,9 @@ type Handler interface {
 	DeleteTeam(http.ResponseWriter, *http.Request)
 }
 
-// NewHandler .
-func NewHandler(client octane.Client) Handler {
-	return &handler{
-		Client: client,
-	}
+// New .
+func New(o octane.Client) Handler {
+	return &handler{o}
 }
 
 func (h *handler) Get(w http.ResponseWriter, r *http.Request, ctx *FindContext) {

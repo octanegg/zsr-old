@@ -10,24 +10,24 @@ func (h *handler) GetPlayers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
-	h.GetID(w, r, h.Client.FindPlayers)
+	h.GetID(w, r, h.Octane.FindPlayers)
 }
 
 func (h *handler) PutPlayer(w http.ResponseWriter, r *http.Request) {
-	h.Put(w, r, h.Client.InsertPlayerWithReader)
+	h.Put(w, r, h.Octane.InsertPlayerWithReader)
 }
 
 func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
-	h.Update(w, r, h.Client.UpdatePlayerWithReader)
+	h.Update(w, r, h.Octane.UpdatePlayerWithReader)
 }
 
 func (h *handler) DeletePlayer(w http.ResponseWriter, r *http.Request) {
-	h.Delete(w, r, h.Client.DeletePlayer)
+	h.Delete(w, r, h.Octane.DeletePlayer)
 }
 
 func (h *handler) contextFindPlayers(v url.Values) *FindContext {
 	return &FindContext{
-		Do:         h.Client.FindPlayers,
+		Do:         h.Octane.FindPlayers,
 		Filter:     getBasicFilters(v),
 		Pagination: getPagination(v),
 		Sort:       getSort(v),

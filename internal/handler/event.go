@@ -10,24 +10,24 @@ func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
-	h.GetID(w, r, h.Client.FindEvents)
+	h.GetID(w, r, h.Octane.FindEvents)
 }
 
 func (h *handler) PutEvent(w http.ResponseWriter, r *http.Request) {
-	h.Put(w, r, h.Client.InsertEventWithReader)
+	h.Put(w, r, h.Octane.InsertEventWithReader)
 }
 
 func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
-	h.Update(w, r, h.Client.UpdateEventWithReader)
+	h.Update(w, r, h.Octane.UpdateEventWithReader)
 }
 
 func (h *handler) DeleteEvent(w http.ResponseWriter, r *http.Request) {
-	h.Delete(w, r, h.Client.DeleteEvent)
+	h.Delete(w, r, h.Octane.DeleteEvent)
 }
 
 func (h *handler) contextFindEvents(v url.Values) *FindContext {
 	return &FindContext{
-		Do:         h.Client.FindEvents,
+		Do:         h.Octane.FindEvents,
 		Filter:     getBasicFilters(v),
 		Pagination: getPagination(v),
 		Sort:       getSort(v),

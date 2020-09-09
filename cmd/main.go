@@ -4,17 +4,20 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/octanegg/core/deprecated"
+	"github.com/octanegg/core/internal/admin"
 	"github.com/octanegg/core/internal/config"
 	"github.com/octanegg/core/internal/handler"
 	"github.com/octanegg/core/octane"
+	"github.com/octanegg/racer"
+	"github.com/octanegg/slimline"
 )
 
 func main() {
 	var (
-		c = initialize()
-		h = handler.NewHandler(c)
-		r = routes(h)
+		r = routes(newHandler(), newAdminHandler())
 	)
 
 	http.Handle("/", r)
@@ -22,16 +25,32 @@ func main() {
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.ServerPort), r))
 }
 
-func initialize() octane.Client {
+func newHandler() handler.Handler {
 	db, err := connect()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	c := octane.New(db)
-	if err = c.Ping(); err != nil {
+	return handler.New(
+		octane.New(db),
+	)
+}
+
+func newAdminHandler() admin.Handler {
+	db, err := connect()
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	return c
+	dprctd, err := deprecated.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return admin.New(
+		octane.New(db),
+		racer.New(os.Getenv(config.EnvAuthToken)),
+		slimline.New("core", "rocketleague"),
+		dprctd,
+	)
 }

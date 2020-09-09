@@ -1,9 +1,6 @@
 package config
 
 const (
-	// EnvURI .
-	EnvURI = "DB_URI"
-
 	// KeyID .
 	KeyID = "_id"
 

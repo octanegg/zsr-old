@@ -4,10 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/core/internal/admin"
 	"github.com/octanegg/core/internal/handler"
 )
 
-func routes(h handler.Handler) *mux.Router {
+func routes(h handler.Handler, a admin.Handler) *mux.Router {
 	r := mux.NewRouter()
 
 	// health
@@ -15,66 +16,76 @@ func routes(h handler.Handler) *mux.Router {
 		Methods(http.MethodGet)
 
 	// events
-	r.HandleFunc("/events", h.GetEvents).
+	e := r.PathPrefix("/events").Subrouter()
+	e.HandleFunc("", h.GetEvents).
 		Methods(http.MethodGet)
-	r.HandleFunc("/events", h.PutEvent).
+	e.HandleFunc("", h.PutEvent).
 		Methods(http.MethodPut)
-	r.HandleFunc("/events/{id}", h.GetEvent).
+	e.HandleFunc("/{id}", h.GetEvent).
 		Methods(http.MethodGet)
-	r.HandleFunc("/events/{id}", h.UpdateEvent).
+	e.HandleFunc("/{id}", h.UpdateEvent).
 		Methods(http.MethodPost)
-	r.HandleFunc("/events/{id}", h.DeleteEvent).
+	e.HandleFunc("/{id}", h.DeleteEvent).
 		Methods(http.MethodDelete)
 
 	// matches
-	r.HandleFunc("/matches", h.GetMatches).
+	m := r.PathPrefix("/matches").Subrouter()
+	m.HandleFunc("", h.GetMatches).
 		Methods(http.MethodGet)
-	r.HandleFunc("/matches", h.PutMatch).
+	m.HandleFunc("", h.PutMatch).
 		Methods(http.MethodPut)
-	r.HandleFunc("/matches/{id}", h.GetMatch).
+	m.HandleFunc("/{id}", h.GetMatch).
 		Methods(http.MethodGet)
-	r.HandleFunc("/matches/{id}", h.UpdateMatch).
+	m.HandleFunc("/{id}", h.UpdateMatch).
 		Methods(http.MethodPost)
-	r.HandleFunc("/matches/{id}", h.DeleteMatch).
+	m.HandleFunc("/{id}", h.DeleteMatch).
 		Methods(http.MethodDelete)
 
 	// games
-	r.HandleFunc("/games", h.GetGames).
+	g := r.PathPrefix("/games").Subrouter()
+	g.HandleFunc("", h.GetGames).
 		Methods(http.MethodGet)
-	r.HandleFunc("/games", h.PutGame).
+	g.HandleFunc("", h.PutGame).
 		Methods(http.MethodPut)
-	r.HandleFunc("/games/{id}", h.GetGame).
+	g.HandleFunc("/{id}", h.GetGame).
 		Methods(http.MethodGet)
-	r.HandleFunc("/games/{id}", h.UpdateGame).
+	g.HandleFunc("/{id}", h.UpdateGame).
 		Methods(http.MethodPost)
-	r.HandleFunc("/games/{id}", h.DeleteGame).
+	g.HandleFunc("/{id}", h.DeleteGame).
 		Methods(http.MethodDelete)
 
 	// players
-	r.HandleFunc("/players", h.GetPlayers).
+	p := r.PathPrefix("/players").Subrouter()
+	p.HandleFunc("", h.GetPlayers).
 		Methods(http.MethodGet)
-	r.HandleFunc("/players", h.PutPlayer).
+	p.HandleFunc("", h.PutPlayer).
 		Methods(http.MethodPut)
-	r.HandleFunc("/players/{id}", h.GetPlayer).
+	p.HandleFunc("/{id}", h.GetPlayer).
 		Methods(http.MethodGet)
-	r.HandleFunc("/players/{id}", h.UpdatePlayer).
+	p.HandleFunc("/{id}", h.UpdatePlayer).
 		Methods(http.MethodPost)
-	r.HandleFunc("/players/{id}", h.DeletePlayer).
+	p.HandleFunc("/{id}", h.DeletePlayer).
 		Methods(http.MethodDelete)
 
 	// teams
-	r.HandleFunc("/teams", h.GetTeams).
+	t := r.PathPrefix("/teams").Subrouter()
+	t.HandleFunc("", h.GetTeams).
 		Methods(http.MethodGet)
-	r.HandleFunc("/teams", h.PutTeam).
+	t.HandleFunc("", h.PutTeam).
 		Methods(http.MethodPut)
-	r.HandleFunc("/teams/{id}", h.GetTeam).
+	t.HandleFunc("/{id}", h.GetTeam).
 		Methods(http.MethodGet)
-	r.HandleFunc("/teams/{id}", h.UpdateTeam).
+	t.HandleFunc("/{id}", h.UpdateTeam).
 		Methods(http.MethodPost)
-	r.HandleFunc("/teams/{id}", h.DeleteTeam).
+	t.HandleFunc("/{id}", h.DeleteTeam).
 		Methods(http.MethodDelete)
 
 	// TODO: Stats endpoints
+
+	// admin
+	s := r.PathPrefix("/admin").Subrouter()
+	s.HandleFunc("/link-ballchasing", a.LinkBallchasing).Methods(http.MethodPost)
+	s.HandleFunc("/import-matches", a.ImportMatches).Methods(http.MethodPost)
 
 	return r
 }
