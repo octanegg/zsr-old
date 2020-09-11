@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/octanegg/core/internal/config"
 	"github.com/octanegg/core/internal/deprecated"
 	"github.com/octanegg/core/octane"
 	"github.com/octanegg/racer"
@@ -38,7 +39,7 @@ func New(o octane.Client, r racer.Racer, s slimline.Slimline, d deprecated.Depre
 }
 
 func (h *handler) upsertGame(newGame *octane.Game, match *octane.Match, update bool) error {
-	data, err := h.Octane.FindGames(bson.M{"match": newGame.MatchID, "number": newGame.Number}, nil, nil)
+	data, err := h.Octane.FindGames(bson.M{config.ParamMatch: newGame.MatchID, config.ParamNumber: newGame.Number}, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -77,8 +78,9 @@ func (h *handler) upsertGame(newGame *octane.Game, match *octane.Match, update b
 	return nil
 }
 
+// TODO: Move away from octane ID later
 func (h *handler) upsertMatch(newMatch *octane.Match) (*primitive.ObjectID, error) {
-	data, err := h.Octane.FindMatches(bson.M{"octane_id": newMatch.OctaneID}, nil, nil)
+	data, err := h.Octane.FindMatches(bson.M{config.ParamOctaneID: newMatch.OctaneID}, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +102,7 @@ func (h *handler) upsertMatch(newMatch *octane.Match) (*primitive.ObjectID, erro
 }
 
 func (h *handler) findOrInsertTeam(name string) *primitive.ObjectID {
-	teams, err := h.Octane.FindTeams(bson.M{"name": name}, nil, nil)
+	teams, err := h.Octane.FindTeams(bson.M{config.ParamName: name}, nil, nil)
 	if err != nil || len(teams.Data) == 0 {
 		team, _ := h.Octane.InsertTeam(&octane.Team{
 			Name: name,
@@ -111,7 +113,7 @@ func (h *handler) findOrInsertTeam(name string) *primitive.ObjectID {
 }
 
 func (h *handler) findOrInsertPlayer(tag string) *primitive.ObjectID {
-	players, err := h.Octane.FindPlayers(bson.M{"tag": tag}, nil, nil)
+	players, err := h.Octane.FindPlayers(bson.M{config.ParamTag: tag}, nil, nil)
 	if err != nil || len(players.Data) == 0 {
 		player, _ := h.Octane.InsertPlayer(&octane.Player{
 			Tag: tag,

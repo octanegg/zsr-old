@@ -35,6 +35,12 @@ const (
 	// ParamName .
 	ParamName = "name"
 
+	// ParamNumber .
+	ParamNumber = "number"
+
+	// ParamOctaneID .
+	ParamOctaneID = "octane_id"
+
 	// ParamOpponent .
 	ParamOpponent = "opponent"
 

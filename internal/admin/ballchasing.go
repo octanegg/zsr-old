@@ -2,7 +2,6 @@ package admin
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
@@ -20,6 +19,13 @@ type BallchasingLinkage struct {
 	Ballchasing string `json:"ballchasing"`
 	SwapTeams   bool   `json:"swap_teams"`
 	Propogate   bool   `json:"propogate"`
+}
+
+// AccountError .
+type AccountError struct {
+	Player    string `json:"player"`
+	AccountID string `json:"account_id"`
+	Platform  string `json:"platform"`
 }
 
 func (h *handler) LinkBallchasing(w http.ResponseWriter, r *http.Request) {
@@ -83,17 +89,17 @@ func (h *handler) LinkBallchasing(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	bluePlayers, err := h.getPlayers(replay.Blue.Players)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+	bluePlayers, account := h.getPlayers(replay.Blue.Players)
+	if account != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(err)
 		return
 	}
 
-	orangePlayers, err := h.getPlayers(replay.Orange.Players)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+	orangePlayers, account := h.getPlayers(replay.Orange.Players)
+	if account != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(err)
 		return
 	}
 
@@ -149,16 +155,12 @@ func (h *handler) LinkBallchasing(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *handler) getPlayers(players []racer.Player) ([]*octane.PlayerStats, error) {
+func (h *handler) getPlayers(players []racer.Player) ([]*octane.PlayerStats, *AccountError) {
 	var p []*octane.PlayerStats
 	for _, player := range players {
-		res, err := h.Octane.FindPlayers(bson.M{"account.id": player.ID.ID}, nil, nil)
-		if err != nil {
-			return nil, err
-		}
-
-		if len(res.Data) == 0 {
-			return nil, fmt.Errorf("Add account for %s: (%s, %s)", player.Name, player.ID.ID, player.ID.Platform)
+		res, err := h.Octane.FindPlayers(bson.M{config.ParamAccountID: player.ID.ID}, nil, nil)
+		if err != nil || len(res.Data) == 0 {
+			return nil, &AccountError{player.Name, player.ID.ID, player.ID.Platform}
 		}
 
 		data := res.Data[0].(octane.Player)
