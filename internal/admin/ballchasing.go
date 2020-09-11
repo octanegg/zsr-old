@@ -19,7 +19,6 @@ type BallchasingLinkage struct {
 	Game        int    `json:"game"`
 	Ballchasing string `json:"ballchasing"`
 	SwapTeams   bool   `json:"swap_teams"`
-	UpdateMatch bool   `json:"update_match"`
 	Propogate   bool   `json:"propogate"`
 }
 
@@ -107,7 +106,7 @@ func (h *handler) LinkBallchasing(w http.ResponseWriter, r *http.Request) {
 		game.Blue, game.Orange = game.Orange, game.Blue
 	}
 
-	if err = h.upsertGame(game, match, linkage.UpdateMatch); err != nil {
+	if err = h.upsertGame(game, match, true); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
@@ -141,7 +140,7 @@ func (h *handler) LinkBallchasing(w http.ResponseWriter, r *http.Request) {
 			m[player.Player] = p.Tag
 		}
 
-		if err = h.Deprecated.InsertGames(game, m); err != nil {
+		if err = h.Deprecated.Propogate(game, m); err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		}
@@ -169,48 +168,4 @@ func (h *handler) getPlayers(players []racer.Player) ([]*octane.PlayerStats, err
 		})
 	}
 	return p, nil
-}
-
-func (h *handler) upsertGame(newGame *octane.Game, match *octane.Match, updateMatch bool) error {
-	data, err := h.Octane.FindGames(bson.M{"match": newGame.MatchID, "number": newGame.Number}, nil, nil)
-	if err != nil {
-		return err
-	}
-
-	if len(data.Data) == 0 {
-		if _, err = h.Octane.InsertGame(newGame); err != nil {
-			return fmt.Errorf("error inserting game - %s", err.Error())
-		}
-		if newGame.Blue.Winner {
-			match.Blue.Score++
-		}
-		if newGame.Orange.Winner {
-			match.Orange.Score++
-		}
-	} else {
-		game := data.Data[0].(octane.Game)
-		if _, err = h.Octane.UpdateGame(game.ID, newGame); err != nil {
-			return fmt.Errorf("error updating game - %s", err.Error())
-		}
-		if newGame.Blue.Winner && game.Orange.Winner {
-			match.Blue.Score++
-			match.Orange.Score--
-		}
-		if newGame.Orange.Winner && game.Blue.Winner {
-			match.Blue.Score--
-			match.Orange.Score++
-		}
-	}
-
-	match.Blue.Winner = match.Blue.Score > match.Orange.Score
-	match.Orange.Winner = match.Orange.Score > match.Blue.Score
-
-	if updateMatch {
-		if _, err = h.Octane.UpdateMatch(match.ID, match); err != nil {
-			return err
-		}
-	}
-
-	return nil
-
 }

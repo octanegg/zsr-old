@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/octanegg/core/deprecated"
 	"github.com/octanegg/core/internal/admin"
 	"github.com/octanegg/core/internal/config"
+	"github.com/octanegg/core/internal/deprecated"
 	"github.com/octanegg/core/internal/handler"
 	"github.com/octanegg/core/octane"
 	"github.com/octanegg/racer"

@@ -41,6 +41,7 @@ type GameSide struct {
 type PlayerStats struct {
 	Player *primitive.ObjectID `json:"player" bson:"player"`
 	Stats  interface{}         `json:"stats" bson:"stats"`
+	Rating float64             `json:"rating" bson:"rating"`
 }
 
 // TeamStats .

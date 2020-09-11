@@ -16,7 +16,7 @@ const (
 	insertURL = "INSERT_URL"
 )
 
-func (d *deprecated) InsertGames(game *octane.Game, lookup map[*primitive.ObjectID]string) error {
+func (d *deprecated) Propogate(game *octane.Game, lookup map[*primitive.ObjectID]string) error {
 	v := url.Values{}
 	v.Add("murl", game.OctaneID)
 	v.Add("Game", strconv.Itoa(game.Number))
