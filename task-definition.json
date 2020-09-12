@@ -31,6 +31,14 @@
         {
           "valueFrom": "octane-db",
           "name": "DB_URI"
+        },
+        {
+          "valueFrom": "old-db",
+          "name": "DB_OLD"
+        },
+        {
+          "valueFrom": "ballchasing",
+          "name": "AUTH_TOKEN"
         }
       ],
       "dockerSecurityOptions": null,

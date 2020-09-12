@@ -7,5 +7,6 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/octanegg/racer v0.0.0-20200910221321-eef7adc88939
 	github.com/octanegg/slimline v0.0.0-20200904020903-d7119877a6ac
+	github.com/rs/cors v1.7.0 // indirect
 	go.mongodb.org/mongo-driver v1.4.1
 )

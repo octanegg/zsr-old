@@ -35,6 +35,30 @@ type Team struct {
 	Winner bool   `bson:"winner"`
 }
 
+// UpdateMatchContext .
+type UpdateMatchContext struct {
+	OctaneID   string `json:"octane_id"`
+	Team1      string `json:"blue"`
+	Team2      string `json:"orange"`
+	Team1Score string `json:"blue_score"`
+	Team2Score string `json:"orange_score"`
+}
+
+func (d *deprecated) UpdateMatch(ctx *UpdateMatchContext) error {
+	winner := ctx.Team1
+	if ctx.Team2Score > ctx.Team1Score {
+		winner = ctx.Team2
+	}
+
+	stmt := "UPDATE Series SET Team1 = ?, Team2 = ?, Team1Score = ?, Team2Score = ?, Result = ? WHERE match_url = ?"
+	_, err := d.DB.Exec(stmt, ctx.Team1, ctx.Team2, ctx.Team1Score, ctx.Team1Score, winner, ctx.OctaneID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (d *deprecated) GetMatches(l *EventLinkage) ([]*Match, error) {
 	query := fmt.Sprintf("SELECT match_url, Time, best_of, Team1, Team2, Team1Games, Team2Games FROM Series WHERE Event = %d AND Stage = %d", l.OldEvent, l.OldStage+1)
 	results, err := d.DB.Query(query)

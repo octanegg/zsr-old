@@ -31,16 +31,12 @@ type handler struct {
 type Handler interface {
 	LinkBallchasing(http.ResponseWriter, *http.Request)
 	ImportMatches(http.ResponseWriter, *http.Request)
+	UpdateMatch(http.ResponseWriter, *http.Request)
 }
 
 // New .
 func New(o octane.Client, r racer.Racer, s slimline.Slimline, d deprecated.Deprecated) Handler {
 	return &handler{o, r, s, d}
-}
-
-func enableCors(w *http.ResponseWriter) {
-	(*w).Header().Set("Content-Type", "text/html; charset=utf-8")
-	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 }
 
 func (h *handler) upsertGame(newGame *octane.Game, match *octane.Match, update bool) error {

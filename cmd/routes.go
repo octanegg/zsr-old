@@ -6,9 +6,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/octanegg/core/internal/admin"
 	"github.com/octanegg/core/internal/handler"
+	"github.com/rs/cors"
 )
 
-func routes(h handler.Handler, a admin.Handler) *mux.Router {
+func routes(h handler.Handler, a admin.Handler) http.Handler {
 	r := mux.NewRouter()
 
 	// health
@@ -90,6 +91,7 @@ func routes(h handler.Handler, a admin.Handler) *mux.Router {
 	s := r.PathPrefix("/admin").Subrouter()
 	s.HandleFunc("/link-ballchasing", a.LinkBallchasing).Methods(http.MethodPost)
 	s.HandleFunc("/import-matches", a.ImportMatches).Methods(http.MethodPost)
+	s.HandleFunc("/update-match", a.UpdateMatch).Methods(http.MethodPost)
 
-	return r
+	return cors.Default().Handler(r)
 }

@@ -19,6 +19,7 @@ type deprecated struct {
 
 // Deprecated .
 type Deprecated interface {
+	UpdateMatch(*UpdateMatchContext) error
 	GetMatches(*EventLinkage) ([]*Match, error)
 	GetGameMap(int) (map[string]map[int]*Game, error)
 	Propogate(*octane.Game, map[*primitive.ObjectID]string) error

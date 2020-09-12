@@ -10,7 +10,6 @@ import (
 )
 
 func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
 	ctx := h.contextFindMatches(r.URL.Query())
 	if b, err := strconv.ParseBool(r.URL.Query().Get(config.ParamLookupTeams)); err == nil && b {
 		ctx.Do = h.Octane.FindMatchesWithTeamLookup
@@ -19,22 +18,18 @@ func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
 	h.GetID(w, r, h.Octane.FindMatches)
 }
 
 func (h *handler) PutMatch(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
 	h.Put(w, r, h.Octane.InsertMatchWithReader)
 }
 
 func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
 	h.Update(w, r, h.Octane.UpdateMatchWithReader)
 }
 
 func (h *handler) DeleteMatch(w http.ResponseWriter, r *http.Request) {
-	enableCors(&w)
 	h.Delete(w, r, h.Octane.DeleteMatch)
 }
 
