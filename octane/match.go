@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/octanegg/core/internal/config"
+	"github.com/octanegg/core/pipeline"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -37,14 +38,7 @@ type MatchSide struct {
 }
 
 func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	matches, err := c.Find(config.CollectionMatches, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
-		var match Match
-		if err := cursor.Decode(&match); err != nil {
-			return nil, err
-		}
-		return match, nil
-	})
-
+	matches, err := c.Find(config.CollectionMatches, filter, pagination, sort, toMatch)
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +54,22 @@ func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) 
 	return &Data{
 		matches,
 		pagination,
+	}, nil
+}
+
+func (c *client) FindMatchesWithTeamLookup(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
+	matches, err := c.Pipeline(config.CollectionMatches, pipeline.MatchesWithTeamLookup(filter))
+	if err != nil {
+		return nil, err
+	}
+
+	if matches == nil {
+		matches = make([]interface{}, 0)
+	}
+
+	return &Data{
+		matches,
+		nil,
 	}, nil
 }
 
@@ -151,4 +161,12 @@ func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*primitive
 
 func (c *client) DeleteMatch(oid *primitive.ObjectID) (int64, error) {
 	return c.Delete(config.CollectionMatches, oid)
+}
+
+func toMatch(cursor *mongo.Cursor) (interface{}, error) {
+	var match Match
+	if err := cursor.Decode(&match); err != nil {
+		return nil, err
+	}
+	return match, nil
 }

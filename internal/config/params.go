@@ -26,6 +26,9 @@ const (
 	// ParamID .
 	ParamID = "id"
 
+	// ParamLookupTeams .
+	ParamLookupTeams = "lookupTeams"
+
 	// ParamMatch .
 	ParamMatch = "match"
 

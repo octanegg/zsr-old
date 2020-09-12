@@ -43,12 +43,15 @@ type Client interface {
 	Update(string, bson.M, bson.M) (*primitive.ObjectID, error)
 	Replace(string, *primitive.ObjectID, interface{}) error
 	Delete(string, *primitive.ObjectID) (int64, error)
+	Pipeline(string, []bson.M) ([]interface{}, error)
 
 	FindEvents(bson.M, *Pagination, *Sort) (*Data, error)
 	FindMatches(bson.M, *Pagination, *Sort) (*Data, error)
 	FindGames(bson.M, *Pagination, *Sort) (*Data, error)
 	FindPlayers(bson.M, *Pagination, *Sort) (*Data, error)
 	FindTeams(bson.M, *Pagination, *Sort) (*Data, error)
+
+	FindMatchesWithTeamLookup(bson.M, *Pagination, *Sort) (*Data, error)
 
 	FindEvent(*primitive.ObjectID) (*Event, error)
 	FindMatch(*primitive.ObjectID) (*Match, error)
@@ -180,6 +183,28 @@ func (c *client) Delete(collection string, oid *primitive.ObjectID) (int64, erro
 	}
 
 	return res.DeletedCount, nil
+}
+
+func (c *client) Pipeline(collection string, pipeline []bson.M) ([]interface{}, error) {
+	ctx := context.TODO()
+	coll := c.DB.Database(config.Database).Collection(collection)
+
+	cursor, err := coll.Aggregate(ctx, pipeline)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var res []interface{}
+	for cursor.Next(context.TODO()) {
+		var i bson.M
+		if err := cursor.Decode(&i); err != nil {
+			return nil, err
+		}
+		res = append(res, i)
+	}
+
+	return res, nil
 }
 
 func updateFields(x, y reflect.Value) interface{} {
