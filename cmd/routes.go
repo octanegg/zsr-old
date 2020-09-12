@@ -82,6 +82,10 @@ func routes(h handler.Handler, a admin.Handler) *mux.Router {
 
 	// TODO: Stats endpoints
 
+	// TODO: News endpoints
+
+	// TODO: Authentication endpoints
+
 	// admin
 	s := r.PathPrefix("/admin").Subrouter()
 	s.HandleFunc("/link-ballchasing", a.LinkBallchasing).Methods(http.MethodPost)

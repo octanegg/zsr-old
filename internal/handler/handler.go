@@ -71,6 +71,11 @@ func New(o octane.Client) Handler {
 	return &handler{o}
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Content-Type", "text/html; charset=utf-8")
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func (h *handler) Get(w http.ResponseWriter, r *http.Request, ctx *FindContext) {
 	data, err := ctx.Do(ctx.Filter, ctx.Pagination, ctx.Sort)
 	if err != nil {

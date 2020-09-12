@@ -38,6 +38,11 @@ func New(o octane.Client, r racer.Racer, s slimline.Slimline, d deprecated.Depre
 	return &handler{o, r, s, d}
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Content-Type", "text/html; charset=utf-8")
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 func (h *handler) upsertGame(newGame *octane.Game, match *octane.Match, update bool) error {
 	data, err := h.Octane.FindGames(bson.M{config.ParamMatch: newGame.MatchID, config.ParamNumber: newGame.Number}, nil, nil)
 	if err != nil {

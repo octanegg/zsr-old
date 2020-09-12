@@ -29,6 +29,8 @@ type AccountError struct {
 }
 
 func (h *handler) LinkBallchasing(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
+
 	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})

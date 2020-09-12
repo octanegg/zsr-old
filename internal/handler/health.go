@@ -7,6 +7,7 @@ import (
 )
 
 func (h *handler) Health(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	if err := h.Octane.Ping(); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})

@@ -9,22 +9,27 @@ import (
 )
 
 func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	h.Get(w, r, h.contextFindMatches(r.URL.Query()))
 }
 
 func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	h.GetID(w, r, h.Octane.FindMatches)
 }
 
 func (h *handler) PutMatch(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	h.Put(w, r, h.Octane.InsertMatchWithReader)
 }
 
 func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	h.Update(w, r, h.Octane.UpdateMatchWithReader)
 }
 
 func (h *handler) DeleteMatch(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	h.Delete(w, r, h.Octane.DeleteMatch)
 }
 
