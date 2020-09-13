@@ -86,24 +86,12 @@ func (c *client) InsertPlayerWithReader(body io.ReadCloser) (*primitive.ObjectID
 }
 
 func (c *client) UpdatePlayerWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
-	player, err := c.FindPlayer(oid)
-	if err != nil {
+	var player Player
+	if err := json.NewDecoder(body).Decode(&player); err != nil {
 		return nil, err
 	}
 
-	if player == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
-	}
-
-	var fields Player
-	if err := json.NewDecoder(body).Decode(&fields); err != nil {
-		return nil, err
-	}
-
-	update := updateFields(reflect.ValueOf(&player).Elem(), reflect.ValueOf(&fields).Elem()).(Player)
-	update.ID = oid
-
-	if err := c.Replace(config.CollectionPlayers, oid, update); err != nil {
+	if err := c.Replace(config.CollectionPlayers, oid, player); err != nil {
 		return nil, err
 	}
 

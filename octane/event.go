@@ -109,24 +109,12 @@ func (c *client) InsertEventWithReader(body io.ReadCloser) (*primitive.ObjectID,
 }
 
 func (c *client) UpdateEventWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
-	event, err := c.FindEvent(oid)
-	if err != nil {
+	var event Event
+	if err := json.NewDecoder(body).Decode(&event); err != nil {
 		return nil, err
 	}
 
-	if event == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
-	}
-
-	var fields Event
-	if err := json.NewDecoder(body).Decode(&fields); err != nil {
-		return nil, err
-	}
-
-	update := updateFields(reflect.ValueOf(&event).Elem(), reflect.ValueOf(&fields).Elem()).(Event)
-	update.ID = oid
-
-	if err := c.Replace(config.CollectionEvents, oid, update); err != nil {
+	if err := c.Replace(config.CollectionEvents, oid, event); err != nil {
 		return nil, err
 	}
 

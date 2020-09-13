@@ -76,24 +76,12 @@ func (c *client) InsertTeamWithReader(body io.ReadCloser) (*primitive.ObjectID, 
 }
 
 func (c *client) UpdateTeamWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
-	team, err := c.FindTeam(oid)
-	if err != nil {
+	var team Team
+	if err := json.NewDecoder(body).Decode(&team); err != nil {
 		return nil, err
 	}
 
-	if team == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
-	}
-
-	var fields Team
-	if err := json.NewDecoder(body).Decode(&fields); err != nil {
-		return nil, err
-	}
-
-	update := updateFields(reflect.ValueOf(&team).Elem(), reflect.ValueOf(&fields).Elem()).(Team)
-	update.ID = oid
-
-	if err := c.Replace(config.CollectionTeams, oid, update); err != nil {
+	if err := c.Replace(config.CollectionTeams, oid, team); err != nil {
 		return nil, err
 	}
 

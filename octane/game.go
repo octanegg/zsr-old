@@ -107,28 +107,16 @@ func (c *client) InsertGameWithReader(body io.ReadCloser) (*primitive.ObjectID, 
 }
 
 func (c *client) UpdateGameWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
-	game, err := c.FindGame(oid)
-	if err != nil {
+	var game Game
+	if err := json.NewDecoder(body).Decode(&game); err != nil {
 		return nil, err
 	}
 
-	if game == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
-	}
-
-	var fields Game
-	if err := json.NewDecoder(body).Decode(&fields); err != nil {
+	if err := c.Replace(config.CollectionGames, oid, game); err != nil {
 		return nil, err
 	}
 
-	update := updateFields(reflect.ValueOf(&game).Elem(), reflect.ValueOf(&fields).Elem()).(Game)
-	update.ID = oid
-
-	if err := c.Replace(config.CollectionGames, oid, update); err != nil {
-		return nil, err
-	}
-
-	return oid, err
+	return oid, nil
 }
 
 func (c *client) InsertGame(game *Game) (*primitive.ObjectID, error) {

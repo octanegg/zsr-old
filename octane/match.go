@@ -104,24 +104,12 @@ func (c *client) InsertMatchWithReader(body io.ReadCloser) (*primitive.ObjectID,
 }
 
 func (c *client) UpdateMatchWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
-	match, err := c.FindMatch(oid)
-	if err != nil {
+	var match *Match
+	if err := json.NewDecoder(body).Decode(&match); err != nil {
 		return nil, err
 	}
 
-	if match == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
-	}
-
-	var fields Match
-	if err := json.NewDecoder(body).Decode(&fields); err != nil {
-		return nil, err
-	}
-
-	update := updateFields(reflect.ValueOf(&match).Elem(), reflect.ValueOf(&fields).Elem()).(Match)
-	update.ID = oid
-
-	if err := c.Replace(config.CollectionMatches, oid, update); err != nil {
+	if err := c.Replace(config.CollectionMatches, oid, match); err != nil {
 		return nil, err
 	}
 
