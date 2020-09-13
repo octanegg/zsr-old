@@ -50,7 +50,7 @@ func (d *deprecated) UpdateMatch(ctx *UpdateMatchContext) error {
 		winner = ctx.Team2
 	}
 
-	stmt := "UPDATE Series SET Team1 = ?, Team2 = ?, Team1Score = ?, Team2Score = ?, Result = ? WHERE match_url = ?"
+	stmt := "UPDATE Series SET Team1 = ?, Team2 = ?, Team1Games = ?, Team2Games = ?, Result = ? WHERE match_url = ?"
 	_, err := d.DB.Exec(stmt, ctx.Team1, ctx.Team2, ctx.Team1Score, ctx.Team1Score, winner, ctx.OctaneID)
 	if err != nil {
 		return err

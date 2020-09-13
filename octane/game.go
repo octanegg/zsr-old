@@ -15,7 +15,7 @@ import (
 
 // Game .
 type Game struct {
-	ID            *primitive.ObjectID `json:"id" bson:"_id"`
+	ID            *primitive.ObjectID `json:"_id" bson:"_id"`
 	OctaneID      string              `json:"octane_id" bson:"octane_id"`
 	Number        int                 `json:"number" bson:"number"`
 	MatchID       *primitive.ObjectID `json:"match" bson:"match"`

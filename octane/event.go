@@ -15,7 +15,7 @@ import (
 
 // Event .
 type Event struct {
-	ID        *primitive.ObjectID `json:"id" bson:"_id"`
+	ID        *primitive.ObjectID `json:"_id" bson:"_id"`
 	Name      string              `json:"name" bson:"name"`
 	StartDate *time.Time          `json:"start_date,omitempty" bson:"start_date,omitempty"`
 	EndDate   *time.Time          `json:"end_date,omitempty" bson:"end_date,omitempty"`
