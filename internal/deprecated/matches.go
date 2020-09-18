@@ -44,6 +44,11 @@ type UpdateMatchContext struct {
 	Team2Score string `json:"orange_score"`
 }
 
+// GetMatchContext .
+type GetMatchContext struct {
+	OctaneID string `json:"octane_id"`
+}
+
 func (d *deprecated) UpdateMatch(ctx *UpdateMatchContext) error {
 	winner := ctx.Team1
 	if ctx.Team2Score > ctx.Team1Score {
@@ -91,4 +96,33 @@ func (d *deprecated) GetMatches(l *EventLinkage) ([]*Match, error) {
 	}
 
 	return matches, nil
+}
+
+
+func (d *deprecated) GetMatch(ctx *GetMatchContext) (*Match, error) {
+	query := fmt.Sprintf("SELECT match_url, Time, best_of, Team1, Team2, Team1Games, Team2Games FROM Series WHERE match_url = '%s'", ctx.OctaneID)
+	results, err := d.DB.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var matches []*Match
+	for results.Next() {
+		var match Match
+		var blue, orange Team
+		err = results.Scan(&match.OctaneID, &match.Date, &match.Format, &blue.Name, &orange.Name, &blue.Score, &orange.Score)
+		if err != nil {
+			return nil, err
+		}
+
+		blue.Winner = blue.Score > orange.Score
+		orange.Winner = orange.Score > blue.Score
+
+		match.Blue = &blue
+		match.Orange = &orange
+
+		matches = append(matches, &match)
+	}
+
+	return matches[0], nil
 }

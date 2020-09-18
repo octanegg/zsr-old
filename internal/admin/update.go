@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/octanegg/core/internal/config"
 	"github.com/octanegg/core/internal/deprecated"
 )
@@ -30,4 +31,19 @@ func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+}
+
+func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
+	match, err := h.Deprecated.GetMatch(&deprecated.GetMatchContext{
+		OctaneID: mux.Vars(r)[config.ParamID],
+	})
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(match)
 }

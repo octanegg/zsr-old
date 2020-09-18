@@ -32,6 +32,7 @@ type Handler interface {
 	LinkBallchasing(http.ResponseWriter, *http.Request)
 	ImportMatches(http.ResponseWriter, *http.Request)
 	UpdateMatch(http.ResponseWriter, *http.Request)
+	GetMatch(http.ResponseWriter, *http.Request)
 }
 
 // New .
