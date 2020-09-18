@@ -58,6 +58,7 @@ func (d *deprecated) UpdateMatch(ctx *UpdateMatchContext) error {
 	stmt := "UPDATE Series SET Team1 = ?, Team2 = ?, Team1Games = ?, Team2Games = ?, Result = ? WHERE match_url = ?"
 	_, err := d.DB.Exec(stmt, ctx.Team1, ctx.Team2, ctx.Team1Score, ctx.Team2Score, winner, ctx.OctaneID)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
@@ -122,6 +123,10 @@ func (d *deprecated) GetMatch(ctx *GetMatchContext) (*Match, error) {
 		match.Orange = &orange
 
 		matches = append(matches, &match)
+	}
+
+	if matches == nil || len(matches) == 0 {
+		return nil, nil
 	}
 
 	return matches[0], nil

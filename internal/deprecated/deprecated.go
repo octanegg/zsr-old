@@ -24,6 +24,7 @@ type Deprecated interface {
 	GetMatch(*GetMatchContext) (*Match, error)
 	GetGameMap(int) (map[string]map[int]*Game, error)
 	Propogate(*octane.Game, map[*primitive.ObjectID]string) error
+	ResetGame(*ResetGameContext) error
 }
 
 // New .

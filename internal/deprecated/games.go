@@ -37,6 +37,12 @@ type Log struct {
 	Rating   float64 `bson:"-"`
 }
 
+// ResetGameContext .
+type ResetGameContext struct {
+	OctaneID string `json:"octane_id"`
+	Number int `json:"number"`
+}
+
 func (d *deprecated) GetGameMap(eventID int) (map[string]map[int]*Game, error) {
 	results, err := d.DB.Query(fmt.Sprintf("SELECT match_url, Map, Length, Team, Vs, TeamGoals, OppGoals, Game FROM Matches2 WHERE Event = %d GROUP BY match_url, Game ORDER BY match_url ASC, Game ASC", eventID))
 	if err != nil {
@@ -104,4 +110,22 @@ func (d *deprecated) GetGameMap(eventID int) (map[string]map[int]*Game, error) {
 	}
 
 	return m, nil
+}
+
+
+func (d *deprecated) ResetGame(ctx *ResetGameContext) error {
+	stmt := "DELETE FROM Matches2 WHERE match_url = ? AND Game = ?"
+	_, err := d.DB.Exec(stmt, ctx.OctaneID, ctx.Number)
+	if err != nil {
+		return err
+	}
+
+
+	stmt = "DELETE FROM Logs WHERE match_url = ? AND Game = ?"
+	_, err = d.DB.Exec(stmt, ctx.OctaneID, ctx.Number)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

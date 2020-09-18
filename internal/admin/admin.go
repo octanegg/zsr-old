@@ -33,6 +33,7 @@ type Handler interface {
 	ImportMatches(http.ResponseWriter, *http.Request)
 	UpdateMatch(http.ResponseWriter, *http.Request)
 	GetMatch(http.ResponseWriter, *http.Request)
+	ResetGame(http.ResponseWriter, *http.Request)
 }
 
 // New .
