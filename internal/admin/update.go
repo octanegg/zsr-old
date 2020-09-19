@@ -70,3 +70,28 @@ func (h *handler) ResetGame(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 }
+
+func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
+		w.WriteHeader(http.StatusUnsupportedMediaType)
+		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
+		return
+	}
+
+	var ctx deprecated.GetGamesContext
+	if err := json.NewDecoder(r.Body).Decode(&ctx); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	games, err := h.Deprecated.GetGames(&ctx)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(games)
+}

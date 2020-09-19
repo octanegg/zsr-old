@@ -34,6 +34,7 @@ type Handler interface {
 	UpdateMatch(http.ResponseWriter, *http.Request)
 	GetMatch(http.ResponseWriter, *http.Request)
 	ResetGame(http.ResponseWriter, *http.Request)
+	GetGames(http.ResponseWriter, *http.Request)
 }
 
 // New .

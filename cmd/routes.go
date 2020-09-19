@@ -94,6 +94,7 @@ func routes(h handler.Handler, a admin.Handler) http.Handler {
 	s.HandleFunc("/update-match", a.UpdateMatch).Methods(http.MethodPost)
 	s.HandleFunc("/get-match/{id}", a.GetMatch).Methods(http.MethodGet)
 	s.HandleFunc("/reset-game", a.ResetGame).Methods(http.MethodPost)
+	s.HandleFunc("/get-games", a.GetGames).Methods(http.MethodPost)
 
 	return cors.Default().Handler(r)
 }
