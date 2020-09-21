@@ -4,12 +4,12 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/octanegg/core/internal/admin"
+	"github.com/octanegg/core/internal/deprecated"
 	"github.com/octanegg/core/internal/handler"
 	"github.com/rs/cors"
 )
 
-func routes(h handler.Handler, a admin.Handler) http.Handler {
+func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	r := mux.NewRouter()
 
 	// health
@@ -19,7 +19,7 @@ func routes(h handler.Handler, a admin.Handler) http.Handler {
 	// events
 	e := r.PathPrefix("/events").Subrouter()
 	e.HandleFunc("", h.GetEvents).
-		Methods(http.MethodGet)
+		Methods(http.MethodPost)
 	e.HandleFunc("", h.PutEvent).
 		Methods(http.MethodPut)
 	e.HandleFunc("/{id}", h.GetEvent).
@@ -32,7 +32,7 @@ func routes(h handler.Handler, a admin.Handler) http.Handler {
 	// matches
 	m := r.PathPrefix("/matches").Subrouter()
 	m.HandleFunc("", h.GetMatches).
-		Methods(http.MethodGet)
+		Methods(http.MethodPost)
 	m.HandleFunc("", h.PutMatch).
 		Methods(http.MethodPut)
 	m.HandleFunc("/{id}", h.GetMatch).
@@ -45,7 +45,7 @@ func routes(h handler.Handler, a admin.Handler) http.Handler {
 	// games
 	g := r.PathPrefix("/games").Subrouter()
 	g.HandleFunc("", h.GetGames).
-		Methods(http.MethodGet)
+		Methods(http.MethodPost)
 	g.HandleFunc("", h.PutGame).
 		Methods(http.MethodPut)
 	g.HandleFunc("/{id}", h.GetGame).
@@ -58,7 +58,7 @@ func routes(h handler.Handler, a admin.Handler) http.Handler {
 	// players
 	p := r.PathPrefix("/players").Subrouter()
 	p.HandleFunc("", h.GetPlayers).
-		Methods(http.MethodGet)
+		Methods(http.MethodPost)
 	p.HandleFunc("", h.PutPlayer).
 		Methods(http.MethodPut)
 	p.HandleFunc("/{id}", h.GetPlayer).
@@ -71,7 +71,7 @@ func routes(h handler.Handler, a admin.Handler) http.Handler {
 	// teams
 	t := r.PathPrefix("/teams").Subrouter()
 	t.HandleFunc("", h.GetTeams).
-		Methods(http.MethodGet)
+		Methods(http.MethodPost)
 	t.HandleFunc("", h.PutTeam).
 		Methods(http.MethodPut)
 	t.HandleFunc("/{id}", h.GetTeam).
@@ -88,13 +88,14 @@ func routes(h handler.Handler, a admin.Handler) http.Handler {
 	// TODO: Authentication endpoints
 
 	// admin
-	s := r.PathPrefix("/admin").Subrouter()
-	s.HandleFunc("/link-ballchasing", a.LinkBallchasing).Methods(http.MethodPost)
-	s.HandleFunc("/import-matches", a.ImportMatches).Methods(http.MethodPost)
-	s.HandleFunc("/update-match", a.UpdateMatch).Methods(http.MethodPost)
-	s.HandleFunc("/get-match/{id}", a.GetMatch).Methods(http.MethodGet)
-	s.HandleFunc("/reset-game", a.ResetGame).Methods(http.MethodPost)
-	s.HandleFunc("/get-games", a.GetGames).Methods(http.MethodPost)
+	s := r.PathPrefix("/deprecated").Subrouter()
+	s.HandleFunc("/matches", d.UpdateMatch).Methods(http.MethodPost)
+	s.HandleFunc("/matches/{id}", d.GetMatch).Methods(http.MethodGet)
+	s.HandleFunc("/matches/{event}/{stage}", d.GetMatches).Methods(http.MethodGet)
+	s.HandleFunc("/games", d.InsertGame).Methods(http.MethodPut)
+	s.HandleFunc("/games", d.DeleteGame).Methods(http.MethodDelete)
+	s.HandleFunc("/games/{match}/{blue}/{orange}", d.GetGames).Methods(http.MethodGet)
+	s.HandleFunc("/import", d.ImportMatches).Methods(http.MethodPost)
 
-	return cors.Default().Handler(r)
+	return cors.AllowAll().Handler(r)
 }

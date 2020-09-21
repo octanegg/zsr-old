@@ -2,46 +2,34 @@ package deprecated
 
 import (
 	"fmt"
-	"strconv"
 	"time"
 )
 
-// EventLinkage .
-type EventLinkage struct {
-	OldEvent int    `json:"old_event"`
-	OldStage int    `json:"old_stage"`
-	NewEvent string `json:"new_event"`
-	NewStage int    `json:"new_stage"`
-}
-
 // Match .
 type Match struct {
-	OctaneID string
-	Event    string
-	Stage    int
-	Substage int
-	Date     *time.Time
-	Format   string
-	Blue     *Team
-	Orange   *Team
-	Mode     int
-	Number   int
+	OctaneID string `json:"octane_id"`
+	Event    string `json:"event"`
+	Stage    int `json:"stage"`
+	Substage int `json:"substage"`
+	Date     *time.Time `json:"date"`
+	Format   string `json:"format"`
+	Blue     *Team `json:"blue"`
+	Orange   *Team `json:"orange"`
+	Mode     int `json:"mode"`
+	Number   int `json:"number"`
 }
 
 // Team .
 type Team struct {
-	Name   string `bson:"name"`
-	Score  int    `bson:"score"`
-	Winner bool   `bson:"winner"`
+	Name   string `json:"name"`
+	Score  int    `json:"score"`
+	Winner bool   `json:"winner"`
 }
 
-// UpdateMatchContext .
-type UpdateMatchContext struct {
-	OctaneID   string `json:"octane_id"`
-	Team1      string `json:"blue"`
-	Team2      string `json:"orange"`
-	Team1Score string `json:"blue_score"`
-	Team2Score string `json:"orange_score"`
+// GetMatchesContext .
+type GetMatchesContext struct {
+	Event string    `json:"event"`
+	Stage string    `json:"stage"`
 }
 
 // GetMatchContext .
@@ -49,24 +37,23 @@ type GetMatchContext struct {
 	OctaneID string `json:"octane_id"`
 }
 
-func (d *deprecated) UpdateMatch(ctx *UpdateMatchContext) error {
-	winner := ctx.Team1
-	if ctx.Team2Score > ctx.Team1Score {
-		winner = ctx.Team2
-	}
-
-	stmt := "UPDATE Series SET Team1 = ?, Team2 = ?, Team1Games = ?, Team2Games = ?, Result = ? WHERE match_url = ?"
-	_, err := d.DB.Exec(stmt, ctx.Team1, ctx.Team2, ctx.Team1Score, ctx.Team2Score, winner, ctx.OctaneID)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-
-	return nil
+// UpdateMatchContext .
+type UpdateMatchContext struct {
+	OctaneID   string `json:"octane_id"`
+	Team1      Mapping `json:"blue"`
+	Team2      Mapping `json:"orange"`
+	Team1Score int `json:"blue_score"`
+	Team2Score int `json:"orange_score"`
 }
 
-func (d *deprecated) GetMatches(l *EventLinkage) ([]*Match, error) {
-	query := fmt.Sprintf("SELECT match_url, Time, best_of, Team1, Team2, Team1Games, Team2Games FROM Series WHERE Event = %d AND Stage = %d", l.OldEvent, l.OldStage+1)
+// Mapping .
+type Mapping struct {
+	Old string `json:"old"`
+	New string `json:"new"`
+}
+
+func (d *deprecated) GetMatches(ctx *GetMatchesContext) ([]*Match, error) {
+	query := fmt.Sprintf("SELECT match_url, Time, best_of, Team1, Team2, Team1Games, Team2Games FROM Series WHERE Event = %s AND Stage = %s", ctx.Event, ctx.Stage)
 	results, err := d.DB.Query(query)
 	if err != nil {
 		return nil, err
@@ -83,13 +70,6 @@ func (d *deprecated) GetMatches(l *EventLinkage) ([]*Match, error) {
 
 		blue.Winner = blue.Score > orange.Score
 		orange.Winner = orange.Score > blue.Score
-
-		match.Event = l.NewEvent
-		match.Stage = l.NewStage
-		match.Mode = 3
-		i, _ := strconv.Atoi(match.OctaneID[5:7])
-		match.Number = i
-
 		match.Blue = &blue
 		match.Orange = &orange
 
@@ -130,4 +110,47 @@ func (d *deprecated) GetMatch(ctx *GetMatchContext) (*Match, error) {
 	}
 
 	return matches[0], nil
+}
+
+func (d *deprecated) UpdateMatches(ctxs []*UpdateMatchContext) error {
+	for _, ctx := range ctxs {
+		winner := ctx.Team1.New
+		if ctx.Team2Score > ctx.Team1Score {
+			winner = ctx.Team2.New
+		}
+
+		stmt := "UPDATE Series SET Team1 = ?, Team2 = ?, Team1Games = ?, Team2Games = ?, Result = ? WHERE match_url = ?"
+		_, err := d.DB.Exec(stmt, ctx.Team1.New, ctx.Team2.New, ctx.Team1Score, ctx.Team2Score, winner, ctx.OctaneID)
+		if err != nil {
+			return err
+		}
+
+		if err = d.changeTeamName(ctx.OctaneID, ctx.Team1.Old, ctx.Team1.New); err != nil {
+			return err
+		}
+
+		if err = d.changeTeamName(ctx.OctaneID, ctx.Team2.Old, ctx.Team2.New); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (d *deprecated) changeTeamName(id, old, new string) error {
+	if old != new {
+		for _, field := range []string{"Team", "Vs", "Result"} {
+			stmt := fmt.Sprintf("UPDATE Logs SET %s = ? WHERE %s = ? AND match_url = ?", field, field)
+			if _, err := d.DB.Exec(stmt, new, old, id); err != nil {
+				return err
+			}
+
+			stmt = fmt.Sprintf("UPDATE Matches2 SET %s = ? WHERE %s = ? AND match_url = ?", field, field)
+			if _, err := d.DB.Exec(stmt, new, old, id); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
 }

@@ -51,8 +51,6 @@ type Client interface {
 	FindPlayers(bson.M, *Pagination, *Sort) (*Data, error)
 	FindTeams(bson.M, *Pagination, *Sort) (*Data, error)
 
-	FindMatchesWithTeamLookup(bson.M, *Pagination, *Sort) (*Data, error)
-
 	FindEvent(*primitive.ObjectID) (*Event, error)
 	FindMatch(*primitive.ObjectID) (*Match, error)
 	FindGame(*primitive.ObjectID) (*Game, error)
@@ -91,10 +89,18 @@ type Client interface {
 }
 
 // New .
-func New(db *mongo.Client) Client {
-	return &client{
-		DB: db,
+func New(uri string) (Client, error) {
+	db, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(uri))
+	if err != nil {
+		return nil, err
 	}
+
+	client := &client{db}
+	if err := client.Ping(); err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }
 
 func (c *client) Ping() error {

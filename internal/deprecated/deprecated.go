@@ -5,8 +5,6 @@ import (
 	"os"
 
 	_ "github.com/go-sql-driver/mysql" // sql driver
-	"github.com/octanegg/core/octane"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 const (
@@ -19,13 +17,15 @@ type deprecated struct {
 
 // Deprecated .
 type Deprecated interface {
-	UpdateMatch(*UpdateMatchContext) error
-	GetMatches(*EventLinkage) ([]*Match, error)
+	UpdateMatches([]*UpdateMatchContext) error
+	GetMatches(*GetMatchesContext) ([]*Match, error)
 	GetMatch(*GetMatchContext) (*Match, error)
-	GetGameMap(int) (map[string]map[int]*Game, error)
-	Propogate(*octane.Game, map[*primitive.ObjectID]string) error
-	ResetGame(*ResetGameContext) error
+	DeleteGame(*DeleteGameContext) error
 	GetGames(*GetGamesContext) ([]*Game, error)
+	InsertGame(*Game) (error)
+
+	getLinkageMatches(*EventLinkage) ([]*Match, error)
+	getGameMap(int) (map[string]map[int]*Game, error)
 }
 
 // New .

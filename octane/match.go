@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/octanegg/core/internal/config"
-	"github.com/octanegg/core/pipeline"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -54,22 +53,6 @@ func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) 
 	return &Data{
 		matches,
 		pagination,
-	}, nil
-}
-
-func (c *client) FindMatchesWithTeamLookup(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	matches, err := c.Pipeline(config.CollectionMatches, pipeline.MatchesWithTeamLookup(filter))
-	if err != nil {
-		return nil, err
-	}
-
-	if matches == nil {
-		matches = make([]interface{}, 0)
-	}
-
-	return &Data{
-		matches,
-		nil,
 	}, nil
 }
 

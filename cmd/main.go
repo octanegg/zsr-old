@@ -6,13 +6,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/octanegg/core/internal/admin"
 	"github.com/octanegg/core/internal/config"
 	"github.com/octanegg/core/internal/deprecated"
 	"github.com/octanegg/core/internal/handler"
 	"github.com/octanegg/core/octane"
-	"github.com/octanegg/racer"
-	"github.com/octanegg/slimline"
 )
 
 func main() {
@@ -26,31 +23,24 @@ func main() {
 }
 
 func newHandler() handler.Handler {
-	db, err := connect()
+	o, err := octane.New(os.Getenv(config.EnvURI))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return handler.New(
-		octane.New(db),
-	)
+	return handler.New(o)
 }
 
-func newAdminHandler() admin.Handler {
-	db, err := connect()
-	if err != nil {
-		log.Fatal(err)
-	}
-
+func newAdminHandler() deprecated.Handler {
 	dprctd, err := deprecated.New()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return admin.New(
-		octane.New(db),
-		racer.New(os.Getenv(config.EnvAuthToken)),
-		slimline.New("core", "rocketleague"),
-		dprctd,
-	)
+	o, err := octane.New(os.Getenv(config.EnvURI))
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return deprecated.NewHandler(dprctd, o)
 }

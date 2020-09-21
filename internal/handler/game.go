@@ -2,14 +2,10 @@ package handler
 
 import (
 	"net/http"
-	"net/url"
-
-	"github.com/octanegg/core/internal/config"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
-	h.Get(w, r, h.contextFindGames(r.URL.Query()))
+	h.Get(w, r, h.Octane.FindGames)
 }
 
 func (h *handler) GetGame(w http.ResponseWriter, r *http.Request) {
@@ -27,18 +23,4 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 func (h *handler) DeleteGame(w http.ResponseWriter, r *http.Request) {
 	h.Delete(w, r, h.Octane.DeleteGame)
 
-}
-
-func (h *handler) contextFindGames(v url.Values) *FindContext {
-	a := bson.A{getBasicFilters(v)}
-	if playersFilter := getPTFiltersWithElemMatch(v); playersFilter != nil {
-		a = append(a, playersFilter)
-	}
-
-	return &FindContext{
-		Do:         h.Octane.FindGames,
-		Filter:     bson.M{config.KeyAnd: a},
-		Pagination: getPagination(v),
-		Sort:       getSort(v),
-	}
 }

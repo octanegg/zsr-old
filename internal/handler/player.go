@@ -2,11 +2,10 @@ package handler
 
 import (
 	"net/http"
-	"net/url"
 )
 
 func (h *handler) GetPlayers(w http.ResponseWriter, r *http.Request) {
-	h.Get(w, r, h.contextFindPlayers(r.URL.Query()))
+	h.Get(w, r, h.Octane.FindPlayers)
 }
 
 func (h *handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
@@ -23,13 +22,4 @@ func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) DeletePlayer(w http.ResponseWriter, r *http.Request) {
 	h.Delete(w, r, h.Octane.DeletePlayer)
-}
-
-func (h *handler) contextFindPlayers(v url.Values) *FindContext {
-	return &FindContext{
-		Do:         h.Octane.FindPlayers,
-		Filter:     getBasicFilters(v),
-		Pagination: getPagination(v),
-		Sort:       getSort(v),
-	}
 }
