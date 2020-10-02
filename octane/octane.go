@@ -2,7 +2,6 @@ package octane
 
 import (
 	"context"
-	"io"
 	"reflect"
 
 	"github.com/octanegg/core/internal/config"
@@ -40,10 +39,9 @@ type Client interface {
 	Ping() error
 	Find(string, bson.M, *Pagination, *Sort, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
 	Insert(string, interface{}) (*primitive.ObjectID, error)
-	Update(string, bson.M, bson.M) (*primitive.ObjectID, error)
+	Update(string, bson.M, bson.M) (int64, error)
 	Replace(string, *primitive.ObjectID, interface{}) error
 	Delete(string, *primitive.ObjectID) (int64, error)
-	Pipeline(string, []bson.M) ([]interface{}, error)
 
 	FindEvents(bson.M, *Pagination, *Sort) (*Data, error)
 	FindMatches(bson.M, *Pagination, *Sort) (*Data, error)
@@ -63,23 +61,17 @@ type Client interface {
 	InsertPlayer(*Player) (*primitive.ObjectID, error)
 	InsertTeam(*Team) (*primitive.ObjectID, error)
 
-	UpdateEvent(*primitive.ObjectID, *Event) (*primitive.ObjectID, error)
-	UpdateMatch(*primitive.ObjectID, *Match) (*primitive.ObjectID, error)
-	UpdateGame(*primitive.ObjectID, *Game) (*primitive.ObjectID, error)
-	UpdatePlayer(*primitive.ObjectID, *Player) (*primitive.ObjectID, error)
-	UpdateTeam(*primitive.ObjectID, *Team) (*primitive.ObjectID, error)
+	UpdateEvents(bson.M, bson.M) (int64, error)
+	UpdateMatches(bson.M, bson.M) (int64, error)
+	UpdateGames(bson.M, bson.M) (int64, error)
+	UpdatePlayers(bson.M, bson.M) (int64, error)
+	UpdateTeams(bson.M, bson.M) (int64, error)
 
-	InsertEventWithReader(io.ReadCloser) (*primitive.ObjectID, error)
-	InsertMatchWithReader(io.ReadCloser) (*primitive.ObjectID, error)
-	InsertGameWithReader(io.ReadCloser) (*primitive.ObjectID, error)
-	InsertPlayerWithReader(io.ReadCloser) (*primitive.ObjectID, error)
-	InsertTeamWithReader(io.ReadCloser) (*primitive.ObjectID, error)
-
-	UpdateEventWithReader(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)
-	UpdateMatchWithReader(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)
-	UpdateGameWithReader(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)
-	UpdatePlayerWithReader(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)
-	UpdateTeamWithReader(*primitive.ObjectID, io.ReadCloser) (*primitive.ObjectID, error)
+	ReplaceEvent(*primitive.ObjectID, *Event) (*primitive.ObjectID, error)
+	ReplaceMatch(*primitive.ObjectID, *Match) (*primitive.ObjectID, error)
+	ReplaceGame(*primitive.ObjectID, *Game) (*primitive.ObjectID, error)
+	ReplacePlayer(*primitive.ObjectID, *Player) (*primitive.ObjectID, error)
+	ReplaceTeam(*primitive.ObjectID, *Team) (*primitive.ObjectID, error)
 
 	DeleteEvent(*primitive.ObjectID) (int64, error)
 	DeleteMatch(*primitive.ObjectID) (int64, error)
@@ -165,18 +157,16 @@ func (c *client) Replace(collection string, oid *primitive.ObjectID, update inte
 	return nil
 }
 
-func (c *client) Update(collection string, filter, update bson.M) (*primitive.ObjectID, error) {
+func (c *client) Update(collection string, filter, update bson.M) (int64, error) {
 	ctx := context.TODO()
 	coll := c.DB.Database(config.Database).Collection(collection)
 
 	res, err := coll.UpdateMany(ctx, filter, update)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 
-	newID := res.UpsertedID.(primitive.ObjectID)
-
-	return &newID, nil
+	return res.ModifiedCount, nil
 }
 
 func (c *client) Delete(collection string, oid *primitive.ObjectID) (int64, error) {
@@ -189,28 +179,6 @@ func (c *client) Delete(collection string, oid *primitive.ObjectID) (int64, erro
 	}
 
 	return res.DeletedCount, nil
-}
-
-func (c *client) Pipeline(collection string, pipeline []bson.M) ([]interface{}, error) {
-	ctx := context.TODO()
-	coll := c.DB.Database(config.Database).Collection(collection)
-
-	cursor, err := coll.Aggregate(ctx, pipeline)
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(ctx)
-
-	var res []interface{}
-	for cursor.Next(context.TODO()) {
-		var i bson.M
-		if err := cursor.Decode(&i); err != nil {
-			return nil, err
-		}
-		res = append(res, i)
-	}
-
-	return res, nil
 }
 
 func updateFields(x, y reflect.Value) interface{} {

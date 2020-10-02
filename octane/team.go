@@ -1,11 +1,6 @@
 package octane
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
-	"reflect"
-
 	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -59,35 +54,6 @@ func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
 	return &team, nil
 }
 
-func (c *client) InsertTeamWithReader(body io.ReadCloser) (*primitive.ObjectID, error) {
-	var team Team
-	if err := json.NewDecoder(body).Decode(&team); err != nil {
-		return nil, err
-	}
-
-	id := primitive.NewObjectID()
-	team.ID = &id
-	oid, err := c.Insert(config.CollectionTeams, team)
-	if err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
-func (c *client) UpdateTeamWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
-	var team Team
-	if err := json.NewDecoder(body).Decode(&team); err != nil {
-		return nil, err
-	}
-
-	if err := c.Replace(config.CollectionTeams, oid, team); err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
 func (c *client) InsertTeam(team *Team) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	team.ID = &id
@@ -99,24 +65,16 @@ func (c *client) InsertTeam(team *Team) (*primitive.ObjectID, error) {
 	return oid, nil
 }
 
-func (c *client) UpdateTeam(oid *primitive.ObjectID, fields *Team) (*primitive.ObjectID, error) {
-	team, err := c.FindTeam(oid)
-	if err != nil {
-		return nil, err
-	}
-
-	if team == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
-	}
-
-	update := updateFields(reflect.ValueOf(team).Elem(), reflect.ValueOf(fields).Elem()).(Team)
-	update.ID = oid
-
-	if err := c.Replace(config.CollectionTeams, oid, update); err != nil {
+func (c *client) ReplaceTeam(oid *primitive.ObjectID, team *Team) (*primitive.ObjectID, error) {
+	if err := c.Replace(config.CollectionTeams, oid, team); err != nil {
 		return nil, err
 	}
 
 	return oid, nil
+}
+
+func (c *client) UpdateTeams(filter, update bson.M) (int64, error) {
+	return c.Update(config.CollectionTeams, filter, update)
 }
 
 func (c *client) DeleteTeam(oid *primitive.ObjectID) (int64, error) {

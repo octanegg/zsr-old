@@ -1,10 +1,6 @@
 package octane
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
-	"reflect"
 	"time"
 
 	"github.com/octanegg/core/internal/config"
@@ -92,35 +88,6 @@ func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
 	return &event, nil
 }
 
-func (c *client) InsertEventWithReader(body io.ReadCloser) (*primitive.ObjectID, error) {
-	var event Event
-	if err := json.NewDecoder(body).Decode(&event); err != nil {
-		return nil, err
-	}
-
-	id := primitive.NewObjectID()
-	event.ID = &id
-	oid, err := c.Insert(config.CollectionEvents, event)
-	if err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
-func (c *client) UpdateEventWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
-	var event Event
-	if err := json.NewDecoder(body).Decode(&event); err != nil {
-		return nil, err
-	}
-
-	if err := c.Replace(config.CollectionEvents, oid, event); err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
 func (c *client) InsertEvent(event *Event) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	event.ID = &id
@@ -132,24 +99,16 @@ func (c *client) InsertEvent(event *Event) (*primitive.ObjectID, error) {
 	return oid, nil
 }
 
-func (c *client) UpdateEvent(oid *primitive.ObjectID, fields *Event) (*primitive.ObjectID, error) {
-	event, err := c.FindEvent(oid)
-	if err != nil {
-		return nil, err
-	}
-
-	if event == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
-	}
-
-	update := updateFields(reflect.ValueOf(event).Elem(), reflect.ValueOf(fields).Elem()).(Event)
-	update.ID = oid
-
-	if err := c.Replace(config.CollectionEvents, oid, update); err != nil {
+func (c *client) ReplaceEvent(oid *primitive.ObjectID, event *Event) (*primitive.ObjectID, error) {
+	if err := c.Replace(config.CollectionEvents, oid, event); err != nil {
 		return nil, err
 	}
 
 	return oid, nil
+}
+
+func (c *client) UpdateEvents(filter, update bson.M) (int64, error) {
+	return c.Update(config.CollectionEvents, filter, update)
 }
 
 func (c *client) DeleteEvent(oid *primitive.ObjectID) (int64, error) {

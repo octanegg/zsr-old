@@ -281,7 +281,7 @@ func (h *handler) upsertGame(newGame *octane.Game, match *octane.Match, update b
 		}
 	} else {
 		game := data.Data[0].(octane.Game)
-		if _, err = h.Octane.UpdateGame(game.ID, newGame); err != nil {
+		if _, err = h.Octane.ReplaceGame(game.ID, newGame); err != nil {
 			return fmt.Errorf("error updating game - %s", err.Error())
 		}
 		if game.Blue.Winner {
@@ -301,7 +301,7 @@ func (h *handler) upsertGame(newGame *octane.Game, match *octane.Match, update b
 	match.Orange.Winner = match.Orange.Score > match.Blue.Score
 
 	if update {
-		if _, err := h.Octane.UpdateMatch(match.ID, match); err != nil {
+		if _, err := h.Octane.ReplaceMatch(match.ID, match); err != nil {
 			return fmt.Errorf("error updating match score - %s", err.Error())
 		}
 	}
@@ -325,7 +325,7 @@ func (h *handler) upsertMatch(newMatch *octane.Match) (*primitive.ObjectID, erro
 	}
 
 	id := data.Data[0].(octane.Match).ID
-	if _, err = h.Octane.UpdateMatch(id, newMatch); err != nil {
+	if _, err = h.Octane.ReplaceMatch(id, newMatch); err != nil {
 		return nil, fmt.Errorf("error updating match - %s", err.Error())
 	}
 

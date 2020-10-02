@@ -1,10 +1,6 @@
 package octane
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
-	"reflect"
 	"time"
 
 	"github.com/octanegg/core/internal/config"
@@ -90,35 +86,6 @@ func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
 	return &game, nil
 }
 
-func (c *client) InsertGameWithReader(body io.ReadCloser) (*primitive.ObjectID, error) {
-	var game Game
-	if err := json.NewDecoder(body).Decode(&game); err != nil {
-		return nil, err
-	}
-
-	id := primitive.NewObjectID()
-	game.ID = &id
-	oid, err := c.Insert(config.CollectionGames, game)
-	if err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
-func (c *client) UpdateGameWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
-	var game Game
-	if err := json.NewDecoder(body).Decode(&game); err != nil {
-		return nil, err
-	}
-
-	if err := c.Replace(config.CollectionGames, oid, game); err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
 func (c *client) InsertGame(game *Game) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	game.ID = &id
@@ -130,24 +97,16 @@ func (c *client) InsertGame(game *Game) (*primitive.ObjectID, error) {
 	return oid, nil
 }
 
-func (c *client) UpdateGame(oid *primitive.ObjectID, fields *Game) (*primitive.ObjectID, error) {
-	game, err := c.FindGame(oid)
-	if err != nil {
+func (c *client) ReplaceGame(oid *primitive.ObjectID, game *Game) (*primitive.ObjectID, error) {
+	if err := c.Replace(config.CollectionGames, oid, game); err != nil {
 		return nil, err
 	}
 
-	if game == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
-	}
+	return oid, nil
+}
 
-	update := updateFields(reflect.ValueOf(game).Elem(), reflect.ValueOf(fields).Elem()).(Game)
-	update.ID = oid
-
-	if err := c.Replace(config.CollectionGames, oid, update); err != nil {
-		return nil, err
-	}
-
-	return oid, err
+func (c *client) UpdateGames(filter, update bson.M) (int64, error) {
+	return c.Update(config.CollectionGames, filter, update)
 }
 
 func (c *client) DeleteGame(oid *primitive.ObjectID) (int64, error) {

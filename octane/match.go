@@ -1,10 +1,6 @@
 package octane
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
-	"reflect"
 	"time"
 
 	"github.com/octanegg/core/internal/config"
@@ -37,7 +33,13 @@ type MatchSide struct {
 }
 
 func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	matches, err := c.Find(config.CollectionMatches, filter, pagination, sort, toMatch)
+	matches, err := c.Find(config.CollectionMatches, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+		var match Match
+		if err := cursor.Decode(&match); err != nil {
+			return nil, err
+		}
+		return match, nil
+	})
 	if err != nil {
 		return nil, err
 	}
@@ -70,35 +72,6 @@ func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
 	return &match, nil
 }
 
-func (c *client) InsertMatchWithReader(body io.ReadCloser) (*primitive.ObjectID, error) {
-	var match Match
-	if err := json.NewDecoder(body).Decode(&match); err != nil {
-		return nil, err
-	}
-
-	id := primitive.NewObjectID()
-	match.ID = &id
-	oid, err := c.Insert(config.CollectionMatches, match)
-	if err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
-func (c *client) UpdateMatchWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
-	var match *Match
-	if err := json.NewDecoder(body).Decode(&match); err != nil {
-		return nil, err
-	}
-
-	if err := c.Replace(config.CollectionMatches, oid, match); err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
 func (c *client) InsertMatch(match *Match) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	match.ID = &id
@@ -110,34 +83,18 @@ func (c *client) InsertMatch(match *Match) (*primitive.ObjectID, error) {
 	return oid, nil
 }
 
-func (c *client) UpdateMatch(oid *primitive.ObjectID, fields *Match) (*primitive.ObjectID, error) {
-	match, err := c.FindMatch(oid)
-	if err != nil {
-		return nil, err
-	}
-
-	if match == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
-	}
-
-	update := updateFields(reflect.ValueOf(match).Elem(), reflect.ValueOf(fields).Elem()).(Match)
-	update.ID = oid
-
-	if err := c.Replace(config.CollectionMatches, oid, update); err != nil {
+func (c *client) ReplaceMatch(oid *primitive.ObjectID, match *Match) (*primitive.ObjectID, error) {
+	if err := c.Replace(config.CollectionMatches, oid, match); err != nil {
 		return nil, err
 	}
 
 	return oid, nil
 }
 
-func (c *client) DeleteMatch(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete(config.CollectionMatches, oid)
+func (c *client) UpdateMatches(filter, update bson.M) (int64, error) {
+	return c.Update(config.CollectionMatches, filter, update)
 }
 
-func toMatch(cursor *mongo.Cursor) (interface{}, error) {
-	var match Match
-	if err := cursor.Decode(&match); err != nil {
-		return nil, err
-	}
-	return match, nil
+func (c *client) DeleteMatch(oid *primitive.ObjectID) (int64, error) {
+	return c.Delete(config.CollectionMatches, oid)
 }

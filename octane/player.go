@@ -1,11 +1,6 @@
 package octane
 
 import (
-	"encoding/json"
-	"errors"
-	"io"
-	"reflect"
-
 	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -69,35 +64,6 @@ func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
 	return &player, nil
 }
 
-func (c *client) InsertPlayerWithReader(body io.ReadCloser) (*primitive.ObjectID, error) {
-	var player Player
-	if err := json.NewDecoder(body).Decode(&player); err != nil {
-		return nil, err
-	}
-
-	id := primitive.NewObjectID()
-	player.ID = &id
-	oid, err := c.Insert(config.CollectionPlayers, player)
-	if err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
-func (c *client) UpdatePlayerWithReader(oid *primitive.ObjectID, body io.ReadCloser) (*primitive.ObjectID, error) {
-	var player Player
-	if err := json.NewDecoder(body).Decode(&player); err != nil {
-		return nil, err
-	}
-
-	if err := c.Replace(config.CollectionPlayers, oid, player); err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
 func (c *client) InsertPlayer(player *Player) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	player.ID = &id
@@ -109,24 +75,16 @@ func (c *client) InsertPlayer(player *Player) (*primitive.ObjectID, error) {
 	return oid, nil
 }
 
-func (c *client) UpdatePlayer(oid *primitive.ObjectID, fields *Player) (*primitive.ObjectID, error) {
-	player, err := c.FindPlayer(oid)
-	if err != nil {
-		return nil, err
-	}
-
-	if player == nil {
-		return nil, errors.New(config.ErrNoObjectFoundForID)
-	}
-
-	update := updateFields(reflect.ValueOf(player).Elem(), reflect.ValueOf(fields).Elem()).(Player)
-	update.ID = oid
-
-	if err := c.Replace(config.CollectionPlayers, oid, update); err != nil {
+func (c *client) ReplacePlayer(oid *primitive.ObjectID, player *Player) (*primitive.ObjectID, error) {
+	if err := c.Replace(config.CollectionPlayers, oid, player); err != nil {
 		return nil, err
 	}
 
 	return oid, nil
+}
+
+func (c *client) UpdatePlayers(filter, update bson.M) (int64, error) {
+	return c.Update(config.CollectionPlayers, filter, update)
 }
 
 func (c *client) DeletePlayer(oid *primitive.ObjectID) (int64, error) {
