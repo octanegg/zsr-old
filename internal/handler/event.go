@@ -7,26 +7,28 @@ import (
 
 	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
-	if r.Header.Get(config.HeaderContentType) != config.HeaderApplicationJSON {
-		w.WriteHeader(http.StatusUnsupportedMediaType)
-		json.NewEncoder(w).Encode(Error{time.Now(), config.ErrInvalidContentType})
-		return
-	}
-	defer r.Body.Close()
+	v := r.URL.Query()
+	filter := getBasicFilters(v)
 
-	var filter bson.M
-	json.NewDecoder(r.Body).Decode(&filter)
-	for _, field := range config.ObjectIDFields {
-		if v, ok := filter[field]; ok {
-			filter[field], _ = primitive.ObjectIDFromHex(v.(string))
+	dates := bson.M{}
+	if val := v.Get(config.ParamBefore); val != "" {
+		if t, err := time.Parse("2006-01-02T03:04:05Z", val); err == nil {
+			dates["$lte"] = t
 		}
 	}
+	if val := v.Get(config.ParamAfter); val != "" {
+		if t, err := time.Parse("2006-01-02T03:04:05Z", val); err == nil {
+			dates["$gte"] = t
+		}
+	}
+	if len(dates) > 0 {
+		filter[config.ParamStartDate] = dates
+	}
 
-	data, err := h.Octane.FindEvents(filter, getPagination(r.URL.Query()), getSort(r.URL.Query()))
+	data, err := h.Octane.FindEvents(filter, getPagination(v), getSort(v))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})

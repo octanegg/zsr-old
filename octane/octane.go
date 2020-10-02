@@ -4,11 +4,33 @@ import (
 	"context"
 	"reflect"
 
-	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+const (
+	// Database .
+	Database = "octane"
+
+	// CollectionEvents .
+	CollectionEvents = "events"
+
+	// CollectionMatches .
+	CollectionMatches = "matches"
+
+	// CollectionGames .
+	CollectionGames = "games"
+
+	// CollectionPlayers .
+	CollectionPlayers = "players"
+
+	// CollectionTeams .
+	CollectionTeams = "teams"
+
+	// CollectionUsers .
+	CollectionUsers = "users"
 )
 
 type client struct {
@@ -101,7 +123,7 @@ func (c *client) Ping() error {
 
 func (c *client) Find(collection string, filter bson.M, pagination *Pagination, sort *Sort, convert func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
 	ctx := context.TODO()
-	coll := c.DB.Database(config.Database).Collection(collection)
+	coll := c.DB.Database(Database).Collection(collection)
 
 	opts := options.Find()
 	if pagination != nil {
@@ -133,7 +155,7 @@ func (c *client) Find(collection string, filter bson.M, pagination *Pagination, 
 
 func (c *client) Insert(collection string, document interface{}) (*primitive.ObjectID, error) {
 	ctx := context.TODO()
-	coll := c.DB.Database(config.Database).Collection(collection)
+	coll := c.DB.Database(Database).Collection(collection)
 
 	res, err := coll.InsertOne(ctx, document)
 	if err != nil {
@@ -147,9 +169,9 @@ func (c *client) Insert(collection string, document interface{}) (*primitive.Obj
 
 func (c *client) Replace(collection string, oid *primitive.ObjectID, update interface{}) error {
 	ctx := context.TODO()
-	coll := c.DB.Database(config.Database).Collection(collection)
+	coll := c.DB.Database(Database).Collection(collection)
 
-	_, err := coll.ReplaceOne(ctx, bson.M{config.KeyID: oid}, update)
+	_, err := coll.ReplaceOne(ctx, bson.M{"_id": oid}, update)
 	if err != nil {
 		return err
 	}
@@ -159,7 +181,7 @@ func (c *client) Replace(collection string, oid *primitive.ObjectID, update inte
 
 func (c *client) Update(collection string, filter, update bson.M) (int64, error) {
 	ctx := context.TODO()
-	coll := c.DB.Database(config.Database).Collection(collection)
+	coll := c.DB.Database(Database).Collection(collection)
 
 	res, err := coll.UpdateMany(ctx, filter, update)
 	if err != nil {
@@ -171,9 +193,9 @@ func (c *client) Update(collection string, filter, update bson.M) (int64, error)
 
 func (c *client) Delete(collection string, oid *primitive.ObjectID) (int64, error) {
 	ctx := context.TODO()
-	coll := c.DB.Database(config.Database).Collection(collection)
+	coll := c.DB.Database(Database).Collection(collection)
 
-	res, err := coll.DeleteOne(ctx, bson.M{config.KeyID: oid})
+	res, err := coll.DeleteOne(ctx, bson.M{"_id": oid})
 	if err != nil {
 		return 0, err
 	}

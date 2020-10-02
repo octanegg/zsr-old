@@ -5,6 +5,7 @@
 *.dylib
 *.test
 *.out
+*.rdb
 
 vendor/
 

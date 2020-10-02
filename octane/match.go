@@ -3,7 +3,6 @@ package octane
 import (
 	"time"
 
-	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -28,12 +27,12 @@ type Match struct {
 type MatchSide struct {
 	Score   int                   `json:"score" bson:"score"`
 	Winner  bool                  `json:"winner" bson:"winner"`
-	Team    *primitive.ObjectID   `json:"team" bson:"team"`
-	Players []*primitive.ObjectID `json:"players,omitempty" bson:"players,omitempty"`
+	Team    *Team   `json:"team" bson:"team"`
+	Players []*Player `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	matches, err := c.Find(config.CollectionMatches, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+	matches, err := c.Find(CollectionMatches, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
 		var match Match
 		if err := cursor.Decode(&match); err != nil {
 			return nil, err
@@ -59,7 +58,7 @@ func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) 
 }
 
 func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
-	matches, err := c.FindMatches(bson.M{config.KeyID: oid}, nil, nil)
+	matches, err := c.FindMatches(bson.M{"_id": oid}, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +74,7 @@ func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
 func (c *client) InsertMatch(match *Match) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	match.ID = &id
-	oid, err := c.Insert(config.CollectionMatches, match)
+	oid, err := c.Insert(CollectionMatches, match)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +83,7 @@ func (c *client) InsertMatch(match *Match) (*primitive.ObjectID, error) {
 }
 
 func (c *client) ReplaceMatch(oid *primitive.ObjectID, match *Match) (*primitive.ObjectID, error) {
-	if err := c.Replace(config.CollectionMatches, oid, match); err != nil {
+	if err := c.Replace(CollectionMatches, oid, match); err != nil {
 		return nil, err
 	}
 
@@ -92,9 +91,9 @@ func (c *client) ReplaceMatch(oid *primitive.ObjectID, match *Match) (*primitive
 }
 
 func (c *client) UpdateMatches(filter, update bson.M) (int64, error) {
-	return c.Update(config.CollectionMatches, filter, update)
+	return c.Update(CollectionMatches, filter, update)
 }
 
 func (c *client) DeleteMatch(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete(config.CollectionMatches, oid)
+	return c.Delete(CollectionMatches, oid)
 }

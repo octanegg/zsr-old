@@ -39,6 +39,14 @@
         {
           "valueFrom": "ballchasing",
           "name": "AUTH_TOKEN"
+        },
+        {
+          "valueFrom": "cache",
+          "name": "CACHE_URI"
+        },
+        {
+          "valueFrom": "signer",
+          "name": "SIGNER"
         }
       ],
       "dockerSecurityOptions": null,

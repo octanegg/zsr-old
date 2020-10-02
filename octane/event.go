@@ -3,7 +3,6 @@ package octane
 import (
 	"time"
 
-	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -48,7 +47,7 @@ type Prize struct {
 }
 
 func (c *client) FindEvents(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	events, err := c.Find(config.CollectionEvents, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+	events, err := c.Find(CollectionEvents, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
 		var event Event
 		if err := cursor.Decode(&event); err != nil {
 			return nil, err
@@ -75,7 +74,7 @@ func (c *client) FindEvents(filter bson.M, pagination *Pagination, sort *Sort) (
 }
 
 func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
-	events, err := c.FindEvents(bson.M{config.KeyID: oid}, nil, nil)
+	events, err := c.FindEvents(bson.M{"_id": oid}, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +90,7 @@ func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
 func (c *client) InsertEvent(event *Event) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	event.ID = &id
-	oid, err := c.Insert(config.CollectionEvents, event)
+	oid, err := c.Insert(CollectionEvents, event)
 	if err != nil {
 		return nil, err
 	}
@@ -100,7 +99,7 @@ func (c *client) InsertEvent(event *Event) (*primitive.ObjectID, error) {
 }
 
 func (c *client) ReplaceEvent(oid *primitive.ObjectID, event *Event) (*primitive.ObjectID, error) {
-	if err := c.Replace(config.CollectionEvents, oid, event); err != nil {
+	if err := c.Replace(CollectionEvents, oid, event); err != nil {
 		return nil, err
 	}
 
@@ -108,9 +107,9 @@ func (c *client) ReplaceEvent(oid *primitive.ObjectID, event *Event) (*primitive
 }
 
 func (c *client) UpdateEvents(filter, update bson.M) (int64, error) {
-	return c.Update(config.CollectionEvents, filter, update)
+	return c.Update(CollectionEvents, filter, update)
 }
 
 func (c *client) DeleteEvent(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete(config.CollectionEvents, oid)
+	return c.Delete(CollectionEvents, oid)
 }

@@ -1,7 +1,6 @@
 package octane
 
 import (
-	"github.com/octanegg/core/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,7 +13,7 @@ type Team struct {
 }
 
 func (c *client) FindTeams(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	teams, err := c.Find(config.CollectionTeams, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+	teams, err := c.Find(CollectionTeams, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
 		var team Team
 		if err := cursor.Decode(&team); err != nil {
 			return nil, err
@@ -41,7 +40,7 @@ func (c *client) FindTeams(filter bson.M, pagination *Pagination, sort *Sort) (*
 }
 
 func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
-	teams, err := c.FindTeams(bson.M{config.KeyID: oid}, nil, nil)
+	teams, err := c.FindTeams(bson.M{"_id": oid}, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +56,7 @@ func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
 func (c *client) InsertTeam(team *Team) (*primitive.ObjectID, error) {
 	id := primitive.NewObjectID()
 	team.ID = &id
-	oid, err := c.Insert(config.CollectionTeams, team)
+	oid, err := c.Insert(CollectionTeams, team)
 	if err != nil {
 		return nil, err
 	}
@@ -66,7 +65,7 @@ func (c *client) InsertTeam(team *Team) (*primitive.ObjectID, error) {
 }
 
 func (c *client) ReplaceTeam(oid *primitive.ObjectID, team *Team) (*primitive.ObjectID, error) {
-	if err := c.Replace(config.CollectionTeams, oid, team); err != nil {
+	if err := c.Replace(CollectionTeams, oid, team); err != nil {
 		return nil, err
 	}
 
@@ -74,9 +73,9 @@ func (c *client) ReplaceTeam(oid *primitive.ObjectID, team *Team) (*primitive.Ob
 }
 
 func (c *client) UpdateTeams(filter, update bson.M) (int64, error) {
-	return c.Update(config.CollectionTeams, filter, update)
+	return c.Update(CollectionTeams, filter, update)
 }
 
 func (c *client) DeleteTeam(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete(config.CollectionTeams, oid)
+	return c.Delete(CollectionTeams, oid)
 }

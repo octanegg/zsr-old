@@ -101,12 +101,10 @@ func (h *handler) parseGame(game *Game) *octane.Game {
 		Duration: game.Duration,
 		Blue: &octane.GameSide{
 			Goals:   game.Blue.Goals,
-			Team:    &octane.TeamStats{},
 			Players: []*octane.PlayerStats{},
 		},
 		Orange: &octane.GameSide{
 			Goals:   game.Orange.Goals,
-			Team:    &octane.TeamStats{},
 			Players: []*octane.PlayerStats{},
 		},
 	}
@@ -114,8 +112,8 @@ func (h *handler) parseGame(game *Game) *octane.Game {
 	newGame.Blue.Winner = newGame.Blue.Goals > newGame.Orange.Goals
 	newGame.Orange.Winner = newGame.Orange.Goals > newGame.Blue.Goals
 
-	newGame.Blue.Team.ID = h.findOrInsertTeam(game.Blue.Name)
-	newGame.Orange.Team.ID = h.findOrInsertTeam(game.Orange.Name)
+	newGame.Blue.Team = h.findOrInsertTeam(game.Blue.Name)
+	newGame.Orange.Team = h.findOrInsertTeam(game.Orange.Name)
 
 	for _, log := range game.Blue.Players {
 		newGame.Blue.Players = append(newGame.Blue.Players, &octane.PlayerStats{
@@ -164,7 +162,6 @@ func (h *handler) parseMatch(match *Match) *octane.Match {
 
 	return &newMatch
 }
-
 
 func (d *deprecated) getGameMap(eventID int) (map[string]map[int]*Game, error) {
 	results, err := d.DB.Query(fmt.Sprintf("SELECT match_url, Map, Length, Team, Vs, TeamGoals, OppGoals, Game FROM Matches2 WHERE Event = %d GROUP BY match_url, Game ORDER BY match_url ASC, Game ASC", eventID))
@@ -281,6 +278,7 @@ func (h *handler) upsertGame(newGame *octane.Game, match *octane.Match, update b
 		}
 	} else {
 		game := data.Data[0].(octane.Game)
+		newGame.ID = game.ID
 		if _, err = h.Octane.ReplaceGame(game.ID, newGame); err != nil {
 			return fmt.Errorf("error updating game - %s", err.Error())
 		}
@@ -325,6 +323,7 @@ func (h *handler) upsertMatch(newMatch *octane.Match) (*primitive.ObjectID, erro
 	}
 
 	id := data.Data[0].(octane.Match).ID
+	newMatch.ID = id
 	if _, err = h.Octane.ReplaceMatch(id, newMatch); err != nil {
 		return nil, fmt.Errorf("error updating match - %s", err.Error())
 	}
@@ -332,24 +331,34 @@ func (h *handler) upsertMatch(newMatch *octane.Match) (*primitive.ObjectID, erro
 	return id, nil
 }
 
-func (h *handler) findOrInsertTeam(name string) *primitive.ObjectID {
+func (h *handler) findOrInsertTeam(name string) *octane.Team {
 	teams, err := h.Octane.FindTeams(bson.M{"name": name}, nil, nil)
 	if err != nil || len(teams.Data) == 0 {
 		team, _ := h.Octane.InsertTeam(&octane.Team{
 			Name: name,
 		})
-		return team
+		return &octane.Team{
+			ID:   team,
+			Name: name,
+		}
 	}
-	return teams.Data[0].(octane.Team).ID
+
+	team := teams.Data[0].(octane.Team)
+	return &team
 }
 
-func (h *handler) findOrInsertPlayer(tag string) *primitive.ObjectID {
+func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
 	players, err := h.Octane.FindPlayers(bson.M{"tag": tag}, nil, nil)
 	if err != nil || len(players.Data) == 0 {
 		player, _ := h.Octane.InsertPlayer(&octane.Player{
 			Tag: tag,
 		})
-		return player
+		return &octane.Player{
+			ID:  player,
+			Tag: tag,
+		}
 	}
-	return players.Data[0].(octane.Player).ID
+
+	player := players.Data[0].(octane.Player)
+	return &player
 }

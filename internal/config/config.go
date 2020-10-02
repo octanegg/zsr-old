@@ -10,11 +10,8 @@ const (
 	// EnvOldDBURI .
 	EnvOldDBURI = "OLD_DB_URI"
 
-	// EnvOldInsertURI .
-	EnvOldInsertURI = "OLD_INSERT_URI"
-
-	// EnvAuthToken .
-	EnvAuthToken = "AUTH_TOKEN"
+	// EnvSigner .
+	EnvSigner = "SIGNER"
 
 	// ErrNoObjectFoundForID .
 	ErrNoObjectFoundForID = "no object found for id"
@@ -22,9 +19,27 @@ const (
 	// ErrInvalidContentType .
 	ErrInvalidContentType = "content-type is not application/json"
 
+	// ErrMissingAuthorization .
+	ErrMissingAuthorization = "missing authorization details"
+
+	// ErrInvalidAuthorization .
+	ErrInvalidAuthorization = "invalid authorization details"
+
+	// ErrUsernameTaken .
+	ErrUsernameTaken = "username taken"
+
+	// ErrInvalidToken .
+	ErrInvalidToken = "invalid token"
+
+	// ErrUnexpectedSigningMethod .
+	ErrUnexpectedSigningMethod = "unexpected signing method: %v"
+
 	// HeaderContentType .
 	HeaderContentType = "Content-Type"
 
 	// HeaderApplicationJSON .
 	HeaderApplicationJSON = "application/json"
+
+	// HeaderAuthorization .
+	HeaderAuthorization = "Authorization"
 )
