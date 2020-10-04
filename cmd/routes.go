@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/octanegg/core/internal/deprecated"
-	"github.com/octanegg/core/internal/handler"
+	"github.com/octanegg/zsr/internal/deprecated"
+	"github.com/octanegg/zsr/internal/handler"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )

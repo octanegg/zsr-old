@@ -8,7 +8,7 @@ import (
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/octanegg/core/internal/config"
+	"github.com/octanegg/zsr/internal/config"
 )
 
 // Response .

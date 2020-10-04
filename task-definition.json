@@ -54,7 +54,7 @@
       "memoryReservation": null,
       "volumesFrom": [],
       "stopTimeout": null,
-      "image": "053998485699.dkr.ecr.us-east-1.amazonaws.com/octanegg/core:latest",
+      "image": "053998485699.dkr.ecr.us-east-1.amazonaws.com/octanegg/zsr:latest",
       "startTimeout": null,
       "firelensConfiguration": null,
       "dependsOn": null,
@@ -71,15 +71,14 @@
       "dockerLabels": null,
       "systemControls": null,
       "privileged": null,
-      "name": "octane-core"
+      "name": "octane-zsr"
     }
   ],
   "placementConstraints": [],
   "memory": "512",
   "taskRoleArn": "arn:aws:iam::053998485699:role/ecs-task-role",
   "compatibilities": ["EC2"],
-  "taskDefinitionArn": "arn:aws:ecs:us-east-1:053998485699:task-definition/octane-core:6",
-  "family": "octane-core",
+  "family": "octane-zsr",
   "requiresAttributes": [
     {
       "targetId": null,

@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/octanegg/core/internal/config"
-	"github.com/octanegg/core/octane"
+	"github.com/octanegg/zsr/internal/config"
+	"github.com/octanegg/zsr/octane"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )

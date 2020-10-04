@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/octanegg/core/internal/config"
+	"github.com/octanegg/zsr/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -15,7 +15,6 @@ func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 	if playersFilter := getPTFiltersWithElemMatch(v); playersFilter != nil {
 		a = append(a, playersFilter)
 	}
-
 
 	data, err := h.Octane.FindGames(bson.M{config.KeyAnd: a}, getPagination(v), getSort(v))
 	if err != nil {

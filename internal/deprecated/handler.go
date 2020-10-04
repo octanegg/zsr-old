@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/octanegg/core/internal/config"
-	"github.com/octanegg/core/octane"
+	"github.com/octanegg/zsr/internal/config"
+	"github.com/octanegg/zsr/octane"
 )
 
 // Error .
@@ -18,7 +18,7 @@ type Error struct {
 
 type handler struct {
 	Deprecated Deprecated
-	Octane octane.Client
+	Octane     octane.Client
 }
 
 // Handler .
@@ -75,7 +75,7 @@ func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(match)
 }
 
-func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {	
+func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 	matches, err := h.Deprecated.GetMatches(&GetMatchesContext{
 		Event: mux.Vars(r)["event"],
 		Stage: mux.Vars(r)["stage"],
@@ -116,8 +116,8 @@ func (h *handler) DeleteGame(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 	games, err := h.Deprecated.GetGames(&GetGamesContext{
 		OctaneID: mux.Vars(r)["match"],
-		Blue: mux.Vars(r)["blue"],
-		Orange: mux.Vars(r)["orange"],
+		Blue:     mux.Vars(r)["blue"],
+		Orange:   mux.Vars(r)["orange"],
 	})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/octanegg/core/internal/config"
+	"github.com/octanegg/zsr/internal/config"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
