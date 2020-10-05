@@ -13,7 +13,7 @@ type Player struct {
 	Name    string              `json:"name,omitempty" bson:"name,omitempty"`
 	Country string              `json:"country,omitempty" bson:"country,omitempty"`
 	Team    string              `json:"team,omitempty" bson:"team,omitempty"`
-	Account *Account            `json:"account" bson:"account"`
+	Account *Account            `json:"account,omitempty" bson:"account,omitempty"`
 }
 
 // Account .

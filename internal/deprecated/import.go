@@ -28,8 +28,15 @@ func (h *handler) ImportMatches(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var linkages []EventLinkage
-	if err := json.NewDecoder(r.Body).Decode(&linkages); err != nil {
+	var events []int
+	if err := json.NewDecoder(r.Body).Decode(&events); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	linkages, err := h.Deprecated.getLinkages(events)
+	if  err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
@@ -43,7 +50,7 @@ func (h *handler) ImportMatches(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		matches, err := h.Deprecated.getLinkageMatches(&linkage)
+		matches, err := h.Deprecated.getLinkageMatches(linkage)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -161,6 +168,38 @@ func (h *handler) parseMatch(match *Match) *octane.Match {
 	}
 
 	return &newMatch
+}
+
+func (d *deprecated) getLinkages(events []int) ([]*EventLinkage, error) {
+	stmt := "SELECT old_event, old_stage, new_event, new_stage FROM mapping"
+	if len(events) > 0 {
+		stmt += " WHERE old_event IN ("
+		for i, event := range events {
+			stmt += strconv.Itoa(event)
+			if i != len(events) - 1 {
+				stmt += ","
+			} 
+		}
+		stmt += ")"
+	}
+	
+	results, err := d.DB.Query(stmt)
+	if err != nil {
+		return nil, err
+	}
+
+	var linkages []*EventLinkage
+	for results.Next() {
+		var linkage EventLinkage
+		err = results.Scan(&linkage.OldEvent, &linkage.OldStage, &linkage.NewEvent, &linkage.NewStage)
+		if err != nil {
+			return nil, err
+		}
+
+		linkages = append(linkages, &linkage)
+	}
+
+	return linkages, nil
 }
 
 func (d *deprecated) getGameMap(eventID int) (map[string]map[int]*Game, error) {
@@ -344,7 +383,10 @@ func (h *handler) findOrInsertTeam(name string) *octane.Team {
 	}
 
 	team := teams.Data[0].(octane.Team)
-	return &team
+	return &octane.Team{
+		ID: team.ID,
+		Name: team.Name,
+	}
 }
 
 func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
@@ -360,5 +402,8 @@ func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
 	}
 
 	player := players.Data[0].(octane.Player)
-	return &player
+	return &octane.Player{
+		ID: player.ID,
+		Tag: player.Tag,
+	}
 }
