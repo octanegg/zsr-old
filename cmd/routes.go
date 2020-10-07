@@ -21,24 +21,35 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	e := r.PathPrefix("/events").Subrouter()
 	e.HandleFunc("", h.GetEvents).
 		Methods(http.MethodGet)
+	e.HandleFunc("/{id}", h.GetEvent).
+		Methods(http.MethodGet)
 
 	// matches
 	m := r.PathPrefix("/matches").Subrouter()
 	m.HandleFunc("", h.GetMatches).
+		Methods(http.MethodGet)
+	m.HandleFunc("/{id}", h.GetMatch).
 		Methods(http.MethodGet)
 
 	// games
 	g := r.PathPrefix("/games").Subrouter()
 	g.HandleFunc("", h.GetGames).
 		Methods(http.MethodGet)
+	g.HandleFunc("/{id}", h.GetGame).
+		Methods(http.MethodGet)
 
 	// players
 	p := r.PathPrefix("/players").Subrouter()
 	p.HandleFunc("", h.GetPlayers).
 		Methods(http.MethodGet)
+	p.HandleFunc("/{id}", h.GetPlayer).
+		Methods(http.MethodGet)
+
 	// teams
 	t := r.PathPrefix("/teams").Subrouter()
 	t.HandleFunc("", h.GetTeams).
+		Methods(http.MethodGet)
+	t.HandleFunc("/{id}", h.GetTeam).
 		Methods(http.MethodGet)
 
 	// TODO: Stats endpoints

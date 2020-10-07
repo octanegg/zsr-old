@@ -31,6 +31,13 @@ type Handler interface {
 	GetGames(http.ResponseWriter, *http.Request)
 	GetPlayers(http.ResponseWriter, *http.Request)
 	GetTeams(http.ResponseWriter, *http.Request)
+
+
+	GetEvent(http.ResponseWriter, *http.Request)
+	GetMatch(http.ResponseWriter, *http.Request)
+	GetGame(http.ResponseWriter, *http.Request)
+	GetPlayer(http.ResponseWriter, *http.Request)
+	GetTeam(http.ResponseWriter, *http.Request)
 }
 
 // New .
