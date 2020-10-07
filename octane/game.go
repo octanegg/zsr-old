@@ -3,6 +3,7 @@ package octane
 import (
 	"time"
 
+	"github.com/octanegg/zsr/ballchasing"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -34,9 +35,9 @@ type GameSide struct {
 
 // PlayerStats .
 type PlayerStats struct {
-	Player *Player     `json:"player" bson:"player"`
-	Stats  interface{} `json:"stats" bson:"stats"`
-	Rating float64     `json:"rating" bson:"rating"`
+	Player *Player                  `json:"player" bson:"player"`
+	Stats  *ballchasing.PlayerStats `json:"stats" bson:"stats"`
+	Rating float64                  `json:"rating" bson:"rating"`
 }
 
 func (c *client) FindGames(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {

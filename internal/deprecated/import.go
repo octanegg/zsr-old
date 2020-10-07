@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/octanegg/zsr/ballchasing"
 	"github.com/octanegg/zsr/internal/config"
 	"github.com/octanegg/zsr/octane"
 	"go.mongodb.org/mongo-driver/bson"
@@ -36,7 +37,7 @@ func (h *handler) ImportMatches(w http.ResponseWriter, r *http.Request) {
 	}
 
 	linkages, err := h.Deprecated.getLinkages(events)
-	if  err != nil {
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
@@ -125,20 +126,38 @@ func (h *handler) parseGame(game *Game) *octane.Game {
 	for _, log := range game.Blue.Players {
 		newGame.Blue.Players = append(newGame.Blue.Players, &octane.PlayerStats{
 			Player: h.findOrInsertPlayer(log.Player),
-			Stats: struct {
-				Core Log `bson:"core"`
-			}{log},
-			Rating: log.Rating,
+			Stats: &ballchasing.PlayerStats{
+				Core: &ballchasing.PlayerCore{
+					Score:              log.Score,
+					Goals:              log.Goals,
+					Assists:            log.Assists,
+					Saves:              log.Saves,
+					Shots:              log.Shots,
+					Mvp:                log.MVP,
+					ShootingPercentage: log.SP,
+					GoalParticipation:  log.GP,
+					Rating:             log.Rating,
+				},
+			},
 		})
 	}
 
 	for _, log := range game.Orange.Players {
 		newGame.Orange.Players = append(newGame.Orange.Players, &octane.PlayerStats{
 			Player: h.findOrInsertPlayer(log.Player),
-			Stats: struct {
-				Core Log `bson:"core"`
-			}{log},
-			Rating: log.Rating,
+			Stats: &ballchasing.PlayerStats{
+				Core: &ballchasing.PlayerCore{
+					Score:              log.Score,
+					Goals:              log.Goals,
+					Assists:            log.Assists,
+					Saves:              log.Saves,
+					Shots:              log.Shots,
+					Mvp:                log.MVP,
+					ShootingPercentage: log.SP,
+					GoalParticipation:  log.GP,
+					Rating:             log.Rating,
+				},
+			},
 		})
 	}
 
@@ -176,13 +195,13 @@ func (d *deprecated) getLinkages(events []int) ([]*EventLinkage, error) {
 		stmt += " WHERE old_event IN ("
 		for i, event := range events {
 			stmt += strconv.Itoa(event)
-			if i != len(events) - 1 {
+			if i != len(events)-1 {
 				stmt += ","
-			} 
+			}
 		}
 		stmt += ")"
 	}
-	
+
 	results, err := d.DB.Query(stmt)
 	if err != nil {
 		return nil, err
@@ -384,7 +403,7 @@ func (h *handler) findOrInsertTeam(name string) *octane.Team {
 
 	team := teams.Data[0].(octane.Team)
 	return &octane.Team{
-		ID: team.ID,
+		ID:   team.ID,
 		Name: team.Name,
 	}
 }
@@ -403,7 +422,7 @@ func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
 
 	player := players.Data[0].(octane.Player)
 	return &octane.Player{
-		ID: player.ID,
+		ID:  player.ID,
 		Tag: player.Tag,
 	}
 }

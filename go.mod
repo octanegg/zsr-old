@@ -13,5 +13,5 @@ require (
 	github.com/tidwall/pretty v1.0.2 // indirect
 	github.com/urfave/negroni v1.0.0
 	go.mongodb.org/mongo-driver v1.4.1
-	golang.org/x/net v0.0.0-20201002202402-0a1ea396d57c // indirect
+	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0 // indirect
 )
