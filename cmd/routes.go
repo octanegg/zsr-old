@@ -13,6 +13,8 @@ import (
 func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	r := mux.NewRouter()
 
+	r.Handle("/", http.FileServer(http.Dir("./docs")))
+
 	// health
 	r.HandleFunc("/health", h.Health).
 		Methods(http.MethodGet)
