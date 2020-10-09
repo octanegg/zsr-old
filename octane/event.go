@@ -23,14 +23,14 @@ type Event struct {
 
 // Stage .
 type Stage struct {
-	ID         int         `json:"_id,omitempty" bson:"_id,omitempty"`
+	ID         int         `json:"_id" bson:"_id"`
 	Name       string      `json:"name" bson:"name"`
 	Format     string      `json:"format" bson:"format"`
-	Region     string      `json:"region" bson:"region"`
+	Region     string      `json:"region,omitempty" bson:"region,omitempty"`
 	StartDate  *time.Time  `json:"start_date,omitempty" bson:"start_date,omitempty"`
 	EndDate    *time.Time  `json:"end_date,omitempty" bson:"end_date,omitempty"`
 	Prize      *Prize      `json:"prize,omitempty" bson:"prize,omitempty"`
-	Liquipedia string      `json:"liquipedia" bson:"liquipedia"`
+	Liquipedia string      `json:"liquipedia,omitempty" bson:"liquipedia,omitempty"`
 	Qualifier  bool        `json:"qualifier,omitempty" bson:"qualifier,omitempty"`
 	Substages  []*Substage `json:"substages,omitempty" bson:"substages,omitempty"`
 }

@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -12,7 +13,7 @@ import (
 
 func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
-	data, err := h.Octane.FindTeams(getBasicFilters(v), getPagination(v), getSort(v))
+	data, err := h.Octane.FindTeams(teamFilters(v), getPagination(v), getSort(v))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -22,8 +23,6 @@ func (h *handler) GetTeams(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
 }
-
-
 
 func (h *handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 	id, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
@@ -47,4 +46,13 @@ func (h *handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data.Data[0])
+}
+
+func teamFilters(v url.Values) bson.M {
+	filter := bson.M{}
+	if vals, ok := v["name"]; ok {
+		filter["name"] = bson.M{"$in": vals}
+	}
+
+	return filter
 }
