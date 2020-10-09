@@ -51,6 +51,13 @@ func (h *handler) ImportMatches(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		event, err := h.Octane.FindEvent(&eventID)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+			return
+		}
+
 		matches, err := h.Deprecated.getLinkageMatches(linkage)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -67,8 +74,21 @@ func (h *handler) ImportMatches(w http.ResponseWriter, r *http.Request) {
 
 		for _, match := range matches {
 			newMatch := h.parseMatch(match)
-			newMatch.EventID = &eventID
-			newMatch.Stage = linkage.NewStage
+			newMatch.Event = &octane.Event{
+				ID:     event.ID,
+				Name:   event.Name,
+				Mode:   event.Mode,
+				Region: event.Region,
+				Tier:   event.Tier,
+			}
+			newMatch.Stage = &octane.Stage{
+				ID:     linkage.NewStage,
+				Name:   event.Stages[linkage.NewStage].Name,
+				Format: event.Stages[linkage.NewStage].Format,
+			}
+			if event.Stages[linkage.NewStage].Qualifier {
+				newMatch.Stage.Qualifier = true
+			}
 
 			matchID, err := h.upsertMatch(newMatch)
 			if err != nil {
@@ -82,10 +102,17 @@ func (h *handler) ImportMatches(w http.ResponseWriter, r *http.Request) {
 			if games, ok := gameMap[newMatch.OctaneID]; ok {
 				for _, gameData := range games {
 					game := h.parseGame(gameData)
-					game.MatchID = matchID
-					game.EventID = &eventID
-					game.Mode = match.Mode
+					game.Match = &octane.Match{
+						ID:     newMatch.ID,
+						Format: newMatch.Format,
+						Event:  newMatch.Event,
+						Stage:  newMatch.Stage,
+					}
 					game.Date = match.Date
+
+					if game.Blue.Team.ID.Hex() == newMatch.Orange.Team.ID.Hex() {
+						game.Blue, game.Orange = game.Orange, game.Blue
+					}
 
 					if err = h.upsertGame(game, newMatch, false); err != nil {
 						w.WriteHeader(http.StatusInternalServerError)
@@ -169,7 +196,6 @@ func (h *handler) parseMatch(match *Match) *octane.Match {
 		OctaneID: match.OctaneID,
 		Date:     match.Date,
 		Format:   match.Format,
-		Mode:     match.Mode,
 		Number:   match.Number,
 		Blue: &octane.MatchSide{
 			Score:  match.Blue.Score,
@@ -325,7 +351,7 @@ func (d *deprecated) getLinkageMatches(l *EventLinkage) ([]*Match, error) {
 }
 
 func (h *handler) upsertGame(newGame *octane.Game, match *octane.Match, update bool) error {
-	data, err := h.Octane.FindGames(bson.M{"match": newGame.MatchID, "number": newGame.Number}, nil, nil)
+	data, err := h.Octane.FindGames(bson.M{"match": newGame.Match.ID, "number": newGame.Number}, nil, nil)
 	if err != nil {
 		return err
 	}

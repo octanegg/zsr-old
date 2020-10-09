@@ -23,6 +23,7 @@ type Event struct {
 
 // Stage .
 type Stage struct {
+	ID         int         `json:"_id,omitempty" bson:"_id,omitempty"`
 	Name       string      `json:"name" bson:"name"`
 	Format     string      `json:"format" bson:"format"`
 	Region     string      `json:"region" bson:"region"`
@@ -36,6 +37,7 @@ type Stage struct {
 
 // Substage .
 type Substage struct {
+	ID     int    `json:"_id,omitempty" bson:"_id,omitempty"`
 	Name   string `json:"name" bson:"name"`
 	Format string `json:"format" bson:"format"`
 }

@@ -14,11 +14,9 @@ type Game struct {
 	ID            *primitive.ObjectID `json:"_id" bson:"_id"`
 	OctaneID      string              `json:"octane_id" bson:"octane_id"`
 	Number        int                 `json:"number" bson:"number"`
-	MatchID       *primitive.ObjectID `json:"match" bson:"match"`
-	EventID       *primitive.ObjectID `json:"event" bson:"event"`
+	Match         *Match              `json:"match" bson:"match"`
 	Map           string              `json:"map" bson:"map"`
 	Duration      int                 `json:"duration" bson:"duration"`
-	Mode          int                 `json:"mode" bson:"mode"`
 	Date          *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
 	Blue          *GameSide           `json:"blue" bson:"blue"`
 	Orange        *GameSide           `json:"orange" bson:"orange"`
