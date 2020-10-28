@@ -71,11 +71,11 @@ func gameFilters(v url.Values) bson.M {
 	if vals, ok := v["match"]; ok {
 		filter["match._id"] = bson.M{"$in": toObjectIDs(vals)}
 	}
-	if t, err := time.Parse("2006-01-02T03:04:05Z", v.Get("before")); err == nil {
-		filter["start_date"] = bson.M{"$lte": t}
+	if t, err := time.Parse(time.RFC3339Nano, v.Get("before")); err == nil {
+		filter["date"] = bson.M{"$lte": t}
 	}
-	if t, err := time.Parse("2006-01-02T03:04:05Z", v.Get("after")); err == nil {
-		filter["start_date"] = bson.M{"$gte": t}
+	if t, err := time.Parse(time.RFC3339Nano, v.Get("after")); err == nil {
+		filter["date"] = bson.M{"$gte": t}
 	}
 
 	return filter
