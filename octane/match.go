@@ -70,14 +70,21 @@ func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
 }
 
 func (c *client) InsertMatch(match *Match) (*primitive.ObjectID, error) {
-	id := primitive.NewObjectID()
-	match.ID = &id
-	oid, err := c.Insert(CollectionMatches, match)
+	oid, err := c.InsertOne(CollectionMatches, match)
 	if err != nil {
 		return nil, err
 	}
 
 	return oid, nil
+}
+
+func (c *client) InsertMatches(matches []interface{}) ([]interface{}, error) {
+	ids, err := c.InsertMany(CollectionMatches, matches)
+	if err != nil {
+		return nil, err
+	}
+
+	return ids, nil
 }
 
 func (c *client) ReplaceMatch(oid *primitive.ObjectID, match *Match) (*primitive.ObjectID, error) {
@@ -92,6 +99,6 @@ func (c *client) UpdateMatches(filter, update bson.M) (int64, error) {
 	return c.Update(CollectionMatches, filter, update)
 }
 
-func (c *client) DeleteMatch(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete(CollectionMatches, oid)
+func (c *client) DeleteMatch(filter bson.M) (int64, error) {
+	return c.Delete(CollectionMatches, filter)
 }

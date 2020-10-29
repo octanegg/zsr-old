@@ -29,7 +29,7 @@ type Handler interface {
 	DeleteGame(http.ResponseWriter, *http.Request)
 	GetGames(http.ResponseWriter, *http.Request)
 	InsertGame(http.ResponseWriter, *http.Request)
-	ImportMatches(http.ResponseWriter, *http.Request)
+	Import(http.ResponseWriter, *http.Request)
 }
 
 // NewHandler .

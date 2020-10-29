@@ -2,6 +2,7 @@ package deprecated
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 )
 
@@ -72,6 +73,9 @@ func (d *deprecated) GetMatches(ctx *GetMatchesContext) ([]*Match, error) {
 		orange.Winner = orange.Score > blue.Score
 		match.Blue = &blue
 		match.Orange = &orange
+		
+		i, _ := strconv.Atoi(match.OctaneID[5:7])
+		match.Number = i
 
 		matches = append(matches, &match)
 	}

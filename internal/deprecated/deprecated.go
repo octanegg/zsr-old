@@ -24,8 +24,6 @@ type Deprecated interface {
 	GetGames(*GetGamesContext) ([]*Game, error)
 	InsertGame(*Game) (error)
 
-	getLinkageMatches(*EventLinkage) ([]*Match, error)
-	getGameMap(int) (map[string]map[int]*Game, error)
 	getLinkages([]int) ([]*EventLinkage, error)
 }
 

@@ -80,14 +80,21 @@ func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
 }
 
 func (c *client) InsertGame(game *Game) (*primitive.ObjectID, error) {
-	id := primitive.NewObjectID()
-	game.ID = &id
-	oid, err := c.Insert(CollectionGames, game)
+	oid, err := c.InsertOne(CollectionGames, game)
 	if err != nil {
 		return nil, err
 	}
 
 	return oid, nil
+}
+
+func (c *client) InsertGames(games []interface{}) ([]interface{}, error) {
+	ids, err := c.InsertMany(CollectionGames, games)
+	if err != nil {
+		return nil, err
+	}
+
+	return ids, nil
 }
 
 func (c *client) ReplaceGame(oid *primitive.ObjectID, game *Game) (*primitive.ObjectID, error) {
@@ -102,6 +109,6 @@ func (c *client) UpdateGames(filter, update bson.M) (int64, error) {
 	return c.Update(CollectionGames, filter, update)
 }
 
-func (c *client) DeleteGame(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete(CollectionGames, oid)
+func (c *client) DeleteGame(filter bson.M) (int64, error) {
+	return c.Delete(CollectionGames, filter)
 }

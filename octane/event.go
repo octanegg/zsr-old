@@ -90,14 +90,21 @@ func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
 }
 
 func (c *client) InsertEvent(event *Event) (*primitive.ObjectID, error) {
-	id := primitive.NewObjectID()
-	event.ID = &id
-	oid, err := c.Insert(CollectionEvents, event)
+	oid, err := c.InsertOne(CollectionEvents, event)
 	if err != nil {
 		return nil, err
 	}
 
 	return oid, nil
+}
+
+func (c *client) InsertEvents(events []interface{}) ([]interface{}, error) {
+	ids, err := c.InsertMany(CollectionEvents, events)
+	if err != nil {
+		return nil, err
+	}
+
+	return ids, nil
 }
 
 func (c *client) ReplaceEvent(oid *primitive.ObjectID, event *Event) (*primitive.ObjectID, error) {
@@ -112,6 +119,6 @@ func (c *client) UpdateEvents(filter, update bson.M) (int64, error) {
 	return c.Update(CollectionEvents, filter, update)
 }
 
-func (c *client) DeleteEvent(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete(CollectionEvents, oid)
+func (c *client) DeleteEvent(filter bson.M) (int64, error) {
+	return c.Delete(CollectionEvents, filter)
 }

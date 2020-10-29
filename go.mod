@@ -14,4 +14,5 @@ require (
 	github.com/urfave/negroni v1.0.0
 	go.mongodb.org/mongo-driver v1.4.1
 	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0 // indirect
+	golang.org/x/sync v0.0.0-20190911185100-cd5d95a43a6e
 )

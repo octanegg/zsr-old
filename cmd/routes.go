@@ -59,7 +59,7 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	// TODO: News endpoints
 
 	// admin
-	r.HandleFunc("/import", d.ImportMatches).Methods(http.MethodPost)
+	r.HandleFunc("/import", d.Import).Methods(http.MethodPost)
 	s := mux.NewRouter().PathPrefix("/deprecated").Subrouter()
 	s.HandleFunc("/matches", d.UpdateMatch).Methods(http.MethodPost)
 	s.HandleFunc("/matches/{id}", d.GetMatch).Methods(http.MethodGet)

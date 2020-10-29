@@ -60,10 +60,11 @@ type Sort struct {
 type Client interface {
 	Ping() error
 	Find(string, bson.M, *Pagination, *Sort, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
-	Insert(string, interface{}) (*primitive.ObjectID, error)
+	InsertOne(string, interface{}) (*primitive.ObjectID, error)
+	InsertMany(string, []interface{}) ([]interface{}, error)
 	Update(string, bson.M, bson.M) (int64, error)
 	Replace(string, *primitive.ObjectID, interface{}) error
-	Delete(string, *primitive.ObjectID) (int64, error)
+	Delete(string, bson.M) (int64, error)
 
 	FindEvents(bson.M, *Pagination, *Sort) (*Data, error)
 	FindMatches(bson.M, *Pagination, *Sort) (*Data, error)
@@ -83,6 +84,13 @@ type Client interface {
 	InsertPlayer(*Player) (*primitive.ObjectID, error)
 	InsertTeam(*Team) (*primitive.ObjectID, error)
 
+
+	InsertEvents([]interface{}) ([]interface{}, error)
+	InsertMatches([]interface{}) ([]interface{}, error)
+	InsertGames([]interface{}) ([]interface{}, error)
+	InsertPlayers([]interface{}) ([]interface{}, error)
+	InsertTeams([]interface{}) ([]interface{}, error)
+
 	UpdateEvents(bson.M, bson.M) (int64, error)
 	UpdateMatches(bson.M, bson.M) (int64, error)
 	UpdateGames(bson.M, bson.M) (int64, error)
@@ -95,11 +103,11 @@ type Client interface {
 	ReplacePlayer(*primitive.ObjectID, *Player) (*primitive.ObjectID, error)
 	ReplaceTeam(*primitive.ObjectID, *Team) (*primitive.ObjectID, error)
 
-	DeleteEvent(*primitive.ObjectID) (int64, error)
-	DeleteMatch(*primitive.ObjectID) (int64, error)
-	DeleteGame(*primitive.ObjectID) (int64, error)
-	DeletePlayer(*primitive.ObjectID) (int64, error)
-	DeleteTeam(*primitive.ObjectID) (int64, error)
+	DeleteEvent(bson.M) (int64, error)
+	DeleteMatch(bson.M) (int64, error)
+	DeleteGame(bson.M) (int64, error)
+	DeletePlayer(bson.M) (int64, error)
+	DeleteTeam(bson.M) (int64, error)
 }
 
 // New .
@@ -153,7 +161,7 @@ func (c *client) Find(collection string, filter bson.M, pagination *Pagination, 
 	return res, nil
 }
 
-func (c *client) Insert(collection string, document interface{}) (*primitive.ObjectID, error) {
+func (c *client) InsertOne(collection string, document interface{}) (*primitive.ObjectID, error) {
 	ctx := context.TODO()
 	coll := c.DB.Database(Database).Collection(collection)
 
@@ -165,6 +173,18 @@ func (c *client) Insert(collection string, document interface{}) (*primitive.Obj
 	newID := res.InsertedID.(primitive.ObjectID)
 
 	return &newID, nil
+}
+
+func (c *client) InsertMany(collection string, documents []interface{}) ([]interface{}, error) {
+	ctx := context.TODO()
+	coll := c.DB.Database(Database).Collection(collection)
+
+	res, err := coll.InsertMany(ctx, documents)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.InsertedIDs, nil
 }
 
 func (c *client) Replace(collection string, oid *primitive.ObjectID, update interface{}) error {
@@ -191,11 +211,11 @@ func (c *client) Update(collection string, filter, update bson.M) (int64, error)
 	return res.ModifiedCount, nil
 }
 
-func (c *client) Delete(collection string, oid *primitive.ObjectID) (int64, error) {
+func (c *client) Delete(collection string, filter bson.M) (int64, error) {
 	ctx := context.TODO()
 	coll := c.DB.Database(Database).Collection(collection)
 
-	res, err := coll.DeleteOne(ctx, bson.M{"_id": oid})
+	res, err := coll.DeleteMany(ctx, filter)
 	if err != nil {
 		return 0, err
 	}

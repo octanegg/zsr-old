@@ -54,14 +54,21 @@ func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
 }
 
 func (c *client) InsertTeam(team *Team) (*primitive.ObjectID, error) {
-	id := primitive.NewObjectID()
-	team.ID = &id
-	oid, err := c.Insert(CollectionTeams, team)
+	oid, err := c.InsertOne(CollectionTeams, team)
 	if err != nil {
 		return nil, err
 	}
 
 	return oid, nil
+}
+
+func (c *client) InsertTeams(teams []interface{}) ([]interface{}, error) {
+	ids, err := c.InsertMany(CollectionTeams, teams)
+	if err != nil {
+		return nil, err
+	}
+
+	return ids, nil
 }
 
 func (c *client) ReplaceTeam(oid *primitive.ObjectID, team *Team) (*primitive.ObjectID, error) {
@@ -76,6 +83,6 @@ func (c *client) UpdateTeams(filter, update bson.M) (int64, error) {
 	return c.Update(CollectionTeams, filter, update)
 }
 
-func (c *client) DeleteTeam(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete(CollectionTeams, oid)
+func (c *client) DeleteTeam(filter bson.M) (int64, error) {
+	return c.Delete(CollectionTeams, filter)
 }

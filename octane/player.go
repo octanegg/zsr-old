@@ -64,14 +64,21 @@ func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
 }
 
 func (c *client) InsertPlayer(player *Player) (*primitive.ObjectID, error) {
-	id := primitive.NewObjectID()
-	player.ID = &id
-	oid, err := c.Insert(CollectionPlayers, player)
+	oid, err := c.InsertOne(CollectionPlayers, player)
 	if err != nil {
 		return nil, err
 	}
 
 	return oid, nil
+}
+
+func (c *client) InsertPlayers(players []interface{}) ([]interface{}, error) {
+	ids, err := c.InsertMany(CollectionPlayers, players)
+	if err != nil {
+		return nil, err
+	}
+
+	return ids, nil
 }
 
 func (c *client) ReplacePlayer(oid *primitive.ObjectID, player *Player) (*primitive.ObjectID, error) {
@@ -86,6 +93,6 @@ func (c *client) UpdatePlayers(filter, update bson.M) (int64, error) {
 	return c.Update(CollectionPlayers, filter, update)
 }
 
-func (c *client) DeletePlayer(oid *primitive.ObjectID) (int64, error) {
-	return c.Delete(CollectionPlayers, oid)
+func (c *client) DeletePlayer(filter bson.M) (int64, error) {
+	return c.Delete(CollectionPlayers, filter)
 }
