@@ -62,7 +62,7 @@ func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
 	match, err := h.Deprecated.GetMatch(&GetMatchContext{
-		OctaneID: mux.Vars(r)["id"],
+		OctaneID: mux.Vars(r)["_id"],
 	})
 
 	if err != nil {

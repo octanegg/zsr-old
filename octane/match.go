@@ -1,12 +1,19 @@
 package octane
 
 import (
+	"context"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// Matches .
+type Matches struct {
+	Matches []*Match `json:"matches"`
+	*Pagination
+}
 
 // Match .
 type Match struct {
@@ -29,27 +36,44 @@ type MatchSide struct {
 	Team   *Team `json:"team" bson:"team"`
 }
 
-func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	matches, err := c.Find(CollectionMatches, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindMatches(filter bson.M, pagination *Pagination, sort *Sort) (*Matches, error) {
+	ctx := context.TODO()
+	coll := c.DB.Database(Database).Collection(CollectionMatches)
+
+	opts := options.Find()
+	if pagination != nil {
+		opts.SetSkip((pagination.Page - 1) * pagination.PerPage)
+		opts.SetLimit(pagination.PerPage)
+	}
+
+	if sort != nil {
+		opts.SetSort(bson.M{sort.Field: sort.Order})
+	}
+
+	cursor, err := coll.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var matches []*Match
+	for cursor.Next(ctx) {
 		var match Match
 		if err := cursor.Decode(&match); err != nil {
 			return nil, err
 		}
-		return match, nil
-	})
-	if err != nil {
-		return nil, err
+		matches = append(matches, &match)
 	}
 
-	if matches == nil {
-		matches = make([]interface{}, 0)
+	if err != nil {
+		return nil, err
 	}
 
 	if pagination != nil {
 		pagination.PageSize = len(matches)
 	}
 
-	return &Data{
+	return &Matches{
 		matches,
 		pagination,
 	}, nil
@@ -61,44 +85,43 @@ func (c *client) FindMatch(oid *primitive.ObjectID) (*Match, error) {
 		return nil, err
 	}
 
-	if len(matches.Data) == 0 {
+	if len(matches.Matches) == 0 {
 		return nil, nil
 	}
 
-	match := matches.Data[0].(Match)
-	return &match, nil
+	return matches.Matches[0], nil
 }
 
-func (c *client) InsertMatch(match *Match) (*primitive.ObjectID, error) {
-	oid, err := c.InsertOne(CollectionMatches, match)
+func (c *client) InsertMatch(match interface{}) (*primitive.ObjectID, error) {
+	ids, err := c.InsertMatches([]interface{}{match})
 	if err != nil {
 		return nil, err
 	}
 
-	return oid, nil
+	id := ids[0].(primitive.ObjectID)
+	return &id, nil
 }
 
 func (c *client) InsertMatches(matches []interface{}) ([]interface{}, error) {
-	ids, err := c.InsertMany(CollectionMatches, matches)
+	ctx := context.TODO()
+	coll := c.DB.Database(Database).Collection(CollectionMatches)
+
+	res, err := coll.InsertMany(ctx, matches)
 	if err != nil {
 		return nil, err
 	}
 
-	return ids, nil
-}
-
-func (c *client) ReplaceMatch(oid *primitive.ObjectID, match *Match) (*primitive.ObjectID, error) {
-	if err := c.Replace(CollectionMatches, oid, match); err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
-func (c *client) UpdateMatches(filter, update bson.M) (int64, error) {
-	return c.Update(CollectionMatches, filter, update)
+	return res.InsertedIDs, nil
 }
 
 func (c *client) DeleteMatch(filter bson.M) (int64, error) {
-	return c.Delete(CollectionMatches, filter)
+	ctx := context.TODO()
+	coll := c.DB.Database(Database).Collection(CollectionMatches)
+
+	res, err := coll.DeleteMany(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.DeletedCount, nil
 }

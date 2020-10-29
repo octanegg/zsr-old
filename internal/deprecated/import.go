@@ -280,7 +280,7 @@ func intsToStrings(a []int) []string {
 
 func (h *handler) findOrInsertTeam(name string) *octane.Team {
 	teams, err := h.Octane.FindTeams(bson.M{"name": name}, nil, nil)
-	if err != nil || len(teams.Data) == 0 {
+	if err != nil || len(teams.Teams) == 0 {
 		team, _ := h.Octane.InsertTeam(&octane.Team{
 			Name: name,
 		})
@@ -290,16 +290,15 @@ func (h *handler) findOrInsertTeam(name string) *octane.Team {
 		}
 	}
 
-	team := teams.Data[0].(octane.Team)
 	return &octane.Team{
-		ID:   team.ID,
-		Name: team.Name,
+		ID:   teams.Teams[0].ID,
+		Name: teams.Teams[0].Name,
 	}
 }
 
 func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
 	players, err := h.Octane.FindPlayers(bson.M{"tag": tag}, nil, nil)
-	if err != nil || len(players.Data) == 0 {
+	if err != nil || len(players.Players) == 0 {
 		player, _ := h.Octane.InsertPlayer(&octane.Player{
 			Tag: tag,
 		})
@@ -309,9 +308,8 @@ func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
 		}
 	}
 
-	player := players.Data[0].(octane.Player)
 	return &octane.Player{
-		ID:  player.ID,
-		Tag: player.Tag,
+		ID:  players.Players[0].ID,
+		Tag: players.Players[0].Tag,
 	}
 }

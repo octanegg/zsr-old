@@ -1,12 +1,19 @@
 package octane
 
 import (
+	"context"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// Events .
+type Events struct {
+	Events []*Event `json:"events"`
+	*Pagination
+}
 
 // Event .
 type Event struct {
@@ -48,28 +55,44 @@ type Prize struct {
 	Currency string  `json:"currency" bson:"currency"`
 }
 
-func (c *client) FindEvents(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	events, err := c.Find(CollectionEvents, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindEvents(filter bson.M, pagination *Pagination, sort *Sort) (*Events, error) {
+	ctx := context.TODO()
+	coll := c.DB.Database(Database).Collection(CollectionEvents)
+
+	opts := options.Find()
+	if pagination != nil {
+		opts.SetSkip((pagination.Page - 1) * pagination.PerPage)
+		opts.SetLimit(pagination.PerPage)
+	}
+
+	if sort != nil {
+		opts.SetSort(bson.M{sort.Field: sort.Order})
+	}
+
+	cursor, err := coll.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var events []*Event
+	for cursor.Next(ctx) {
 		var event Event
 		if err := cursor.Decode(&event); err != nil {
 			return nil, err
 		}
-		return event, nil
-	})
+		events = append(events, &event)
+	}
 
 	if err != nil {
 		return nil, err
-	}
-
-	if events == nil {
-		events = make([]interface{}, 0)
 	}
 
 	if pagination != nil {
 		pagination.PageSize = len(events)
 	}
 
-	return &Data{
+	return &Events{
 		events,
 		pagination,
 	}, nil
@@ -81,44 +104,43 @@ func (c *client) FindEvent(oid *primitive.ObjectID) (*Event, error) {
 		return nil, err
 	}
 
-	if len(events.Data) == 0 {
+	if len(events.Events) == 0 {
 		return nil, nil
 	}
 
-	event := events.Data[0].(Event)
-	return &event, nil
+	return events.Events[0], nil
 }
 
-func (c *client) InsertEvent(event *Event) (*primitive.ObjectID, error) {
-	oid, err := c.InsertOne(CollectionEvents, event)
+func (c *client) InsertEvent(event interface{}) (*primitive.ObjectID, error) {
+	ids, err := c.InsertEvents([]interface{}{event})
 	if err != nil {
 		return nil, err
 	}
 
-	return oid, nil
+	id := ids[0].(primitive.ObjectID)
+	return &id, nil
 }
 
 func (c *client) InsertEvents(events []interface{}) ([]interface{}, error) {
-	ids, err := c.InsertMany(CollectionEvents, events)
+	ctx := context.TODO()
+	coll := c.DB.Database(Database).Collection(CollectionEvents)
+
+	res, err := coll.InsertMany(ctx, events)
 	if err != nil {
 		return nil, err
 	}
 
-	return ids, nil
-}
-
-func (c *client) ReplaceEvent(oid *primitive.ObjectID, event *Event) (*primitive.ObjectID, error) {
-	if err := c.Replace(CollectionEvents, oid, event); err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
-func (c *client) UpdateEvents(filter, update bson.M) (int64, error) {
-	return c.Update(CollectionEvents, filter, update)
+	return res.InsertedIDs, nil
 }
 
 func (c *client) DeleteEvent(filter bson.M) (int64, error) {
-	return c.Delete(CollectionEvents, filter)
+	ctx := context.TODO()
+	coll := c.DB.Database(Database).Collection(CollectionEvents)
+
+	res, err := coll.DeleteMany(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.DeletedCount, nil
 }

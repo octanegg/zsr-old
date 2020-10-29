@@ -1,10 +1,18 @@
 package octane
 
 import (
+	"context"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// Players .
+type Players struct {
+	Players []*Player `json:"players"`
+	*Pagination
+}
 
 // Player .
 type Player struct {
@@ -22,28 +30,44 @@ type Account struct {
 	ID       string `json:"id" bson:"id"`
 }
 
-func (c *client) FindPlayers(filter bson.M, pagination *Pagination, sort *Sort) (*Data, error) {
-	players, err := c.Find(CollectionPlayers, filter, pagination, sort, func(cursor *mongo.Cursor) (interface{}, error) {
+func (c *client) FindPlayers(filter bson.M, pagination *Pagination, sort *Sort) (*Players, error) {
+	ctx := context.TODO()
+	coll := c.DB.Database(Database).Collection(CollectionPlayers)
+
+	opts := options.Find()
+	if pagination != nil {
+		opts.SetSkip((pagination.Page - 1) * pagination.PerPage)
+		opts.SetLimit(pagination.PerPage)
+	}
+
+	if sort != nil {
+		opts.SetSort(bson.M{sort.Field: sort.Order})
+	}
+
+	cursor, err := coll.Find(ctx, filter, opts)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	var players []*Player
+	for cursor.Next(ctx) {
 		var player Player
 		if err := cursor.Decode(&player); err != nil {
 			return nil, err
 		}
-		return player, nil
-	})
+		players = append(players, &player)
+	}
 
 	if err != nil {
 		return nil, err
-	}
-
-	if players == nil {
-		players = make([]interface{}, 0)
 	}
 
 	if pagination != nil {
 		pagination.PageSize = len(players)
 	}
 
-	return &Data{
+	return &Players{
 		players,
 		pagination,
 	}, nil
@@ -55,44 +79,43 @@ func (c *client) FindPlayer(oid *primitive.ObjectID) (*Player, error) {
 		return nil, err
 	}
 
-	if len(players.Data) == 0 {
+	if len(players.Players) == 0 {
 		return nil, nil
 	}
 
-	player := players.Data[0].(Player)
-	return &player, nil
+	return players.Players[0], nil
 }
 
-func (c *client) InsertPlayer(player *Player) (*primitive.ObjectID, error) {
-	oid, err := c.InsertOne(CollectionPlayers, player)
+func (c *client) InsertPlayer(player interface{}) (*primitive.ObjectID, error) {
+	ids, err := c.InsertPlayers([]interface{}{player})
 	if err != nil {
 		return nil, err
 	}
 
-	return oid, nil
+	id := ids[0].(primitive.ObjectID)
+	return &id, nil
 }
 
 func (c *client) InsertPlayers(players []interface{}) ([]interface{}, error) {
-	ids, err := c.InsertMany(CollectionPlayers, players)
+	ctx := context.TODO()
+	coll := c.DB.Database(Database).Collection(CollectionPlayers)
+
+	res, err := coll.InsertMany(ctx, players)
 	if err != nil {
 		return nil, err
 	}
 
-	return ids, nil
-}
-
-func (c *client) ReplacePlayer(oid *primitive.ObjectID, player *Player) (*primitive.ObjectID, error) {
-	if err := c.Replace(CollectionPlayers, oid, player); err != nil {
-		return nil, err
-	}
-
-	return oid, nil
-}
-
-func (c *client) UpdatePlayers(filter, update bson.M) (int64, error) {
-	return c.Update(CollectionPlayers, filter, update)
+	return res.InsertedIDs, nil
 }
 
 func (c *client) DeletePlayer(filter bson.M) (int64, error) {
-	return c.Delete(CollectionPlayers, filter)
+	ctx := context.TODO()
+	coll := c.DB.Database(Database).Collection(CollectionPlayers)
+
+	res, err := coll.DeleteMany(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
+
+	return res.DeletedCount, nil
 }

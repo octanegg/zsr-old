@@ -25,27 +25,27 @@ func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
-	id, err := primitive.ObjectIDFromHex(mux.Vars(r)["id"])
+	id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
-	data, err := h.Octane.FindEvents(bson.M{"_id": id}, nil, nil)
+	data, err := h.Octane.FindEvent(&id)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
-	if len(data.Data) == 0 {
+	if data == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(data.Data[0])
+	json.NewEncoder(w).Encode(data)
 }
 
 func eventFilters(v url.Values) bson.M {
