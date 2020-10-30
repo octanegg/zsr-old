@@ -4,10 +4,11 @@ import (
 	"net/http"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/octanegg/zsr/octane"
-	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 // Error .
@@ -42,52 +43,38 @@ func New(o octane.Client) Handler {
 	return &handler{o}
 }
 
-func getPagination(v url.Values) *octane.Pagination {
-	page, _ := strconv.ParseInt(v.Get("page"), 10, 64)
-	perPage, _ := strconv.ParseInt(v.Get("perPage"), 10, 64)
-	if page == 0 || perPage == 0 {
+func sort(v url.Values) bson.M {
+	vals := v["sort"]
+	sort := bson.M{}
+	for _, val := range vals {
+		fields := strings.Split(val, ":")
+
+		var order int
+		switch strings.ToLower(fields[1]) {
+		case "asc":
+			order = 1
+		case "desc":
+			order = -1
+		default:
+			continue
+		}
+
+		sort[strings.ToLower(fields[0])] = order
+	}
+
+	return sort
+}
+
+func pagination(v url.Values) *octane.Pagination {
+	page, perPage := v.Get("page"), v.Get("perPage")
+	p, _ := strconv.ParseInt(page, 10, 64)
+	pp, _ := strconv.ParseInt(perPage, 10, 64)
+	if p == 0 || pp == 0 {
 		return nil
 	}
 
 	return &octane.Pagination{
-		Page:    page,
-		PerPage: perPage,
+		Page:    p,
+		PerPage: pp,
 	}
-}
-
-func getSort(v url.Values) *octane.Sort {
-	var order int
-	switch v.Get("order") {
-	case "asc":
-		order = 1
-	case "desc":
-		order = -1
-	default:
-		return nil
-	}
-
-	return &octane.Sort{
-		Field: v.Get("sort"),
-		Order: order,
-	}
-}
-
-func toObjectIDs(vals []string) []primitive.ObjectID {
-	var a []primitive.ObjectID
-	for _, val := range vals {
-		if i, err := primitive.ObjectIDFromHex(val); err == nil {
-			a = append(a, i)
-		}
-	}
-	return a
-}
-
-func toInts(vals []string) []int {
-	var a []int
-	for _, val := range vals {
-		if i, err := strconv.Atoi(val); err == nil {
-			a = append(a, i)
-		}
-	}
-	return a
 }

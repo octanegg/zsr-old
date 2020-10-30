@@ -8,16 +8,16 @@ import (
 
 // Match .
 type Match struct {
-	OctaneID string `json:"octane_id"`
-	Event    string `json:"event"`
-	Stage    int `json:"stage"`
-	Substage int `json:"substage"`
+	OctaneID string     `json:"octane_id"`
+	Event    string     `json:"event"`
+	Stage    int        `json:"stage"`
+	Substage int        `json:"substage"`
 	Date     *time.Time `json:"date"`
-	Format   string `json:"format"`
-	Blue     *Team `json:"blue"`
-	Orange   *Team `json:"orange"`
-	Mode     int `json:"mode"`
-	Number   int `json:"number"`
+	Format   string     `json:"format"`
+	Blue     *Team      `json:"blue"`
+	Orange   *Team      `json:"orange"`
+	Mode     int        `json:"mode"`
+	Number   int        `json:"number"`
 }
 
 // Team .
@@ -29,8 +29,8 @@ type Team struct {
 
 // GetMatchesContext .
 type GetMatchesContext struct {
-	Event string    `json:"event"`
-	Stage string    `json:"stage"`
+	Event string `json:"event"`
+	Stage string `json:"stage"`
 }
 
 // GetMatchContext .
@@ -40,11 +40,11 @@ type GetMatchContext struct {
 
 // UpdateMatchContext .
 type UpdateMatchContext struct {
-	OctaneID   string `json:"octane_id"`
+	OctaneID   string  `json:"octane_id"`
 	Team1      Mapping `json:"blue"`
 	Team2      Mapping `json:"orange"`
-	Team1Score int `json:"blue_score"`
-	Team2Score int `json:"orange_score"`
+	Team1Score int     `json:"blue_score"`
+	Team2Score int     `json:"orange_score"`
 }
 
 // Mapping .
@@ -73,7 +73,7 @@ func (d *deprecated) GetMatches(ctx *GetMatchesContext) ([]*Match, error) {
 		orange.Winner = orange.Score > blue.Score
 		match.Blue = &blue
 		match.Orange = &orange
-		
+
 		i, _ := strconv.Atoi(match.OctaneID[5:7])
 		match.Number = i
 
@@ -82,7 +82,6 @@ func (d *deprecated) GetMatches(ctx *GetMatchesContext) ([]*Match, error) {
 
 	return matches, nil
 }
-
 
 func (d *deprecated) GetMatch(ctx *GetMatchContext) (*Match, error) {
 	query := fmt.Sprintf("SELECT match_url, Time, best_of, Team1, Team2, Team1Games, Team2Games FROM Series WHERE match_url = '%s'", ctx.OctaneID)
@@ -109,7 +108,7 @@ func (d *deprecated) GetMatch(ctx *GetMatchContext) (*Match, error) {
 		matches = append(matches, &match)
 	}
 
-	if matches == nil || len(matches) == 0 {
+	if len(matches) == 0 {
 		return nil, nil
 	}
 

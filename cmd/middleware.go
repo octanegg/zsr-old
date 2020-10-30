@@ -11,11 +11,6 @@ import (
 	"github.com/octanegg/zsr/internal/config"
 )
 
-// Response .
-type Response struct {
-	Message string `json:"message"`
-}
-
 // Jwks .
 type Jwks struct {
 	Keys []JSONWebKeys `json:"keys"`

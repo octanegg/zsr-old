@@ -3,6 +3,7 @@ package deprecated
 import (
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -15,13 +16,13 @@ type Metadata struct {
 
 // Game .
 type Game struct {
-	OctaneID string   `json:"octane_id"`
-	Date *time.Time `json:"date"`
-	Number   int      `json:"number"`
-	Map      string   `json:"map"`
-	Duration int      `json:"duration"`
-	Blue     GameTeam `json:"blue"`
-	Orange   GameTeam `json:"orange"`
+	OctaneID string     `json:"octane_id"`
+	Date     *time.Time `json:"date"`
+	Number   int        `json:"number"`
+	Map      string     `json:"map"`
+	Duration int        `json:"duration"`
+	Blue     GameTeam   `json:"blue"`
+	Orange   GameTeam   `json:"orange"`
 }
 
 // GameTeam .
@@ -51,30 +52,30 @@ type Log struct {
 
 // Averages .
 type Averages struct {
-	Score    float64     `json:"score"`
-	Goals    float64     `json:"goals"`
-	Assists  float64     `json:"assists"`
-	Saves    float64     `json:"saves"`
-	Shots    float64     `json:"shots"`
-	SP       float64 `json:"shooting_percentage"`
-	GP       float64 `json:"goal_participation"`
+	Score   float64 `json:"score"`
+	Goals   float64 `json:"goals"`
+	Assists float64 `json:"assists"`
+	Saves   float64 `json:"saves"`
+	Shots   float64 `json:"shots"`
+	SP      float64 `json:"shooting_percentage"`
+	GP      float64 `json:"goal_participation"`
 }
 
 // DeleteGameContext .
 type DeleteGameContext struct {
 	OctaneID string `json:"octane_id"`
-	Number int `json:"number"`
+	Number   int    `json:"number"`
 }
 
 // GetGamesContext .
 type GetGamesContext struct {
 	OctaneID string `json:"octane_id"`
-	Blue string `json:"blue"`
-	Orange string `json:"orange"`
+	Blue     string `json:"blue"`
+	Orange   string `json:"orange"`
 }
 
 func (d *deprecated) DeleteGame(ctx *DeleteGameContext) error {
-	stmt := "SELECT CASE m.Result WHEN s.Team1 THEN 1 WHEN s.Team2 THEN 2 ELSE 0 END AS Result FROM Matches2 m, Series s WHERE m.match_url = s.match_url AND m.match_url = ? AND m.Game = ?";
+	stmt := "SELECT CASE m.Result WHEN s.Team1 THEN 1 WHEN s.Team2 THEN 2 ELSE 0 END AS Result FROM Matches2 m, Series s WHERE m.match_url = s.match_url AND m.match_url = ? AND m.Game = ?"
 	row := d.DB.QueryRow(stmt, ctx.OctaneID, ctx.Number)
 
 	stmt = "DELETE FROM Matches2 WHERE match_url = ? AND Game = ?"
@@ -90,7 +91,9 @@ func (d *deprecated) DeleteGame(ctx *DeleteGameContext) error {
 	}
 
 	var winner int
-	row.Scan(&winner)
+	if err = row.Scan(&winner); err != nil {
+		return err
+	}
 
 	if winner == 1 {
 		if _, err = d.DB.Exec("UPDATE `Series` SET `Team1Games` = `Team1Games` - 1, `Result` = CASE WHEN `Team1Games` > `Team2Games` THEN `Team1` ELSE `Team2` END WHERE `match_url` = ?", ctx.OctaneID); err != nil {
@@ -185,30 +188,25 @@ func (d *deprecated) GetGames(ctx *GetGamesContext) ([]*Game, error) {
 	return games, nil
 }
 
-
 func (d *deprecated) InsertGame(game *Game) error {
-	md, err := getMetadata(game.OctaneID)
-	if err != nil {
-		return err
-	}
-
+	md := getMetadata(game.OctaneID)
 	blue := getTeamStats(game.Blue.Players)
 	orange := getTeamStats(game.Orange.Players)
 
-	if err = d.insertGamePlayers(md, game, blue, orange); err != nil {
+	if err := d.insertGamePlayers(md, game, blue, orange); err != nil {
 		return err
 	}
 
-	if err = d.insertGameTeams(md, game, blue, orange); err != nil {
+	if err := d.insertGameTeams(md, game, blue, orange); err != nil {
 		return err
 	}
 
 	if blue.Goals > orange.Goals {
-		if _, err = d.DB.Exec("UPDATE `Series` SET `Team1Games` = `Team1Games` + 1, `Result` = CASE WHEN `Team1Games` > `Team2Games` THEN `Team1` ELSE `Team2` END WHERE `match_url` = ?", game.OctaneID); err != nil {
+		if _, err := d.DB.Exec("UPDATE `Series` SET `Team1Games` = `Team1Games` + 1, `Result` = CASE WHEN `Team1Games` > `Team2Games` THEN `Team1` ELSE `Team2` END WHERE `match_url` = ?", game.OctaneID); err != nil {
 			return err
 		}
 	} else if orange.Goals > blue.Goals {
-		if _, err = d.DB.Exec("UPDATE `Series` SET `Team2Games` = `Team2Games` + 1, `Result` = CASE WHEN `Team1Games` > `Team2Games` THEN `Team1` ELSE `Team2` END WHERE `match_url` = ?", game.OctaneID); err != nil {
+		if _, err := d.DB.Exec("UPDATE `Series` SET `Team2Games` = `Team2Games` + 1, `Result` = CASE WHEN `Team1Games` > `Team2Games` THEN `Team1` ELSE `Team2` END WHERE `match_url` = ?", game.OctaneID); err != nil {
 			return err
 		}
 	}
@@ -218,7 +216,7 @@ func (d *deprecated) InsertGame(game *Game) error {
 
 func (d *deprecated) insertGameTeams(md *Metadata, game *Game, blue, orange *Log) error {
 	stmt := "INSERT INTO Matches2(Event, Stage, `Match`, Game, Date, Map, Length, Team, Vs, Result, Winner, TeamScore, TeamGoals, TeamAssists, TeamSaves, TeamShots, OppScore, OppGoals, OppAssists, OppSaves, OppShots, match_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	
+
 	var result string
 	var blueWin, orangeWin int
 	if orange.Goals > blue.Goals {
@@ -228,12 +226,12 @@ func (d *deprecated) insertGameTeams(md *Metadata, game *Game, blue, orange *Log
 		result = game.Blue.Name
 		blueWin = 1
 	}
-	
+
 	_, err := d.DB.Exec(stmt, md.Event, md.Stage, md.Match, game.Number, game.Date.Format("2006-01-02"), game.Map, game.Duration, game.Blue.Name, game.Orange.Name, result, blueWin, blue.Score, blue.Goals, blue.Assists, blue.Saves, blue.Shots, orange.Score, orange.Goals, orange.Assists, orange.Saves, orange.Shots, game.OctaneID)
 	if err != nil {
 		return err
 	}
-	
+
 	_, err = d.DB.Exec(stmt, md.Event, md.Stage, md.Match, game.Number, game.Date.Format("2006-01-02"), game.Map, game.Duration, game.Orange.Name, game.Blue.Name, result, orangeWin, orange.Score, orange.Goals, orange.Assists, orange.Saves, orange.Shots, blue.Score, blue.Goals, blue.Assists, blue.Saves, blue.Shots, game.OctaneID)
 	if err != nil {
 		return err
@@ -244,12 +242,12 @@ func (d *deprecated) insertGameTeams(md *Metadata, game *Game, blue, orange *Log
 
 func (d *deprecated) insertGamePlayers(md *Metadata, game *Game, blue, orange *Log) error {
 	stmt := "INSERT INTO Logs(Event, Stage, `Match`, Game, Date, Map, Team, Vs, Result, Winner, Player, Score, Goals, Assists, Saves, Shots, TeamScore, TeamGoals, TeamAssists, TeamSaves, TeamShots, SP, MVP, HT, PM, SAV, Rating, match_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-	
-	avg, err := d.getAverages();
+
+	avg, err := d.getAverages()
 	if err != nil {
 		return err
 	}
-	
+
 	var result string
 	var blueWin, orangeWin int
 	if orange.Goals > blue.Goals {
@@ -269,11 +267,15 @@ func (d *deprecated) insertGamePlayers(md *Metadata, game *Game, blue, orange *L
 	})
 
 	for i, player := range game.Blue.Players {
+		if strings.TrimSpace(player.Player) == "" {
+			continue
+		}
+
 		if player.Shots > 0 {
 			player.SP = float64(player.Goals) / float64(player.Shots)
 		}
 		if blue.Goals > 0 {
-			player.GP = float64(player.Goals + player.Assists) / float64(blue.Goals)
+			player.GP = float64(player.Goals+player.Assists) / float64(blue.Goals)
 		}
 		player.Rating = getRating(avg, &player)
 
@@ -304,11 +306,15 @@ func (d *deprecated) insertGamePlayers(md *Metadata, game *Game, blue, orange *L
 	}
 
 	for i, player := range game.Orange.Players {
+		if strings.TrimSpace(player.Player) == "" {
+			continue
+		}
+
 		if player.Shots > 0 {
 			player.SP = float64(player.Goals) / float64(player.Shots)
 		}
 		if orange.Goals > 0 {
-			player.GP = float64(player.Goals + player.Assists) / float64(orange.Goals)
+			player.GP = float64(player.Goals+player.Assists) / float64(orange.Goals)
 		}
 		player.Rating = getRating(avg, &player)
 
@@ -377,16 +383,14 @@ func getTeamStats(players []Log) *Log {
 	return log
 }
 
-func getMetadata(id string) (*Metadata, error) {
+func getMetadata(id string) *Metadata {
 	md := &Metadata{}
-	var err error
-
-	md.Event, err = strconv.Atoi(id[0:3])
-	md.Stage, err = strconv.Atoi(id[3:5])
-	md.Match, err = strconv.Atoi(id[5:7])
-	return md, err
+	md.Event, _ = strconv.Atoi(id[0:3])
+	md.Stage, _ = strconv.Atoi(id[3:5])
+	md.Match, _ = strconv.Atoi(id[5:7])
+	return md
 }
 
 func getRating(avg *Averages, log *Log) float64 {
-	return (float64(log.Score) / avg.Score + float64(log.Goals) / avg.Goals + float64(log.Assists) / avg.Assists + float64(log.Saves) / avg.Saves + float64(log.Shots) / avg.Shots + log.GP / avg.GP + log.SP / avg.SP) / 7.0
+	return (float64(log.Score)/avg.Score + float64(log.Goals)/avg.Goals + float64(log.Assists)/avg.Assists + float64(log.Saves)/avg.Saves + float64(log.Shots)/avg.Shots + log.GP/avg.GP + log.SP/avg.SP) / 7.0
 }

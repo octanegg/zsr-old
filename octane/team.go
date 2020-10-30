@@ -2,6 +2,7 @@ package octane
 
 import (
 	"context"
+	"errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -20,28 +21,24 @@ type Team struct {
 	Name string              `json:"name" bson:"name"`
 }
 
-func (c *client) FindTeams(filter bson.M, pagination *Pagination, sort *Sort) (*Teams, error) {
-	ctx := context.TODO()
+func (c *client) FindTeams(ctx *FindContext) (*Teams, error) {
 	coll := c.DB.Database(Database).Collection(CollectionTeams)
 
 	opts := options.Find()
-	if pagination != nil {
-		opts.SetSkip((pagination.Page - 1) * pagination.PerPage)
-		opts.SetLimit(pagination.PerPage)
+	if ctx.Pagination != nil {
+		opts.SetSkip((ctx.Pagination.Page - 1) * ctx.Pagination.PerPage)
+		opts.SetLimit(ctx.Pagination.PerPage)
 	}
 
-	if sort != nil {
-		opts.SetSort(bson.M{sort.Field: sort.Order})
-	}
-
-	cursor, err := coll.Find(ctx, filter, opts)
+	opts.SetSort(ctx.Sort)
+	cursor, err := coll.Find(context.TODO(), ctx.Filter, opts)
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
+	defer cursor.Close(context.TODO())
 
 	var teams []*Team
-	for cursor.Next(ctx) {
+	for cursor.Next(context.TODO()) {
 		var team Team
 		if err := cursor.Decode(&team); err != nil {
 			return nil, err
@@ -53,37 +50,27 @@ func (c *client) FindTeams(filter bson.M, pagination *Pagination, sort *Sort) (*
 		return nil, err
 	}
 
-	if pagination != nil {
-		pagination.PageSize = len(teams)
+	if ctx.Pagination != nil {
+		ctx.Pagination.PageSize = len(teams)
 	}
 
 	return &Teams{
 		teams,
-		pagination,
+		ctx.Pagination,
 	}, nil
 }
 
-func (c *client) FindTeam(oid *primitive.ObjectID) (*Team, error) {
-	teams, err := c.FindTeams(bson.M{"_id": oid}, nil, nil)
+func (c *client) FindTeam(filter bson.M) (*Team, error) {
+	teams, err := c.FindTeams(&FindContext{Filter: filter})
 	if err != nil {
 		return nil, err
 	}
 
 	if len(teams.Teams) == 0 {
-		return nil, nil
+		return nil, errors.New("no team found")
 	}
 
 	return teams.Teams[0], nil
-}
-
-func (c *client) InsertTeam(team interface{}) (*primitive.ObjectID, error) {
-	ids, err := c.InsertTeams([]interface{}{team})
-	if err != nil {
-		return nil, err
-	}
-
-	id := ids[0].(primitive.ObjectID)
-	return &id, nil
 }
 
 func (c *client) InsertTeams(teams []interface{}) ([]interface{}, error) {
@@ -96,6 +83,16 @@ func (c *client) InsertTeams(teams []interface{}) ([]interface{}, error) {
 	}
 
 	return res.InsertedIDs, nil
+}
+
+func (c *client) InsertTeam(team interface{}) (*primitive.ObjectID, error) {
+	ids, err := c.InsertTeams([]interface{}{team})
+	if err != nil {
+		return nil, err
+	}
+
+	id := ids[0].(primitive.ObjectID)
+	return &id, nil
 }
 
 func (c *client) DeleteTeam(filter bson.M) (int64, error) {

@@ -27,43 +27,27 @@ const (
 
 	// CollectionTeams .
 	CollectionTeams = "teams"
-
-	// CollectionUsers .
-	CollectionUsers = "users"
 )
 
 type client struct {
 	DB *mongo.Client
 }
 
-// Pagination .
-type Pagination struct {
-	Page     int64 `json:"page"`
-	PerPage  int64 `json:"perPage"`
-	PageSize int   `json:"pageSize"`
-}
-
-// Sort .
-type Sort struct {
-	Field string
-	Order int
-}
-
 // Client .
 type Client interface {
 	Ping() error
 
-	FindEvents(bson.M, *Pagination, *Sort) (*Events, error)
-	FindMatches(bson.M, *Pagination, *Sort) (*Matches, error)
-	FindGames(bson.M, *Pagination, *Sort) (*Games, error)
-	FindPlayers(bson.M, *Pagination, *Sort) (*Players, error)
-	FindTeams(bson.M, *Pagination, *Sort) (*Teams, error)
+	FindEvents(*FindContext) (*Events, error)
+	FindMatches(*FindContext) (*Matches, error)
+	FindGames(*FindContext) (*Games, error)
+	FindPlayers(*FindContext) (*Players, error)
+	FindTeams(*FindContext) (*Teams, error)
 
-	FindEvent(*primitive.ObjectID) (*Event, error)
-	FindMatch(*primitive.ObjectID) (*Match, error)
-	FindGame(*primitive.ObjectID) (*Game, error)
-	FindPlayer(*primitive.ObjectID) (*Player, error)
-	FindTeam(*primitive.ObjectID) (*Team, error)
+	FindEvent(bson.M) (*Event, error)
+	FindMatch(bson.M) (*Match, error)
+	FindGame(bson.M) (*Game, error)
+	FindPlayer(bson.M) (*Player, error)
+	FindTeam(bson.M) (*Team, error)
 
 	InsertEvent(interface{}) (*primitive.ObjectID, error)
 	InsertMatch(interface{}) (*primitive.ObjectID, error)
@@ -101,4 +85,27 @@ func New(uri string) (Client, error) {
 
 func (c *client) Ping() error {
 	return c.DB.Ping(context.TODO(), nil)
+}
+
+// FindContext .
+type FindContext struct {
+	Filter     bson.M
+	Sort       bson.M
+	Pagination *Pagination
+}
+
+// Pagination .
+type Pagination struct {
+	Page     int64 `json:"page"`
+	PerPage  int64 `json:"perPage"`
+	PageSize int   `json:"pageSize"`
+}
+
+// NewFindContext .
+func NewFindContext(filter bson.M, sort bson.M, pagination *Pagination) *FindContext {
+	return &FindContext{
+		Filter:     filter,
+		Sort:       sort,
+		Pagination: pagination,
+	}
 }

@@ -2,6 +2,7 @@ package octane
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/octanegg/zsr/ballchasing"
@@ -45,28 +46,24 @@ type PlayerStats struct {
 	Rating float64                  `json:"rating" bson:"rating"`
 }
 
-func (c *client) FindGames(filter bson.M, pagination *Pagination, sort *Sort) (*Games, error) {
-	ctx := context.TODO()
+func (c *client) FindGames(ctx *FindContext) (*Games, error) {
 	coll := c.DB.Database(Database).Collection(CollectionGames)
 
 	opts := options.Find()
-	if pagination != nil {
-		opts.SetSkip((pagination.Page - 1) * pagination.PerPage)
-		opts.SetLimit(pagination.PerPage)
+	if ctx.Pagination != nil {
+		opts.SetSkip((ctx.Pagination.Page - 1) * ctx.Pagination.PerPage)
+		opts.SetLimit(ctx.Pagination.PerPage)
 	}
 
-	if sort != nil {
-		opts.SetSort(bson.M{sort.Field: sort.Order})
-	}
-
-	cursor, err := coll.Find(ctx, filter, opts)
+	opts.SetSort(ctx.Sort)
+	cursor, err := coll.Find(context.TODO(), ctx.Filter, opts)
 	if err != nil {
 		return nil, err
 	}
-	defer cursor.Close(ctx)
+	defer cursor.Close(context.TODO())
 
 	var games []*Game
-	for cursor.Next(ctx) {
+	for cursor.Next(context.TODO()) {
 		var game Game
 		if err := cursor.Decode(&game); err != nil {
 			return nil, err
@@ -78,37 +75,27 @@ func (c *client) FindGames(filter bson.M, pagination *Pagination, sort *Sort) (*
 		return nil, err
 	}
 
-	if pagination != nil {
-		pagination.PageSize = len(games)
+	if ctx.Pagination != nil {
+		ctx.Pagination.PageSize = len(games)
 	}
 
 	return &Games{
 		games,
-		pagination,
+		ctx.Pagination,
 	}, nil
 }
 
-func (c *client) FindGame(oid *primitive.ObjectID) (*Game, error) {
-	games, err := c.FindGames(bson.M{"_id": oid}, nil, nil)
+func (c *client) FindGame(filter bson.M) (*Game, error) {
+	games, err := c.FindGames(&FindContext{Filter: filter})
 	if err != nil {
 		return nil, err
 	}
 
 	if len(games.Games) == 0 {
-		return nil, nil
+		return nil, errors.New("no game found")
 	}
 
 	return games.Games[0], nil
-}
-
-func (c *client) InsertGame(game interface{}) (*primitive.ObjectID, error) {
-	ids, err := c.InsertGames([]interface{}{game})
-	if err != nil {
-		return nil, err
-	}
-
-	id := ids[0].(primitive.ObjectID)
-	return &id, nil
 }
 
 func (c *client) InsertGames(games []interface{}) ([]interface{}, error) {
@@ -121,6 +108,16 @@ func (c *client) InsertGames(games []interface{}) ([]interface{}, error) {
 	}
 
 	return res.InsertedIDs, nil
+}
+
+func (c *client) InsertGame(game interface{}) (*primitive.ObjectID, error) {
+	ids, err := c.InsertGames([]interface{}{game})
+	if err != nil {
+		return nil, err
+	}
+
+	id := ids[0].(primitive.ObjectID)
+	return &id, nil
 }
 
 func (c *client) DeleteGame(filter bson.M) (int64, error) {

@@ -3,17 +3,18 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/zsr/octane"
+	"github.com/octanegg/zsr/octane/filter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *handler) GetPlayers(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
-	data, err := h.Octane.FindPlayers(playerFilters(v), getPagination(v), getSort(v))
+	data, err := h.Octane.FindPlayers(octane.NewFindContext(filter.Players(v), sort(v), pagination(v)))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -32,7 +33,7 @@ func (h *handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.Octane.FindPlayer(&id)
+	data, err := h.Octane.FindPlayer(bson.M{"_id": id})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -46,19 +47,4 @@ func (h *handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
-}
-
-func playerFilters(v url.Values) bson.M {
-	filter := bson.M{}
-	if vals, ok := v["country"]; ok {
-		filter["country"] = bson.M{"$in": vals}
-	}
-	if vals, ok := v["tag"]; ok {
-		filter["tag"] = bson.M{"$in": vals}
-	}
-	if vals, ok := v["team"]; ok {
-		filter["team"] = bson.M{"$in": toObjectIDs(vals)}
-	}
-
-	return filter
 }

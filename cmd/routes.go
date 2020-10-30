@@ -56,8 +56,6 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 
 	// TODO: Stats endpoints
 
-	// TODO: News endpoints
-
 	// admin
 	r.HandleFunc("/import", d.Import).Methods(http.MethodPost)
 	s := mux.NewRouter().PathPrefix("/deprecated").Subrouter()
