@@ -1,20 +1,10 @@
 package octane
 
 import (
-	"context"
-	"errors"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
-
-// Events .
-type Events struct {
-	Events []*Event `json:"events"`
-	*Pagination
-}
 
 // Event .
 type Event struct {
@@ -54,90 +44,4 @@ type Substage struct {
 type Prize struct {
 	Amount   float64 `json:"amount" bson:"amount"`
 	Currency string  `json:"currency" bson:"currency"`
-}
-
-func (c *client) FindEvents(ctx *FindContext) (*Events, error) {
-	coll := c.DB.Database(Database).Collection(CollectionEvents)
-
-	opts := options.Find()
-	if ctx.Pagination != nil {
-		opts.SetSkip((ctx.Pagination.Page - 1) * ctx.Pagination.PerPage)
-		opts.SetLimit(ctx.Pagination.PerPage)
-	}
-
-	opts.SetSort(ctx.Sort)
-	cursor, err := coll.Find(context.TODO(), ctx.Filter, opts)
-	if err != nil {
-		return nil, err
-	}
-	defer cursor.Close(context.TODO())
-
-	var events []*Event
-	for cursor.Next(context.TODO()) {
-		var event Event
-		if err := cursor.Decode(&event); err != nil {
-			return nil, err
-		}
-		events = append(events, &event)
-	}
-
-	if err != nil {
-		return nil, err
-	}
-
-	if ctx.Pagination != nil {
-		ctx.Pagination.PageSize = len(events)
-	}
-
-	return &Events{
-		events,
-		ctx.Pagination,
-	}, nil
-}
-
-func (c *client) FindEvent(filter bson.M) (*Event, error) {
-	events, err := c.FindEvents(&FindContext{Filter: filter})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(events.Events) == 0 {
-		return nil, errors.New("no event found")
-	}
-
-	return events.Events[0], nil
-}
-
-func (c *client) InsertEvents(events []interface{}) ([]interface{}, error) {
-	ctx := context.TODO()
-	coll := c.DB.Database(Database).Collection(CollectionEvents)
-
-	res, err := coll.InsertMany(ctx, events)
-	if err != nil {
-		return nil, err
-	}
-
-	return res.InsertedIDs, nil
-}
-
-func (c *client) InsertEvent(event interface{}) (*primitive.ObjectID, error) {
-	ids, err := c.InsertEvents([]interface{}{event})
-	if err != nil {
-		return nil, err
-	}
-
-	id := ids[0].(primitive.ObjectID)
-	return &id, nil
-}
-
-func (c *client) DeleteEvent(filter bson.M) (int64, error) {
-	ctx := context.TODO()
-	coll := c.DB.Database(Database).Collection(CollectionEvents)
-
-	res, err := coll.DeleteMany(ctx, filter)
-	if err != nil {
-		return 0, err
-	}
-
-	return res.DeletedCount, nil
 }

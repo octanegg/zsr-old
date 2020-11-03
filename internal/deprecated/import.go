@@ -15,6 +15,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 )
 
 const (
@@ -52,11 +53,25 @@ func (h *handler) Import(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("Importing %d events\n", len(linkages))
 
+	done := 0
+	sem := semaphore.NewWeighted(50)
 	errs, _ := errgroup.WithContext(context.TODO())
 	for _, linkage := range linkages {
 		linkage := linkage
 		errs.Go(func() error {
-			return h.singleImport(linkage)
+			if sem.Acquire(context.TODO(), 1) != nil {
+				return err
+			}
+			defer sem.Release(1)
+
+			if h.singleImport(linkage) != nil {
+				return err
+			}
+			done++
+
+			fmt.Printf("%d / %d: Finished importing %+v\n", done, len(linkages), linkage)
+
+			return nil
 		})
 	}
 
@@ -70,30 +85,32 @@ func (h *handler) Import(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) singleImport(linkage *EventLinkage) error {
-	event, err := h.Octane.FindEvent(bson.M{"_id": &linkage.NewEvent})
+	data, err := h.Octane.Events().FindOne(bson.M{"_id": &linkage.NewEvent})
 	if err != nil {
 		return err
 	}
 
+	event := data.(octane.Event)
+
 	// Reset Matches
-	_, err = h.Octane.DeleteMatch(bson.M{"event._id": linkage.NewEvent, "stage._id": linkage.NewStage})
+	_, err = h.Octane.Matches().Delete(bson.M{"event._id": linkage.NewEvent, "stage._id": linkage.NewStage})
 	if err != nil {
 		return err
 	}
 
 	// Reset Games
-	_, err = h.Octane.DeleteGame(bson.M{"match.event._id": linkage.NewEvent, "match.stage._id": linkage.NewStage})
+	_, err = h.Octane.Games().Delete(bson.M{"match.event._id": linkage.NewEvent, "match.stage._id": linkage.NewStage})
 	if err != nil {
 		return err
 	}
 
-	matches, err := h.getMatches(linkage, event)
+	matches, err := h.getMatches(linkage, &event)
 	if err != nil {
 		return err
 	}
 
 	for _, match := range matches {
-		_, err := h.Octane.InsertMatch(match)
+		_, err := h.Octane.Matches().InsertOne(match)
 		if err != nil {
 			return err
 		}
@@ -105,15 +122,13 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 			}
 
 			if len(games) > 0 {
-				_, err = h.Octane.InsertGames(games)
+				_, err = h.Octane.Games().InsertOne(games)
 				if err != nil {
 					return err
 				}
 			}
 		}
 	}
-
-	fmt.Printf("Finished importing: %+v\n", linkage)
 
 	return nil
 }
@@ -155,17 +170,6 @@ func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]*oct
 	})
 	if err != nil {
 		return nil, err
-	}
-
-	if linkage == nil || event == nil {
-		fmt.Printf("%+v\n", linkage)
-		fmt.Printf("%+v\n", event)
-		panic("DSDas")
-	}
-
-	if linkage.NewStage >= len(event.Stages) {
-		fmt.Printf("%+v\n", linkage)
-		fmt.Printf("%+v\n", event)
 	}
 
 	var newMatches []*octane.Match
@@ -298,7 +302,9 @@ func intsToStrings(a []int) []string {
 }
 
 func (h *handler) findOrInsertTeam(name string) *octane.Team {
-	if team, err := h.Octane.FindTeam(bson.M{"name": name}); err == nil {
+	t, err := h.Octane.Teams().FindOne(bson.M{"name": name})
+	if err == nil {
+		team := t.(octane.Team)
 		return &octane.Team{
 			ID:   team.ID,
 			Name: team.Name,
@@ -306,7 +312,7 @@ func (h *handler) findOrInsertTeam(name string) *octane.Team {
 	}
 
 	id := primitive.NewObjectID()
-	team, _ := h.Octane.InsertTeam(&octane.Team{
+	team, _ := h.Octane.Teams().InsertOne(&octane.Team{
 		ID:   &id,
 		Name: name,
 	})
@@ -319,7 +325,9 @@ func (h *handler) findOrInsertTeam(name string) *octane.Team {
 }
 
 func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
-	if player, err := h.Octane.FindPlayer(bson.M{"tag": tag}); err == nil {
+	p, err := h.Octane.Players().FindOne(bson.M{"tag": tag})
+	if err == nil {
+		player := p.(octane.Player)
 		return &octane.Player{
 			ID:  player.ID,
 			Tag: player.Tag,
@@ -327,7 +335,7 @@ func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
 	}
 
 	id := primitive.NewObjectID()
-	player, _ := h.Octane.InsertPlayer(&octane.Player{
+	player, _ := h.Octane.Players().InsertOne(&octane.Player{
 		ID:  &id,
 		Tag: tag,
 	})

@@ -40,11 +40,12 @@ type GetMatchContext struct {
 
 // UpdateMatchContext .
 type UpdateMatchContext struct {
-	OctaneID   string  `json:"octane_id"`
-	Team1      Mapping `json:"blue"`
-	Team2      Mapping `json:"orange"`
-	Team1Score int     `json:"blue_score"`
-	Team2Score int     `json:"orange_score"`
+	OctaneID   string     `json:"octane_id"`
+	Team1      Mapping    `json:"blue"`
+	Team2      Mapping    `json:"orange"`
+	Team1Score int        `json:"blue_score"`
+	Team2Score int        `json:"orange_score"`
+	Date       *time.Time `json:"date"`
 }
 
 // Mapping .
@@ -122,8 +123,8 @@ func (d *deprecated) UpdateMatches(ctxs []*UpdateMatchContext) error {
 			winner = ctx.Team2.New
 		}
 
-		stmt := "UPDATE Series SET Team1 = ?, Team2 = ?, Team1Games = ?, Team2Games = ?, Result = ? WHERE match_url = ?"
-		_, err := d.DB.Exec(stmt, ctx.Team1.New, ctx.Team2.New, ctx.Team1Score, ctx.Team2Score, winner, ctx.OctaneID)
+		stmt := "UPDATE Series SET Team1 = ?, Team2 = ?, Team1Games = ?, Team2Games = ?, Result = ?, `Time` = ? WHERE match_url = ?"
+		_, err := d.DB.Exec(stmt, ctx.Team1.New, ctx.Team2.New, ctx.Team1Score, ctx.Team2Score, winner, ctx.Date, ctx.OctaneID)
 		if err != nil {
 			return err
 		}

@@ -3,26 +3,40 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/octanegg/zsr/octane"
+	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/filter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *handler) GetPlayers(w http.ResponseWriter, r *http.Request) {
-	v := r.URL.Query()
-	data, err := h.Octane.FindPlayers(octane.NewFindContext(filter.Players(v), sort(v), pagination(v)))
+	var (
+		v = r.URL.Query()
+		p = pagination(v)
+		s = sort(v)
+		f = playersFilter(v)
+	)
+
+	data, err := h.Octane.Players().Find(f, s, p)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
+	if p != nil {
+		p.PageSize = len(data)
+	}
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(data)
+	json.NewEncoder(w).Encode(struct {
+		Players []interface{} `json:"players"`
+		*collection.Pagination
+	}{data, p})
 }
 
 func (h *handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +47,7 @@ func (h *handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.Octane.FindPlayer(bson.M{"_id": id})
+	data, err := h.Octane.Players().FindOne(bson.M{"_id": id})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -47,4 +61,12 @@ func (h *handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
+}
+
+func playersFilter(v url.Values) bson.M {
+	return filter.New(
+		filter.Strings("country", v["country"]),
+		filter.Strings("tag", v["tag"]),
+		filter.ObjectIDs("team", v["team"]),
+	)
 }

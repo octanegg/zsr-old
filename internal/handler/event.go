@@ -3,26 +3,40 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/octanegg/zsr/octane"
+	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/filter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 func (h *handler) GetEvents(w http.ResponseWriter, r *http.Request) {
-	v := r.URL.Query()
-	data, err := h.Octane.FindEvents(octane.NewFindContext(filter.Events(v), sort(v), pagination(v)))
+	var (
+		v = r.URL.Query()
+		p = pagination(v)
+		s = sort(v)
+		f = eventsFilter(v)
+	)
+
+	data, err := h.Octane.Events().Find(f, s, p)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
+	if p != nil {
+		p.PageSize = len(data)
+	}
+
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(data)
+	json.NewEncoder(w).Encode(struct {
+		Events []interface{} `json:"events"`
+		*collection.Pagination
+	}{data, p})
 }
 
 func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +47,7 @@ func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := h.Octane.FindEvent(bson.M{"_id": id})
+	data, err := h.Octane.Events().FindOne(bson.M{"_id": id})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
@@ -47,4 +61,15 @@ func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
+}
+
+func eventsFilter(v url.Values) bson.M {
+	return filter.New(
+		filter.Strings("name", v["name"]),
+		filter.Strings("tier", v["tier"]),
+		filter.Strings("region", v["region"]),
+		filter.Strings("mode", v["mode"]),
+		filter.BeforeDate("start_date", v.Get("before")),
+		filter.AfterDate("start_date", v.Get("after")),
+	)
 }
