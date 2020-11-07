@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/octanegg/zsr/octane/collection"
+	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/filter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -35,7 +35,7 @@ func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(struct {
 		Games []interface{} `json:"games"`
-		*collection.Pagination
+		*octane.Pagination
 	}{data, p})
 }
 
@@ -74,5 +74,13 @@ func gamesFilter(v url.Values) bson.M {
 		filter.ObjectIDs("match._id", v["event"]),
 		filter.BeforeDate("date", v.Get("before")),
 		filter.AfterDate("date", v.Get("after")),
+		filter.Or(
+			filter.Strings("blue.players.player._id", v["player"]),
+			filter.Strings("orange.players.player._id", v["player"]),
+		),
+		filter.Or(
+			filter.Strings("blue.team._id", v["team"]),
+			filter.Strings("orange.team._id", v["team"]),
+		),
 	)
 }

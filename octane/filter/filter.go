@@ -11,7 +11,7 @@ import (
 // Field .
 type Field struct {
 	Key   string
-	Value bson.M
+	Value interface{}
 }
 
 // New .
@@ -37,9 +37,38 @@ func Strings(key string, vals []string) *Field {
 	}
 }
 
+// Dates .
+func Dates(key string, before, after string) *Field {
+	f := bson.M{}
+	if before != "" {
+		b, err := time.Parse("2006-01-02", before)
+		if err != nil {
+			return nil
+		}
+		f["$lte"] = b
+	}
+
+	if after != "" {
+		a, err := time.Parse("2006-01-02", after)
+		if err != nil {
+			return nil
+		}
+		f["$gte"] = a
+	}
+
+	if len(f) == 0 {
+		return nil
+	}
+
+	return &Field{
+		Key:   key,
+		Value: f,
+	}
+}
+
 // BeforeDate .
 func BeforeDate(key string, val string) *Field {
-	t, err := time.Parse(time.RFC3339Nano, val)
+	t, err := time.Parse(time.RFC3339, val)
 	if err != nil {
 		return nil
 	}
@@ -52,7 +81,7 @@ func BeforeDate(key string, val string) *Field {
 
 // AfterDate .
 func AfterDate(key string, val string) *Field {
-	t, err := time.Parse(time.RFC3339Nano, val)
+	t, err := time.Parse(time.RFC3339, val)
 	if err != nil {
 		return nil
 	}
@@ -60,6 +89,24 @@ func AfterDate(key string, val string) *Field {
 	return &Field{
 		Key:   key,
 		Value: bson.M{"$gte": t},
+	}
+}
+
+// Bool .
+func Bool(key string, val string) *Field {
+	b, err := strconv.ParseBool(val)
+	if err != nil {
+		return nil
+	}
+
+	op := "$eq"
+	if !b {
+		op = "$ne"
+	}
+
+	return &Field{
+		Key:   key,
+		Value: bson.M{op: true},
 	}
 }
 
@@ -98,5 +145,18 @@ func ObjectIDs(key string, vals []string) *Field {
 	return &Field{
 		Key:   key,
 		Value: bson.M{"$in": a},
+	}
+}
+
+// Or .
+func Or(fields ...*Field) *Field {
+	f := []bson.M{}
+	for _, field := range fields {
+		f = append(f, bson.M{field.Key: field.Value})
+	}
+
+	return &Field{
+		Key:   "$or",
+		Value: f,
 	}
 }

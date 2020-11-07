@@ -1,4 +1,4 @@
-package collection
+package octane
 
 import (
 	"context"
@@ -17,6 +17,7 @@ type Collection interface {
 	Insert([]interface{}) ([]interface{}, error)
 	InsertOne(interface{}) (*primitive.ObjectID, error)
 	Delete(bson.M) (int64, error)
+	Aggregate([]bson.M, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
 }
 
 type collection struct {
@@ -29,14 +30,6 @@ type Pagination struct {
 	Page     int64 `json:"page"`
 	PerPage  int64 `json:"perPage"`
 	PageSize int   `json:"pageSize"`
-}
-
-// New .
-func New(coll *mongo.Collection, decode func(*mongo.Cursor) (interface{}, error)) Collection {
-	return &collection{
-		Collection: coll,
-		Decode:     decode,
-	}
 }
 
 func (c *collection) Find(filter bson.M, sort bson.M, pagination *Pagination) ([]interface{}, error) {
@@ -54,6 +47,11 @@ func (c *collection) Find(filter bson.M, sort bson.M, pagination *Pagination) ([
 	defer cursor.Close(context.TODO())
 
 	var data []interface{}
+	if c.Decode == nil {
+		cursor.All(context.TODO(), &data)
+		return data, nil
+	}
+
 	for cursor.Next(context.TODO()) {
 		i, err := c.Decode(cursor)
 		if err != nil {
@@ -104,4 +102,27 @@ func (c *collection) Delete(filter bson.M) (int64, error) {
 	}
 
 	return res.DeletedCount, nil
+}
+
+func (c *collection) Aggregate(pipeline []bson.M, decode func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
+	cursor, err := c.Collection.Aggregate(context.TODO(), pipeline, options.Aggregate().SetAllowDiskUse(true))
+	if err != nil {
+		return nil, err
+	}
+
+	var data []interface{}
+	if decode == nil {
+		cursor.All(context.TODO(), &data)
+		return data, nil
+	}
+
+	for cursor.Next(context.TODO()) {
+		i, err := decode(cursor)
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, i)
+	}
+
+	return data, nil
 }

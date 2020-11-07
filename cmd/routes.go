@@ -54,6 +54,9 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	t.HandleFunc("/{_id}", h.GetTeam).
 		Methods(http.MethodGet)
 
+	// records
+	r.HandleFunc("/records/{stat}", h.GetRecords).Methods(http.MethodGet)
+
 	// TODO: Stats endpoints
 
 	// admin
@@ -66,8 +69,8 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	s.HandleFunc("/games", d.DeleteGame).Methods(http.MethodDelete)
 	s.HandleFunc("/games/{match}/{blue}/{orange}", d.GetGames).Methods(http.MethodGet)
 	r.PathPrefix("/deprecated").Handler(negroni.New(
-		negroni.HandlerFunc(jwtMiddleware),
-		negroni.HandlerFunc(scopeMiddleware),
+		// negroni.HandlerFunc(jwtMiddleware),
+		// negroni.HandlerFunc(scopeMiddleware),
 		negroni.Wrap(s),
 	))
 

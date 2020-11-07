@@ -3,27 +3,29 @@ package octane
 import (
 	"context"
 
-	"github.com/octanegg/zsr/octane/collection"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type client struct {
 	Octane            *mongo.Database
-	EventsCollection  collection.Collection
-	MatchesCollection collection.Collection
-	GamesCollection   collection.Collection
-	PlayersCollection collection.Collection
-	TeamsCollection   collection.Collection
+	EventsCollection  Collection
+	MatchesCollection Collection
+	GamesCollection   Collection
+	PlayersCollection Collection
+	TeamsCollection   Collection
+	StatsCollection   Collection
+	RecordsCollection Records
 }
 
 // Client .
 type Client interface {
-	Events() collection.Collection
-	Matches() collection.Collection
-	Games() collection.Collection
-	Players() collection.Collection
-	Teams() collection.Collection
+	Events() Collection
+	Matches() Collection
+	Games() Collection
+	Players() Collection
+	Teams() Collection
+	Stats() Collection
 }
 
 // New .
@@ -37,79 +39,133 @@ func New(uri string) (Client, error) {
 		return nil, err
 	}
 
-	db := c.Database("octane")
+	var (
+		db     = c.Database("octane")
+		events = &collection{
+			Collection: db.Collection("events"),
+			Decode:     CursorToEvents,
+		}
+		matches = &collection{
+			Collection: db.Collection("matches"),
+			Decode:     CursorToMatches,
+		}
+		games = &collection{
+			Collection: db.Collection("games"),
+			Decode:     CursorToGames,
+		}
+		players = &collection{
+			Collection: db.Collection("players"),
+			Decode:     CursorToPlayers,
+		}
+		teams = &collection{
+			Collection: db.Collection("teams"),
+			Decode:     CursorToTeams,
+		}
+		stats = &collection{
+			Collection: db.Collection("statlines"),
+			Decode:     CursorToStats,
+		}
+	)
 
 	return &client{
-		Octane: db,
-		EventsCollection: collection.New(
-			db.Collection("events"),
-			func(cursor *mongo.Cursor) (interface{}, error) {
-				var event Event
-				if err := cursor.Decode(&event); err != nil {
-					return nil, err
-				}
-				return event, nil
-			},
-		),
-		MatchesCollection: collection.New(
-			db.Collection("matches"),
-			func(cursor *mongo.Cursor) (interface{}, error) {
-				var match Match
-				if err := cursor.Decode(&match); err != nil {
-					return nil, err
-				}
-				return match, nil
-			},
-		),
-		GamesCollection: collection.New(
-			db.Collection("games"),
-			func(cursor *mongo.Cursor) (interface{}, error) {
-				var game Game
-				if err := cursor.Decode(&game); err != nil {
-					return nil, err
-				}
-				return game, nil
-			},
-		),
-		PlayersCollection: collection.New(
-			db.Collection("players"),
-			func(cursor *mongo.Cursor) (interface{}, error) {
-				var player Player
-				if err := cursor.Decode(&player); err != nil {
-					return nil, err
-				}
-				return player, nil
-			},
-		),
-		TeamsCollection: collection.New(
-			db.Collection("teams"),
-			func(cursor *mongo.Cursor) (interface{}, error) {
-				var team Team
-				if err := cursor.Decode(&team); err != nil {
-					return nil, err
-				}
-				return team, nil
-			},
-		),
+		Octane:            db,
+		EventsCollection:  events,
+		MatchesCollection: matches,
+		GamesCollection:   games,
+		PlayersCollection: players,
+		TeamsCollection:   teams,
+		StatsCollection:   stats,
+		RecordsCollection: &records{games},
 	}, nil
 }
 
-func (c *client) Events() collection.Collection {
+func (c *client) Events() Collection {
 	return c.EventsCollection
 }
 
-func (c *client) Matches() collection.Collection {
+func (c *client) Matches() Collection {
 	return c.MatchesCollection
 }
 
-func (c *client) Games() collection.Collection {
+func (c *client) Games() Collection {
 	return c.GamesCollection
 }
 
-func (c *client) Players() collection.Collection {
+func (c *client) Players() Collection {
 	return c.PlayersCollection
 }
 
-func (c *client) Teams() collection.Collection {
+func (c *client) Teams() Collection {
 	return c.TeamsCollection
+}
+
+func (c *client) Stats() Collection {
+	return c.StatsCollection
+}
+
+func (c *client) Records() Records {
+	return c.RecordsCollection
+}
+
+// CursorToEvents .
+func CursorToEvents(cursor *mongo.Cursor) (interface{}, error) {
+	var event Event
+	if err := cursor.Decode(&event); err != nil {
+		return nil, err
+	}
+	return event, nil
+}
+
+// CursorToMatches .
+func CursorToMatches(cursor *mongo.Cursor) (interface{}, error) {
+	var match Match
+	if err := cursor.Decode(&match); err != nil {
+		return nil, err
+	}
+	return match, nil
+}
+
+// CursorToGames .
+func CursorToGames(cursor *mongo.Cursor) (interface{}, error) {
+	var game Game
+	if err := cursor.Decode(&game); err != nil {
+		return nil, err
+	}
+	return game, nil
+}
+
+// CursorToPlayers .
+func CursorToPlayers(cursor *mongo.Cursor) (interface{}, error) {
+	var player Player
+	if err := cursor.Decode(&player); err != nil {
+		return nil, err
+	}
+	return player, nil
+}
+
+// CursorToTeams .
+func CursorToTeams(cursor *mongo.Cursor) (interface{}, error) {
+	var team Team
+	if err := cursor.Decode(&team); err != nil {
+		return nil, err
+	}
+	return team, nil
+}
+
+// CursorToStats .
+func CursorToStats(cursor *mongo.Cursor) (interface{}, error) {
+	var stats Stats
+	if err := cursor.Decode(&stats); err != nil {
+		return nil, err
+	}
+	return stats, nil
+}
+
+// CursorToRecord .
+func CursorToRecord(cursor *mongo.Cursor) (interface{}, error) {
+	var record Record
+	if err := cursor.Decode(&record); err != nil {
+		return nil, err
+	}
+	return record, nil
 }

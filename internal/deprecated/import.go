@@ -59,12 +59,12 @@ func (h *handler) Import(w http.ResponseWriter, r *http.Request) {
 	for _, linkage := range linkages {
 		linkage := linkage
 		errs.Go(func() error {
-			if sem.Acquire(context.TODO(), 1) != nil {
+			if err = sem.Acquire(context.TODO(), 1); err != nil {
 				return err
 			}
 			defer sem.Release(1)
 
-			if h.singleImport(linkage) != nil {
+			if err = h.singleImport(linkage); err != nil {
 				return err
 			}
 			done++
@@ -104,27 +104,48 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 		return err
 	}
 
+	// Reset Games
+	_, err = h.Octane.Stats().Delete(bson.M{"game.match.event._id": linkage.NewEvent, "game.match.stage._id": linkage.NewStage})
+	if err != nil {
+		return err
+	}
+
 	matches, err := h.getMatches(linkage, &event)
 	if err != nil {
 		return err
 	}
 
-	for _, match := range matches {
-		_, err := h.Octane.Matches().InsertOne(match)
+	if len(matches) > 0 {
+		_, err = h.Octane.Matches().Insert(matches)
 		if err != nil {
 			return err
 		}
 
-		if match.Blue.Team != nil && match.Orange.Team != nil {
-			games, err := h.getGames(match)
-			if err != nil {
-				return err
-			}
-
-			if len(games) > 0 {
-				_, err = h.Octane.Games().InsertOne(games)
+		for _, m := range matches {
+			match := m.(*octane.Match)
+			
+			if match.Blue.Team != nil && match.Orange.Team != nil {
+				games, err := h.getGames(match)
 				if err != nil {
 					return err
+				}
+
+				if len(games) > 0 {
+					_, err = h.Octane.Games().Insert(games)
+					if err != nil {
+						return err
+					}
+
+					for _, g := range games {
+						game := g.(*octane.Game)
+
+						if stats := h.getStats(game); len(stats) > 0 {
+							_, err := h.Octane.Stats().Insert(stats)
+							if err != nil {
+								return err
+							}
+						}
+					}
 				}
 			}
 		}
@@ -163,7 +184,7 @@ func (d *deprecated) getLinkages(events []int) ([]*EventLinkage, error) {
 	return linkages, nil
 }
 
-func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]*octane.Match, error) {
+func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]interface{}, error) {
 	oldMatches, err := h.Deprecated.GetMatches(&GetMatchesContext{
 		Event: strconv.Itoa(linkage.OldEvent),
 		Stage: strconv.Itoa(linkage.OldStage),
@@ -172,7 +193,7 @@ func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]*oct
 		return nil, err
 	}
 
-	var newMatches []*octane.Match
+	var newMatches []interface{}
 	for _, match := range oldMatches {
 		id := primitive.NewObjectID()
 		newMatch := &octane.Match{
@@ -267,6 +288,50 @@ func (h *handler) getGames(match *octane.Match) ([]interface{}, error) {
 	}
 
 	return newGames, nil
+}
+
+func (h *handler) getStats(game *octane.Game) []interface{} {
+	var stats []interface{}
+
+	for _, p := range game.Blue.Players {
+		id := primitive.NewObjectID()
+		stats = append(stats, &octane.Stats{
+			ID: &id,
+			Game: octane.Game{
+				ID: game.ID,
+				Match: game.Match,
+				Date: game.Date,
+				Map: game.Map,
+				Duration: game.Duration,
+			},
+			Team: *game.Blue.Team,
+			Opponent: *game.Orange.Team,
+			Winner: game.Blue.Winner,
+			Player: p.Player,
+			Stats: p.Stats,
+		})
+	}
+
+	for _, p := range game.Orange.Players {
+		id := primitive.NewObjectID()
+		stats = append(stats, &octane.Stats{
+			ID: &id,
+			Game: octane.Game{
+				ID: game.ID,
+				Match: game.Match,
+				Date: game.Date,
+				Map: game.Map,
+				Duration: game.Duration,
+			},
+			Team: *game.Orange.Team,
+			Opponent: *game.Blue.Team,
+			Winner: game.Orange.Winner,
+			Player: p.Player,
+			Stats: p.Stats,
+		})
+	}
+
+	return stats
 }
 
 func (h *handler) toPlayers(logs []Log) []*octane.PlayerStats {
