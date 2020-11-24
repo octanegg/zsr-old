@@ -22,6 +22,7 @@ func New(fields ...*Field) bson.M {
 			filter[field.Key] = field.Value
 		}
 	}
+
 	return filter
 }
 
@@ -152,7 +153,13 @@ func ObjectIDs(key string, vals []string) *Field {
 func Or(fields ...*Field) *Field {
 	f := []bson.M{}
 	for _, field := range fields {
-		f = append(f, bson.M{field.Key: field.Value})
+		if field != nil {
+			f = append(f, bson.M{field.Key: field.Value})
+		}
+	}
+
+	if len(f) == 0 {
+		return nil
 	}
 
 	return &Field{
