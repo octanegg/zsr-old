@@ -1,6 +1,7 @@
 package ballchasing
 
 import (
+	"context"
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
@@ -28,7 +29,7 @@ func New(authToken string) Racer {
 }
 
 func (b *racer) GetReplay(id string) (*Replay, error) {
-	req, err := http.NewRequest(http.MethodGet, BaseURL+"/replays/"+id, nil)
+	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, BaseURL+"/replays/"+id, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -47,7 +48,7 @@ func (b *racer) GetReplay(id string) (*Replay, error) {
 	}
 
 	var replay Replay
-	if err = json.Unmarshal(body, &replay); err != nil {
+	if err := json.Unmarshal(body, &replay); err != nil {
 		return nil, err
 	}
 
@@ -55,7 +56,7 @@ func (b *racer) GetReplay(id string) (*Replay, error) {
 }
 
 func (b *racer) ListReplays(params map[string][]string) (*Replays, error) {
-	req, err := http.NewRequest(http.MethodGet, BaseURL+"/replays", nil)
+	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, BaseURL+"/replays", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +76,7 @@ func (b *racer) ListReplays(params map[string][]string) (*Replays, error) {
 	}
 
 	var replays Replays
-	if err = json.Unmarshal(body, &replays); err != nil {
+	if err := json.Unmarshal(body, &replays); err != nil {
 		return nil, err
 	}
 

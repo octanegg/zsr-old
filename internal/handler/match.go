@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/octanegg/zsr/octane"
+	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/filter"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -35,7 +35,7 @@ func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(struct {
 		Matches []interface{} `json:"matches"`
-		*octane.Pagination
+		*collection.Pagination
 	}{data, p})
 }
 

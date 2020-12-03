@@ -3,29 +3,32 @@ package octane
 import (
 	"context"
 
+	"github.com/octanegg/zsr/octane/collection"
+	"github.com/octanegg/zsr/octane/records"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type client struct {
 	Octane            *mongo.Database
-	EventsCollection  Collection
-	MatchesCollection Collection
-	GamesCollection   Collection
-	PlayersCollection Collection
-	TeamsCollection   Collection
-	StatsCollection   Collection
-	RecordsCollection Records
+	EventsCollection  collection.Collection
+	MatchesCollection collection.Collection
+	GamesCollection   collection.Collection
+	PlayersCollection collection.Collection
+	TeamsCollection   collection.Collection
+	StatsCollection   collection.Collection
+	RecordsCollection records.Records
 }
 
 // Client .
 type Client interface {
-	Events() Collection
-	Matches() Collection
-	Games() Collection
-	Players() Collection
-	Teams() Collection
-	Stats() Collection
+	Events() collection.Collection
+	Matches() collection.Collection
+	Games() collection.Collection
+	Players() collection.Collection
+	Teams() collection.Collection
+	Stats() collection.Collection
+	Records() records.Records
 }
 
 // New .
@@ -41,30 +44,30 @@ func New(uri string) (Client, error) {
 
 	var (
 		db     = c.Database("octane")
-		events = &collection{
-			Collection: db.Collection("events"),
-			Decode:     CursorToEvents,
-		}
-		matches = &collection{
-			Collection: db.Collection("matches"),
-			Decode:     CursorToMatches,
-		}
-		games = &collection{
-			Collection: db.Collection("games"),
-			Decode:     CursorToGames,
-		}
-		players = &collection{
-			Collection: db.Collection("players"),
-			Decode:     CursorToPlayers,
-		}
-		teams = &collection{
-			Collection: db.Collection("teams"),
-			Decode:     CursorToTeams,
-		}
-		stats = &collection{
-			Collection: db.Collection("statlines"),
-			Decode:     CursorToStats,
-		}
+		events = collection.New(
+			db.Collection("events"),
+			CursorToEvents,
+		)
+		matches = collection.New(
+			db.Collection("matches"),
+			CursorToMatches,
+		)
+		games = collection.New(
+			db.Collection("games"),
+			CursorToGames,
+		)
+		players = collection.New(
+			db.Collection("players"),
+			CursorToPlayers,
+		)
+		teams = collection.New(
+			db.Collection("teams"),
+			CursorToTeams,
+		)
+		stats = collection.New(
+			db.Collection("statlines"),
+			CursorToStats,
+		)
 	)
 
 	return &client{
@@ -75,35 +78,35 @@ func New(uri string) (Client, error) {
 		PlayersCollection: players,
 		TeamsCollection:   teams,
 		StatsCollection:   stats,
-		RecordsCollection: &records{games},
+		RecordsCollection: records.New(stats),
 	}, nil
 }
 
-func (c *client) Events() Collection {
+func (c *client) Events() collection.Collection {
 	return c.EventsCollection
 }
 
-func (c *client) Matches() Collection {
+func (c *client) Matches() collection.Collection {
 	return c.MatchesCollection
 }
 
-func (c *client) Games() Collection {
+func (c *client) Games() collection.Collection {
 	return c.GamesCollection
 }
 
-func (c *client) Players() Collection {
+func (c *client) Players() collection.Collection {
 	return c.PlayersCollection
 }
 
-func (c *client) Teams() Collection {
+func (c *client) Teams() collection.Collection {
 	return c.TeamsCollection
 }
 
-func (c *client) Stats() Collection {
+func (c *client) Stats() collection.Collection {
 	return c.StatsCollection
 }
 
-func (c *client) Records() Records {
+func (c *client) Records() records.Records {
 	return c.RecordsCollection
 }
 
@@ -159,13 +162,4 @@ func CursorToStats(cursor *mongo.Cursor) (interface{}, error) {
 		return nil, err
 	}
 	return stats, nil
-}
-
-// CursorToRecord .
-func CursorToRecord(cursor *mongo.Cursor) (interface{}, error) {
-	var record Record
-	if err := cursor.Decode(&record); err != nil {
-		return nil, err
-	}
-	return record, nil
 }

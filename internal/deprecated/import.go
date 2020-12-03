@@ -20,6 +20,7 @@ import (
 
 const (
 	linkagesSQL = "SELECT old_event, old_stage, new_event, new_stage FROM mapping"
+	numWorkers  = 50
 )
 
 // EventLinkage .
@@ -54,7 +55,7 @@ func (h *handler) Import(w http.ResponseWriter, r *http.Request) {
 	fmt.Printf("Importing %d events\n", len(linkages))
 
 	done := 0
-	sem := semaphore.NewWeighted(50)
+	sem := semaphore.NewWeighted(numWorkers)
 	errs, _ := errgroup.WithContext(context.TODO())
 	for _, linkage := range linkages {
 		linkage := linkage
@@ -123,7 +124,7 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 
 		for _, m := range matches {
 			match := m.(*octane.Match)
-			
+
 			if match.Blue.Team != nil && match.Orange.Team != nil {
 				games, err := h.getGames(match)
 				if err != nil {
@@ -298,17 +299,17 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 		stats = append(stats, &octane.Stats{
 			ID: &id,
 			Game: octane.Game{
-				ID: game.ID,
-				Match: game.Match,
-				Date: game.Date,
-				Map: game.Map,
+				ID:       game.ID,
+				Match:    game.Match,
+				Date:     game.Date,
+				Map:      game.Map,
 				Duration: game.Duration,
 			},
-			Team: *game.Blue.Team,
+			Team:     *game.Blue.Team,
 			Opponent: *game.Orange.Team,
-			Winner: game.Blue.Winner,
-			Player: p.Player,
-			Stats: p.Stats,
+			Winner:   game.Blue.Winner,
+			Player:   p.Player,
+			Stats:    p.Stats,
 		})
 	}
 
@@ -317,17 +318,17 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 		stats = append(stats, &octane.Stats{
 			ID: &id,
 			Game: octane.Game{
-				ID: game.ID,
-				Match: game.Match,
-				Date: game.Date,
-				Map: game.Map,
+				ID:       game.ID,
+				Match:    game.Match,
+				Date:     game.Date,
+				Map:      game.Map,
 				Duration: game.Duration,
 			},
-			Team: *game.Orange.Team,
+			Team:     *game.Orange.Team,
 			Opponent: *game.Blue.Team,
-			Winner: game.Orange.Winner,
-			Player: p.Player,
-			Stats: p.Stats,
+			Winner:   game.Orange.Winner,
+			Player:   p.Player,
+			Stats:    p.Stats,
 		})
 	}
 
@@ -386,7 +387,6 @@ func (h *handler) findOrInsertTeam(name string) *octane.Team {
 		ID:   team,
 		Name: name,
 	}
-
 }
 
 func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
@@ -409,5 +409,4 @@ func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
 		ID:  player,
 		Tag: tag,
 	}
-
 }

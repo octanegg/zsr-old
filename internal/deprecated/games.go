@@ -173,7 +173,6 @@ func (d *deprecated) GetGames(ctx *GetGamesContext) ([]*Game, error) {
 		} else {
 			m[log.Number].Orange.Players = append(m[log.Number].Orange.Players, log)
 		}
-
 	}
 
 	var games []*Game
@@ -277,7 +276,7 @@ func (d *deprecated) insertGamePlayers(md *Metadata, game *Game, blue, orange *L
 		if blue.Goals > 0 {
 			player.GP = float64(player.Goals+player.Assists) / float64(blue.Goals)
 		}
-		player.Rating = getRating(avg, &player)
+		player.Rating = getRating(avg, player)
 
 		var mvp int
 		if i == 0 && blueWin == 1 {
@@ -316,7 +315,7 @@ func (d *deprecated) insertGamePlayers(md *Metadata, game *Game, blue, orange *L
 		if orange.Goals > 0 {
 			player.GP = float64(player.Goals+player.Assists) / float64(orange.Goals)
 		}
-		player.Rating = getRating(avg, &player)
+		player.Rating = getRating(avg, player)
 
 		var mvp int
 		if i == 0 && orangeWin == 1 {
@@ -391,6 +390,6 @@ func getMetadata(id string) *Metadata {
 	return md
 }
 
-func getRating(avg *Averages, log *Log) float64 {
+func getRating(avg *Averages, log Log) float64 {
 	return (float64(log.Score)/avg.Score + float64(log.Goals)/avg.Goals + float64(log.Assists)/avg.Assists + float64(log.Saves)/avg.Saves + float64(log.Shots)/avg.Shots + log.GP/avg.GP + log.SP/avg.SP) / 7.0
 }

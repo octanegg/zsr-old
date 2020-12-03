@@ -55,8 +55,7 @@ type Mapping struct {
 }
 
 func (d *deprecated) GetMatches(ctx *GetMatchesContext) ([]*Match, error) {
-	query := fmt.Sprintf("SELECT match_url, Time, best_of, Team1, Team2, Team1Games, Team2Games FROM Series WHERE Event = %s AND Stage = %s", ctx.Event, ctx.Stage)
-	results, err := d.DB.Query(query)
+	results, err := d.DB.Query("SELECT match_url, Time, best_of, Team1, Team2, Team1Games, Team2Games FROM Series WHERE Event = ? AND Stage = ?", ctx.Event, ctx.Stage)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +84,7 @@ func (d *deprecated) GetMatches(ctx *GetMatchesContext) ([]*Match, error) {
 }
 
 func (d *deprecated) GetMatch(ctx *GetMatchContext) (*Match, error) {
-	query := fmt.Sprintf("SELECT match_url, Time, best_of, Team1, Team2, Team1Games, Team2Games FROM Series WHERE match_url = '%s'", ctx.OctaneID)
-	results, err := d.DB.Query(query)
+	results, err := d.DB.Query("SELECT match_url, Time, best_of, Team1, Team2, Team1Games, Team2Games FROM Series WHERE match_url = ?", ctx.OctaneID)
 	if err != nil {
 		return nil, err
 	}

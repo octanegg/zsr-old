@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/octanegg/zsr/octane"
+	"github.com/octanegg/zsr/octane/collection"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -67,7 +68,7 @@ func sort(v url.Values) bson.M {
 	return sort
 }
 
-func pagination(v url.Values) *octane.Pagination {
+func pagination(v url.Values) *collection.Pagination {
 	page, perPage := v.Get("page"), v.Get("perPage")
 	p, _ := strconv.ParseInt(page, 10, 64)
 	pp, _ := strconv.ParseInt(perPage, 10, 64)
@@ -75,7 +76,7 @@ func pagination(v url.Values) *octane.Pagination {
 		return nil
 	}
 
-	return &octane.Pagination{
+	return &collection.Pagination{
 		Page:    p,
 		PerPage: pp,
 	}

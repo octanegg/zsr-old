@@ -22,7 +22,7 @@ type Deprecated interface {
 	GetMatch(*GetMatchContext) (*Match, error)
 	DeleteGame(*DeleteGameContext) error
 	GetGames(*GetGamesContext) ([]*Game, error)
-	InsertGame(*Game) (error)
+	InsertGame(*Game) error
 
 	getLinkages([]int) ([]*EventLinkage, error)
 }
