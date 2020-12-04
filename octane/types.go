@@ -118,12 +118,12 @@ type Team struct {
 	Name string              `json:"name,omitempty" bson:"name,omitempty"`
 }
 
-// Stats .
-type Stats struct {
+// Statline .
+type Statline struct {
 	ID       *primitive.ObjectID      `json:"_id" bson:"_id"`
-	Game     Game                     `json:"game,omitempty" bson:"game,omitempty"`
-	Team     Team                     `json:"team,omitempty" bson:"team,omitempty"`
-	Opponent Team                     `json:"opponent,omitempty" bson:"opponent,omitempty"`
+	Game     *Game                    `json:"game,omitempty" bson:"game,omitempty"`
+	Team     *Team                    `json:"team,omitempty" bson:"team,omitempty"`
+	Opponent *Team                    `json:"opponent,omitempty" bson:"opponent,omitempty"`
 	Winner   bool                     `json:"winner,omitempty" bson:"winner,omitempty"`
 	Player   *Player                  `json:"player,omitempty" bson:"player,omitempty"`
 	Stats    *ballchasing.PlayerStats `json:"stats,omitempty" bson:"stats,omitempty"`

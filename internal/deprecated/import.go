@@ -106,7 +106,7 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 	}
 
 	// Reset Games
-	_, err = h.Octane.Stats().Delete(bson.M{"game.match.event._id": linkage.NewEvent, "game.match.stage._id": linkage.NewStage})
+	_, err = h.Octane.Statlines().Delete(bson.M{"game.match.event._id": linkage.NewEvent, "game.match.stage._id": linkage.NewStage})
 	if err != nil {
 		return err
 	}
@@ -141,7 +141,7 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 						game := g.(*octane.Game)
 
 						if stats := h.getStats(game); len(stats) > 0 {
-							_, err := h.Octane.Stats().Insert(stats)
+							_, err := h.Octane.Statlines().Insert(stats)
 							if err != nil {
 								return err
 							}
@@ -296,17 +296,17 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 
 	for _, p := range game.Blue.Players {
 		id := primitive.NewObjectID()
-		stats = append(stats, &octane.Stats{
+		stats = append(stats, &octane.Statline{
 			ID: &id,
-			Game: octane.Game{
+			Game: &octane.Game{
 				ID:       game.ID,
 				Match:    game.Match,
 				Date:     game.Date,
 				Map:      game.Map,
 				Duration: game.Duration,
 			},
-			Team:     *game.Blue.Team,
-			Opponent: *game.Orange.Team,
+			Team:     game.Blue.Team,
+			Opponent: game.Orange.Team,
 			Winner:   game.Blue.Winner,
 			Player:   p.Player,
 			Stats:    p.Stats,
@@ -315,17 +315,17 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 
 	for _, p := range game.Orange.Players {
 		id := primitive.NewObjectID()
-		stats = append(stats, &octane.Stats{
+		stats = append(stats, &octane.Statline{
 			ID: &id,
-			Game: octane.Game{
+			Game: &octane.Game{
 				ID:       game.ID,
 				Match:    game.Match,
 				Date:     game.Date,
 				Map:      game.Map,
 				Duration: game.Duration,
 			},
-			Team:     *game.Orange.Team,
-			Opponent: *game.Blue.Team,
+			Team:     game.Orange.Team,
+			Opponent: game.Blue.Team,
 			Winner:   game.Orange.Winner,
 			Player:   p.Player,
 			Stats:    p.Stats,

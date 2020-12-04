@@ -53,10 +53,10 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	t.HandleFunc("/{_id}", h.GetTeam).
 		Methods(http.MethodGet)
 
-	// records
-	r.HandleFunc("/records/{stat}", h.GetRecords).Methods(http.MethodGet)
-
-	// TODO: Stats endpoints
+	// stats
+	x := r.PathPrefix("/stats").Subrouter()
+	x.HandleFunc("/records/{stat}", h.GetGameRecords).Methods(http.MethodGet)
+	x.HandleFunc("/players", h.GetPlayersStats).Methods(http.MethodGet)
 
 	// admin
 	r.HandleFunc("/import", d.Import).Methods(http.MethodPost)
