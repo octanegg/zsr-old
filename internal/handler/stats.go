@@ -27,6 +27,7 @@ func statsFilter(v url.Values) bson.M {
 		filter.Strings("game.match.event.region", v["region"]),
 		filter.Ints("game.match.event.mode", v["mode"]),
 		filter.ObjectIDs("game.match.event._id", v["event"]),
+		filter.Ints("game.match.stage._id", v["stage"]),
 		filter.ObjectIDs("player._id", v["player"]),
 		filter.ObjectIDs("team._id", v["team"]),
 		filter.ObjectIDs("opponent._id", v["opponent"]),

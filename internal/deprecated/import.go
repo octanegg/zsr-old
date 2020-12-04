@@ -396,6 +396,7 @@ func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
 		return &octane.Player{
 			ID:  player.ID,
 			Tag: player.Tag,
+			Country: player.Country,
 		}
 	}
 
