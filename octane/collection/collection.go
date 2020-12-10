@@ -17,6 +17,7 @@ type Collection interface {
 	Insert([]interface{}) ([]interface{}, error)
 	InsertOne(interface{}) (*primitive.ObjectID, error)
 	Delete(bson.M) (int64, error)
+	Pipeline([]bson.M, func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error)
 }
 
 type collection struct {
@@ -108,4 +109,22 @@ func (c *collection) Delete(filter bson.M) (int64, error) {
 	}
 
 	return res.DeletedCount, nil
+}
+
+func (c *collection) Pipeline(pipeline []bson.M, decode func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
+	cursor, err := c.Collection.Aggregate(context.TODO(), pipeline)
+	if err != nil {
+		return nil, err
+	}
+
+	var data []interface{}
+	for cursor.Next(context.TODO()) {
+		i, err := decode(cursor)
+		if err != nil {
+			return nil, err
+		}
+		data = append(data, i)
+	}
+
+	return data, nil
 }

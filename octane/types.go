@@ -5,6 +5,7 @@ import (
 
 	"github.com/octanegg/zsr/ballchasing"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // Event .
@@ -127,4 +128,52 @@ type Statline struct {
 	Winner   bool                     `json:"winner,omitempty" bson:"winner,omitempty"`
 	Player   *Player                  `json:"player,omitempty" bson:"player,omitempty"`
 	Stats    *ballchasing.PlayerStats `json:"stats,omitempty" bson:"stats,omitempty"`
+}
+
+func toEvents(cursor *mongo.Cursor) (interface{}, error) {
+	var event Event
+	if err := cursor.Decode(&event); err != nil {
+		return nil, err
+	}
+	return event, nil
+}
+
+func toMatches(cursor *mongo.Cursor) (interface{}, error) {
+	var match Match
+	if err := cursor.Decode(&match); err != nil {
+		return nil, err
+	}
+	return match, nil
+}
+
+func toGames(cursor *mongo.Cursor) (interface{}, error) {
+	var game Game
+	if err := cursor.Decode(&game); err != nil {
+		return nil, err
+	}
+	return game, nil
+}
+
+func toPlayers(cursor *mongo.Cursor) (interface{}, error) {
+	var player Player
+	if err := cursor.Decode(&player); err != nil {
+		return nil, err
+	}
+	return player, nil
+}
+
+func toTeams(cursor *mongo.Cursor) (interface{}, error) {
+	var team Team
+	if err := cursor.Decode(&team); err != nil {
+		return nil, err
+	}
+	return team, nil
+}
+
+func toStatlines(cursor *mongo.Cursor) (interface{}, error) {
+	var statline Statline
+	if err := cursor.Decode(&statline); err != nil {
+		return nil, err
+	}
+	return statline, nil
 }

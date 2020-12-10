@@ -11,10 +11,18 @@ import (
 )
 
 func (h *handler) GetPlayersStats(w http.ResponseWriter, r *http.Request) {
-	data, err := h.Stats.GetPlayerAggregate("player", statsFilter(r.URL.Query()))
+	v := r.URL.Query()
+
+	var having bson.M
+	if len(v) == 1 && len(v["mode"]) > 0 {
+		having = bson.M{"games": bson.M{"$gt": 50}}
+	}
+
+	data, err := h.Stats.GetPlayerAggregate(statsFilter(v), having)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)

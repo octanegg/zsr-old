@@ -43,27 +43,27 @@ func New(uri string) (Client, error) {
 		db     = c.Database("octane")
 		events = collection.New(
 			db.Collection("events"),
-			CursorToEvents,
+			toEvents,
 		)
 		matches = collection.New(
 			db.Collection("matches"),
-			CursorToMatches,
+			toMatches,
 		)
 		games = collection.New(
 			db.Collection("games"),
-			CursorToGames,
+			toGames,
 		)
 		players = collection.New(
 			db.Collection("players"),
-			CursorToPlayers,
+			toPlayers,
 		)
 		teams = collection.New(
 			db.Collection("teams"),
-			CursorToTeams,
+			toTeams,
 		)
 		statlines = collection.New(
 			db.Collection("statlines"),
-			CursorToStatlines,
+			toStatlines,
 		)
 	)
 
@@ -100,58 +100,4 @@ func (c *client) Teams() collection.Collection {
 
 func (c *client) Statlines() collection.Collection {
 	return c.StatlinesCollection
-}
-
-// CursorToEvents .
-func CursorToEvents(cursor *mongo.Cursor) (interface{}, error) {
-	var event Event
-	if err := cursor.Decode(&event); err != nil {
-		return nil, err
-	}
-	return event, nil
-}
-
-// CursorToMatches .
-func CursorToMatches(cursor *mongo.Cursor) (interface{}, error) {
-	var match Match
-	if err := cursor.Decode(&match); err != nil {
-		return nil, err
-	}
-	return match, nil
-}
-
-// CursorToGames .
-func CursorToGames(cursor *mongo.Cursor) (interface{}, error) {
-	var game Game
-	if err := cursor.Decode(&game); err != nil {
-		return nil, err
-	}
-	return game, nil
-}
-
-// CursorToPlayers .
-func CursorToPlayers(cursor *mongo.Cursor) (interface{}, error) {
-	var player Player
-	if err := cursor.Decode(&player); err != nil {
-		return nil, err
-	}
-	return player, nil
-}
-
-// CursorToTeams .
-func CursorToTeams(cursor *mongo.Cursor) (interface{}, error) {
-	var team Team
-	if err := cursor.Decode(&team); err != nil {
-		return nil, err
-	}
-	return team, nil
-}
-
-// CursorToStatlines .
-func CursorToStatlines(cursor *mongo.Cursor) (interface{}, error) {
-	var statline Statline
-	if err := cursor.Decode(&statline); err != nil {
-		return nil, err
-	}
-	return statline, nil
 }

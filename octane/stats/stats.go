@@ -14,7 +14,7 @@ var (
 // Stats .
 type Stats interface {
 	GetGameRecords(bson.M, bson.M) ([]interface{}, error)
-	GetPlayerAggregate(string, bson.M) ([]*PlayerAggregate, error)
+	GetPlayerAggregate(bson.M, bson.M) ([]interface{}, error)
 }
 
 type stats struct {
