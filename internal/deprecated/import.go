@@ -93,62 +93,158 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 
 	event := data.(octane.Event)
 
-	// Reset Matches
 	_, err = h.Octane.Matches().Delete(bson.M{"event._id": linkage.NewEvent, "stage._id": linkage.NewStage})
 	if err != nil {
 		return err
 	}
 
-	// Reset Games
 	_, err = h.Octane.Games().Delete(bson.M{"match.event._id": linkage.NewEvent, "match.stage._id": linkage.NewStage})
 	if err != nil {
 		return err
 	}
 
-	// Reset Games
 	_, err = h.Octane.Statlines().Delete(bson.M{"game.match.event._id": linkage.NewEvent, "game.match.stage._id": linkage.NewStage})
 	if err != nil {
 		return err
 	}
 
-	matches, err := h.getMatches(linkage, &event)
+	_, err = h.Octane.Teamlines().Delete(bson.M{"game.match.event._id": linkage.NewEvent, "game.match.stage._id": linkage.NewStage})
 	if err != nil {
 		return err
 	}
 
-	if len(matches) > 0 {
-		_, err = h.Octane.Matches().Insert(matches)
+	allMatches, err := h.getMatches(linkage, &event)
+	if err != nil {
+		return err
+	}
+
+	if len(allMatches) == 0 {
+		return nil
+	}
+
+	var allPlayerStats, allTeamStats, allGames []interface{}
+	for i, m := range allMatches {
+		match := m.(*octane.Match)
+		if match.Blue.Team == nil || match.Orange.Team == nil {
+			continue
+		}
+
+		games, err := h.getGames(match)
 		if err != nil {
 			return err
 		}
 
-		for _, m := range matches {
-			match := m.(*octane.Match)
+		if len(games) == 0 {
+			continue
+		}
 
-			if match.Blue.Team != nil && match.Orange.Team != nil {
-				games, err := h.getGames(match)
-				if err != nil {
-					return err
+		match.Blue.Stats = &ballchasing.TeamStats{
+			Core: &ballchasing.TeamCore{},
+		}
+
+		match.Orange.Stats = &ballchasing.TeamStats{
+			Core: &ballchasing.TeamCore{},
+		}
+
+		for i, g := range games {
+			game := g.(*octane.Game)
+
+			match.Blue.Stats.Core.Score += game.Blue.Stats.Core.Score
+			match.Blue.Stats.Core.Goals += game.Blue.Stats.Core.Goals
+			match.Blue.Stats.Core.Assists += game.Blue.Stats.Core.Assists
+			match.Blue.Stats.Core.Saves += game.Blue.Stats.Core.Saves
+			match.Blue.Stats.Core.Shots += game.Blue.Stats.Core.Shots
+			match.Blue.Stats.Core.ShootingPercentage = float64(match.Blue.Stats.Core.Goals) / float64(match.Blue.Stats.Core.Shots)
+
+			match.Orange.Stats.Core.Score += game.Orange.Stats.Core.Score
+			match.Orange.Stats.Core.Goals += game.Orange.Stats.Core.Goals
+			match.Orange.Stats.Core.Assists += game.Orange.Stats.Core.Assists
+			match.Orange.Stats.Core.Saves += game.Orange.Stats.Core.Saves
+			match.Orange.Stats.Core.Shots += game.Orange.Stats.Core.Shots
+			match.Orange.Stats.Core.ShootingPercentage = float64(match.Orange.Stats.Core.Goals) / float64(match.Orange.Stats.Core.Shots)
+
+			for j, player := range game.Blue.Players {
+				if i == 0 {
+					match.Blue.Players = append(match.Blue.Players, &octane.PlayerStats{
+						Player: player.Player,
+						Stats: &ballchasing.PlayerStats{
+							Core: &ballchasing.PlayerCore{},
+						},
+					})
 				}
 
-				if len(games) > 0 {
-					_, err = h.Octane.Games().Insert(games)
-					if err != nil {
-						return err
-					}
+				match.Blue.Players[j].Stats.Core.Score += player.Stats.Core.Score
+				match.Blue.Players[j].Stats.Core.Goals += player.Stats.Core.Goals
+				match.Blue.Players[j].Stats.Core.Assists += player.Stats.Core.Assists
+				match.Blue.Players[j].Stats.Core.Saves += player.Stats.Core.Saves
+				match.Blue.Players[j].Stats.Core.Shots += player.Stats.Core.Shots
+				match.Blue.Players[j].Stats.Core.Rating += player.Stats.Core.Rating
+				match.Blue.Players[j].Stats.Core.ShootingPercentage = float64(match.Blue.Players[j].Stats.Core.Goals) / float64(match.Blue.Players[j].Stats.Core.Shots)
+				match.Blue.Players[j].Stats.Core.GoalParticipation = float64(match.Blue.Players[j].Stats.Core.Goals+match.Blue.Players[j].Stats.Core.Assists) / float64(match.Blue.Stats.Core.Goals)
 
-					for _, g := range games {
-						game := g.(*octane.Game)
-
-						if stats := h.getStats(game); len(stats) > 0 {
-							_, err := h.Octane.Statlines().Insert(stats)
-							if err != nil {
-								return err
-							}
-						}
-					}
+				if i == len(games)-1 {
+					match.Blue.Players[j].Stats.Core.Rating /= float64(len(games))
 				}
 			}
+
+			for j, player := range game.Orange.Players {
+				if i == 0 {
+					match.Orange.Players = append(match.Orange.Players, &octane.PlayerStats{
+						Player: player.Player,
+						Stats: &ballchasing.PlayerStats{
+							Core: &ballchasing.PlayerCore{},
+						},
+					})
+				}
+
+				match.Orange.Players[j].Stats.Core.Score += player.Stats.Core.Score
+				match.Orange.Players[j].Stats.Core.Goals += player.Stats.Core.Goals
+				match.Orange.Players[j].Stats.Core.Assists += player.Stats.Core.Assists
+				match.Orange.Players[j].Stats.Core.Saves += player.Stats.Core.Saves
+				match.Orange.Players[j].Stats.Core.Shots += player.Stats.Core.Shots
+				match.Orange.Players[j].Stats.Core.Rating += player.Stats.Core.Rating
+				match.Orange.Players[j].Stats.Core.ShootingPercentage = float64(match.Orange.Players[j].Stats.Core.Goals) / float64(match.Orange.Players[j].Stats.Core.Shots)
+				match.Orange.Players[j].Stats.Core.GoalParticipation = float64(match.Orange.Players[j].Stats.Core.Goals+match.Orange.Players[j].Stats.Core.Assists) / float64(match.Orange.Stats.Core.Goals)
+
+				if i == len(games)-1 {
+					match.Orange.Players[j].Stats.Core.Rating /= float64(len(games))
+				}
+			}
+
+			match.Games = append(match.Games, game.ID)
+			allPlayerStats = append(allPlayerStats, h.getStats(game)...)
+			allTeamStats = append(allTeamStats, h.getTeamStats(game)...)
+		}
+
+		allGames = append(allGames, games...)
+		allMatches[i] = match
+	}
+
+	if len(allMatches) > 0 {
+		_, err = h.Octane.Matches().Insert(allMatches)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(allGames) > 0 {
+		_, err = h.Octane.Games().Insert(allGames)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(allPlayerStats) > 0 {
+		_, err = h.Octane.Statlines().Insert(allPlayerStats)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(allTeamStats) > 0 {
+		_, err = h.Octane.Teamlines().Insert(allTeamStats)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -265,12 +361,12 @@ func (h *handler) getGames(match *octane.Match) ([]interface{}, error) {
 			Duration: game.Duration,
 			Blue: &octane.GameSide{
 				Team:    match.Blue.Team,
-				Goals:   game.Blue.Goals,
+				Stats:   toTeamStats(game.Blue.Players),
 				Players: h.toPlayers(game.Blue.Players),
 			},
 			Orange: &octane.GameSide{
 				Team:    match.Orange.Team,
-				Goals:   game.Orange.Goals,
+				Stats:   toTeamStats(game.Orange.Players),
 				Players: h.toPlayers(game.Orange.Players),
 			},
 			Match: &octane.Match{
@@ -282,8 +378,8 @@ func (h *handler) getGames(match *octane.Match) ([]interface{}, error) {
 			Date: match.Date,
 		}
 
-		newGame.Blue.Winner = newGame.Blue.Goals > newGame.Orange.Goals
-		newGame.Orange.Winner = newGame.Orange.Goals > newGame.Blue.Goals
+		newGame.Blue.Winner = newGame.Blue.Stats.Core.Goals > newGame.Orange.Stats.Core.Goals
+		newGame.Orange.Winner = newGame.Orange.Stats.Core.Goals > newGame.Blue.Stats.Core.Goals
 
 		newGames = append(newGames, newGame)
 	}
@@ -330,6 +426,57 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 			Player:   p.Player,
 			Stats:    p.Stats,
 		})
+	}
+
+	return stats
+}
+
+func (h *handler) getTeamStats(game *octane.Game) []interface{} {
+	blueID, orangeID := primitive.NewObjectID(), primitive.NewObjectID()
+	return []interface{}{
+		&octane.Teamline{
+			ID: &blueID,
+			Game: &octane.Game{
+				ID:       game.ID,
+				Match:    game.Match,
+				Date:     game.Date,
+				Map:      game.Map,
+				Duration: game.Duration,
+			},
+			Team:     game.Blue.Team,
+			Opponent: game.Orange.Team,
+			Winner:   game.Blue.Winner,
+			Stats:    game.Blue.Stats,
+		},
+		&octane.Teamline{
+			ID: &orangeID,
+			Game: &octane.Game{
+				ID:       game.ID,
+				Match:    game.Match,
+				Date:     game.Date,
+				Map:      game.Map,
+				Duration: game.Duration,
+			},
+			Team:     game.Orange.Team,
+			Opponent: game.Blue.Team,
+			Winner:   game.Orange.Winner,
+			Stats:    game.Orange.Stats,
+		},
+	}
+}
+
+func toTeamStats(logs []Log) *ballchasing.TeamStats {
+	stats := &ballchasing.TeamStats{
+		Core: &ballchasing.TeamCore{},
+	}
+
+	for _, log := range logs {
+		stats.Core.Score += log.Score
+		stats.Core.Goals += log.Goals
+		stats.Core.Assists += log.Assists
+		stats.Core.Saves += log.Saves
+		stats.Core.Shots += log.Shots
+		stats.Core.ShootingPercentage = float64(stats.Core.Goals) / float64(stats.Core.Shots)
 	}
 
 	return stats
@@ -394,8 +541,8 @@ func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
 	if err == nil {
 		player := p.(octane.Player)
 		return &octane.Player{
-			ID:  player.ID,
-			Tag: player.Tag,
+			ID:      player.ID,
+			Tag:     player.Tag,
 			Country: player.Country,
 		}
 	}

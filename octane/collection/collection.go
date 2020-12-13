@@ -112,12 +112,19 @@ func (c *collection) Delete(filter bson.M) (int64, error) {
 }
 
 func (c *collection) Pipeline(pipeline []bson.M, decode func(*mongo.Cursor) (interface{}, error)) ([]interface{}, error) {
-	cursor, err := c.Collection.Aggregate(context.TODO(), pipeline)
+	cursor, err := c.Collection.Aggregate(context.TODO(), pipeline, options.Aggregate().SetAllowDiskUse(true))
 	if err != nil {
 		return nil, err
 	}
 
 	var data []interface{}
+	if decode == nil {
+		if err := cursor.All(context.TODO(), &data); err != nil {
+			return nil, err
+		}
+		return data, nil
+	}
+
 	for cursor.Next(context.TODO()) {
 		i, err := decode(cursor)
 		if err != nil {

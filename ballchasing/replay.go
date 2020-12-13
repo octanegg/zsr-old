@@ -105,10 +105,10 @@ type PlayerCore struct {
 	Saves              int     `json:"saves" bson:"saves"`
 	Assists            int     `json:"assists" bson:"assists"`
 	Score              int     `json:"score" bson:"score"`
-	Mvp                bool    `json:"mvp" bson:"mvp"`
 	ShootingPercentage float64 `json:"shooting_percentage" bson:"shooting_percentage"`
 	GoalParticipation  float64 `json:"goal_participation" bson:"goal_participation"`
-	Rating             float64 `json:"rating" bson:"rating"`
+	Rating             float64 `json:"rating,omitempty" bson:"rating,omitempty"`
+	Mvp                bool    `json:"mvp,omitempty" bson:"mvp,omitempty"`
 }
 
 // PlayerBoost .
@@ -204,12 +204,12 @@ type PlayerDemolitions struct {
 
 // TeamStats .
 type TeamStats struct {
-	Ball        TeamBall        `json:"ball" bson:"ball"`
-	Core        TeamCore        `json:"core" bson:"core"`
-	Boost       TeamBoost       `json:"boost" bson:"boost"`
-	Movement    TeamMovement    `json:"movement" bson:"movement"`
-	Positioning TeamPositioning `json:"positioning" bson:"positioning"`
-	Demolitions TeamDemolitions `json:"demo" bson:"demo"`
+	Ball        *TeamBall        `json:"ball,omitempty" bson:"ball,omitempty"`
+	Core        *TeamCore        `json:"core,omitempty" bson:"core,omitempty"`
+	Boost       *TeamBoost       `json:"boost,omitempty" bson:"boost,omitempty"`
+	Movement    *TeamMovement    `json:"movement,omitempty" bson:"movement,omitempty"`
+	Positioning *TeamPositioning `json:"positioning,omitempty" bson:"positioning,omitempty"`
+	Demolitions *TeamDemolitions `json:"demo,omitempty" bson:"demo,omitempty"`
 }
 
 // TeamBall .
@@ -221,9 +221,7 @@ type TeamBall struct {
 // TeamCore .
 type TeamCore struct {
 	Shots              int     `json:"shots" bson:"shots"`
-	ShotsAgainst       int     `json:"shots_against" bson:"shots_against"`
 	Goals              int     `json:"goals" bson:"goals"`
-	GoalsAgainst       int     `json:"goals_against" bson:"goals_against"`
 	Saves              int     `json:"saves" bson:"saves"`
 	Assists            int     `json:"assists" bson:"assists"`
 	Score              int     `json:"score" bson:"score"`

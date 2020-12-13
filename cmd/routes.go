@@ -54,9 +54,9 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 		Methods(http.MethodGet)
 
 	// stats
-	x := r.PathPrefix("/stats").Subrouter()
-	x.HandleFunc("/records/{stat}", h.GetGameRecords).Methods(http.MethodGet)
-	x.HandleFunc("/players", h.GetPlayersStats).Methods(http.MethodGet)
+	r.HandleFunc("/records/{category}/{type}", h.GetGameRecords).Methods(http.MethodGet)
+	r.HandleFunc("/records/{category}/{type}/{stat}", h.GetGameRecords).Methods(http.MethodGet)
+	r.HandleFunc("/stats/players", h.GetPlayersStats).Methods(http.MethodGet)
 
 	// admin
 	r.HandleFunc("/import", d.Import).Methods(http.MethodPost)

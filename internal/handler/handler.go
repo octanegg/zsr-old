@@ -9,7 +9,6 @@ import (
 
 	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/collection"
-	"github.com/octanegg/zsr/octane/stats"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -21,7 +20,6 @@ type Error struct {
 
 type handler struct {
 	Octane octane.Client
-	Stats  stats.Stats
 }
 
 // Handler .
@@ -45,8 +43,8 @@ type Handler interface {
 }
 
 // New .
-func New(o octane.Client, s stats.Stats) Handler {
-	return &handler{o, s}
+func New(o octane.Client) Handler {
+	return &handler{o}
 }
 
 func sort(v url.Values) bson.M {

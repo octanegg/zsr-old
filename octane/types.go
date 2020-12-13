@@ -50,23 +50,26 @@ type Prize struct {
 
 // Match .
 type Match struct {
-	ID       *primitive.ObjectID `json:"_id" bson:"_id"`
-	OctaneID string              `json:"octane_id,omitempty" bson:"octane_id,omitempty"`
-	Event    *Event              `json:"event,omitempty" bson:"event,omitempty"`
-	Stage    *Stage              `json:"stage,omitempty" bson:"stage,omitempty"`
-	Substage int                 `json:"substage,omitempty" bson:"substage,omitempty"`
-	Date     *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
-	Format   string              `json:"format,omitempty" bson:"format,omitempty"`
-	Blue     *MatchSide          `json:"blue,omitempty" bson:"blue,omitempty"`
-	Orange   *MatchSide          `json:"orange,omitempty" bson:"orange,omitempty"`
-	Number   int                 `json:"number,omitempty" bson:"number,omitempty"`
+	ID       *primitive.ObjectID   `json:"_id" bson:"_id"`
+	OctaneID string                `json:"octane_id,omitempty" bson:"octane_id,omitempty"`
+	Event    *Event                `json:"event,omitempty" bson:"event,omitempty"`
+	Stage    *Stage                `json:"stage,omitempty" bson:"stage,omitempty"`
+	Substage int                   `json:"substage,omitempty" bson:"substage,omitempty"`
+	Date     *time.Time            `json:"date,omitempty" bson:"date,omitempty"`
+	Format   string                `json:"format,omitempty" bson:"format,omitempty"`
+	Blue     *MatchSide            `json:"blue,omitempty" bson:"blue,omitempty"`
+	Orange   *MatchSide            `json:"orange,omitempty" bson:"orange,omitempty"`
+	Number   int                   `json:"number,omitempty" bson:"number,omitempty"`
+	Games    []*primitive.ObjectID `json:"games,omitempty" bson:"games,omitempty"`
 }
 
 // MatchSide .
 type MatchSide struct {
-	Score  int   `json:"score,omitempty" bson:"score,omitempty"`
-	Winner bool  `json:"winner,omitempty" bson:"winner,omitempty"`
-	Team   *Team `json:"team,omitempty" bson:"team,omitempty"`
+	Score   int                    `json:"score,omitempty" bson:"score,omitempty"`
+	Winner  bool                   `json:"winner,omitempty" bson:"winner,omitempty"`
+	Team    *Team                  `json:"team,omitempty" bson:"team,omitempty"`
+	Stats   *ballchasing.TeamStats `json:"stats,omitempty" bson:"stats,omitempty"`
+	Players []*PlayerStats         `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 // Game .
@@ -85,10 +88,10 @@ type Game struct {
 
 // GameSide .
 type GameSide struct {
-	Goals   int            `json:"goals,omitempty" bson:"goals,omitempty"`
-	Winner  bool           `json:"winner,omitempty" bson:"winner,omitempty"`
-	Team    *Team          `json:"team,omitempty" bson:"team,omitempty"`
-	Players []*PlayerStats `json:"players,omitempty" bson:"players,omitempty"`
+	Winner  bool                   `json:"winner,omitempty" bson:"winner,omitempty"`
+	Team    *Team                  `json:"team,omitempty" bson:"team,omitempty"`
+	Stats   *ballchasing.TeamStats `json:"stats,omitempty" bson:"stats,omitempty"`
+	Players []*PlayerStats         `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 // PlayerStats .
@@ -128,6 +131,16 @@ type Statline struct {
 	Winner   bool                     `json:"winner,omitempty" bson:"winner,omitempty"`
 	Player   *Player                  `json:"player,omitempty" bson:"player,omitempty"`
 	Stats    *ballchasing.PlayerStats `json:"stats,omitempty" bson:"stats,omitempty"`
+}
+
+// Teamline .
+type Teamline struct {
+	ID       *primitive.ObjectID    `json:"_id" bson:"_id"`
+	Game     *Game                  `json:"game,omitempty" bson:"game,omitempty"`
+	Team     *Team                  `json:"team,omitempty" bson:"team,omitempty"`
+	Opponent *Team                  `json:"opponent,omitempty" bson:"opponent,omitempty"`
+	Winner   bool                   `json:"winner,omitempty" bson:"winner,omitempty"`
+	Stats    *ballchasing.TeamStats `json:"stats,omitempty" bson:"stats,omitempty"`
 }
 
 func toEvents(cursor *mongo.Cursor) (interface{}, error) {
@@ -176,4 +189,12 @@ func toStatlines(cursor *mongo.Cursor) (interface{}, error) {
 		return nil, err
 	}
 	return statline, nil
+}
+
+func toTeamlines(cursor *mongo.Cursor) (interface{}, error) {
+	var teamline Teamline
+	if err := cursor.Decode(&teamline); err != nil {
+		return nil, err
+	}
+	return teamline, nil
 }

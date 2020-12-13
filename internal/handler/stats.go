@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/octanegg/zsr/octane/filter"
+	"github.com/octanegg/zsr/octane/pipelines"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -18,7 +19,8 @@ func (h *handler) GetPlayersStats(w http.ResponseWriter, r *http.Request) {
 		having = bson.M{"games": bson.M{"$gt": 50}}
 	}
 
-	data, err := h.Stats.GetPlayerAggregate(statsFilter(v), having)
+	pipeline := pipelines.PlayerAggregate(statsFilter(v), having)
+	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
