@@ -123,7 +123,7 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 	}
 
 	var allPlayerStats, allTeamStats, allGames []interface{}
-	for i, m := range allMatches {
+	for _, m := range allMatches {
 		match := m.(*octane.Match)
 		if match.Blue.Team == nil || match.Orange.Team == nil {
 			continue
@@ -138,86 +138,12 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 			continue
 		}
 
-		match.Blue.Stats = &ballchasing.TeamStats{
-			Core: &ballchasing.TeamCore{},
-		}
-
-		match.Orange.Stats = &ballchasing.TeamStats{
-			Core: &ballchasing.TeamCore{},
-		}
-
-		for i, g := range games {
+		for _, g := range games {
 			game := g.(*octane.Game)
-
-			match.Blue.Stats.Core.Score += game.Blue.Stats.Core.Score
-			match.Blue.Stats.Core.Goals += game.Blue.Stats.Core.Goals
-			match.Blue.Stats.Core.Assists += game.Blue.Stats.Core.Assists
-			match.Blue.Stats.Core.Saves += game.Blue.Stats.Core.Saves
-			match.Blue.Stats.Core.Shots += game.Blue.Stats.Core.Shots
-			match.Blue.Stats.Core.ShootingPercentage = float64(match.Blue.Stats.Core.Goals) / float64(match.Blue.Stats.Core.Shots)
-
-			match.Orange.Stats.Core.Score += game.Orange.Stats.Core.Score
-			match.Orange.Stats.Core.Goals += game.Orange.Stats.Core.Goals
-			match.Orange.Stats.Core.Assists += game.Orange.Stats.Core.Assists
-			match.Orange.Stats.Core.Saves += game.Orange.Stats.Core.Saves
-			match.Orange.Stats.Core.Shots += game.Orange.Stats.Core.Shots
-			match.Orange.Stats.Core.ShootingPercentage = float64(match.Orange.Stats.Core.Goals) / float64(match.Orange.Stats.Core.Shots)
-
-			for j, player := range game.Blue.Players {
-				if i == 0 {
-					match.Blue.Players = append(match.Blue.Players, &octane.PlayerStats{
-						Player: player.Player,
-						Stats: &ballchasing.PlayerStats{
-							Core: &ballchasing.PlayerCore{},
-						},
-					})
-				}
-
-				match.Blue.Players[j].Stats.Core.Score += player.Stats.Core.Score
-				match.Blue.Players[j].Stats.Core.Goals += player.Stats.Core.Goals
-				match.Blue.Players[j].Stats.Core.Assists += player.Stats.Core.Assists
-				match.Blue.Players[j].Stats.Core.Saves += player.Stats.Core.Saves
-				match.Blue.Players[j].Stats.Core.Shots += player.Stats.Core.Shots
-				match.Blue.Players[j].Stats.Core.Rating += player.Stats.Core.Rating
-				match.Blue.Players[j].Stats.Core.ShootingPercentage = float64(match.Blue.Players[j].Stats.Core.Goals) / float64(match.Blue.Players[j].Stats.Core.Shots)
-				match.Blue.Players[j].Stats.Core.GoalParticipation = float64(match.Blue.Players[j].Stats.Core.Goals+match.Blue.Players[j].Stats.Core.Assists) / float64(match.Blue.Stats.Core.Goals)
-
-				if i == len(games)-1 {
-					match.Blue.Players[j].Stats.Core.Rating /= float64(len(games))
-				}
-			}
-
-			for j, player := range game.Orange.Players {
-				if i == 0 {
-					match.Orange.Players = append(match.Orange.Players, &octane.PlayerStats{
-						Player: player.Player,
-						Stats: &ballchasing.PlayerStats{
-							Core: &ballchasing.PlayerCore{},
-						},
-					})
-				}
-
-				match.Orange.Players[j].Stats.Core.Score += player.Stats.Core.Score
-				match.Orange.Players[j].Stats.Core.Goals += player.Stats.Core.Goals
-				match.Orange.Players[j].Stats.Core.Assists += player.Stats.Core.Assists
-				match.Orange.Players[j].Stats.Core.Saves += player.Stats.Core.Saves
-				match.Orange.Players[j].Stats.Core.Shots += player.Stats.Core.Shots
-				match.Orange.Players[j].Stats.Core.Rating += player.Stats.Core.Rating
-				match.Orange.Players[j].Stats.Core.ShootingPercentage = float64(match.Orange.Players[j].Stats.Core.Goals) / float64(match.Orange.Players[j].Stats.Core.Shots)
-				match.Orange.Players[j].Stats.Core.GoalParticipation = float64(match.Orange.Players[j].Stats.Core.Goals+match.Orange.Players[j].Stats.Core.Assists) / float64(match.Orange.Stats.Core.Goals)
-
-				if i == len(games)-1 {
-					match.Orange.Players[j].Stats.Core.Rating /= float64(len(games))
-				}
-			}
-
-			match.Games = append(match.Games, game.ID)
 			allPlayerStats = append(allPlayerStats, h.getStats(game)...)
 			allTeamStats = append(allTeamStats, h.getTeamStats(game)...)
 		}
-
 		allGames = append(allGames, games...)
-		allMatches[i] = match
 	}
 
 	if len(allMatches) > 0 {
