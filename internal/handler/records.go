@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/url"
 	"time"
@@ -69,8 +68,10 @@ func (h *handler) getRecordsContext(r *http.Request) *recordsContext {
 		case "players":
 			return &recordsContext{
 				Collection: h.Octane.Statlines(),
-				Filter:     statlinesFilter(r.URL.Query()),
-				Sort:       bson.M{fmt.Sprintf("stats.core.%s", stat): -1},
+				Pipeline: pipelines.GamePlayerRecords(
+					statlinesFilter(r.URL.Query()),
+					stat,
+				),
 			}
 		case "teams":
 			return &recordsContext{
@@ -105,16 +106,40 @@ func (h *handler) getRecordsContext(r *http.Request) *recordsContext {
 		default:
 			return nil
 		}
-	case "matches":
+	case "series":
 		switch typ {
 		case "players":
-			return nil
+			return &recordsContext{
+				Collection: h.Octane.Statlines(),
+				Pipeline: pipelines.SeriesPlayerRecords(
+					statlinesFilter(r.URL.Query()),
+					stat,
+				),
+			}
 		case "teams":
-			return nil
+			return &recordsContext{
+				Collection: h.Octane.Statlines(),
+				Pipeline: pipelines.SeriesTeamRecords(
+					statlinesFilter(r.URL.Query()),
+					stat,
+				),
+			}
 		case "totals":
-			return nil
+			return &recordsContext{
+				Collection: h.Octane.Games(),
+				Pipeline: pipelines.SeriesTotalRecords(
+					gamesFilter(r.URL.Query()),
+					stat,
+				),
+			}
 		case "differentials":
-			return nil
+			return &recordsContext{
+				Collection: h.Octane.Games(),
+				Pipeline: pipelines.SeriesDifferentialRecords(
+					gamesFilter(r.URL.Query()),
+					stat,
+				),
+			}
 		default:
 			return nil
 		}

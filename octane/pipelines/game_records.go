@@ -9,6 +9,43 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+// GamePlayerRecords .
+func GamePlayerRecords(filter bson.M, stat string) *Pipeline {
+	pipeline := New(
+		Match(filter),
+		Project(bson.M{
+			"game":     "$game",
+			"date":     "$date",
+			"team":     "$team",
+			"opponent": "$opponent",
+			"winner":   "$winner",
+			"player":   "$player",
+			"stat":     fmt.Sprintf("$stats.core.%s", stat),
+		}),
+		Sort("stat", true),
+		Limit(25),
+	)
+
+	return &Pipeline{
+		Pipeline: pipeline,
+		Decode: func(cursor *mongo.Cursor) (interface{}, error) {
+			var player struct {
+				Game     *octane.Game   `json:"game,omitempty" bson:"game,omitempty"`
+				Date     *time.Time     `json:"date,omitempty" bson:"date,omitempty"`
+				Team     *octane.Team   `json:"team,omitempty" bson:"team,omitempty"`
+				Opponent *octane.Team   `json:"opponent,omitempty" bson:"opponent,omitempty"`
+				Winner   bool           `json:"winner,omitempty" bson:"winner,omitempty"`
+				Player   *octane.Player `json:"player,omitempty" bson:"player,omitempty"`
+				Stat     int            `json:"stat,omitempty" bson:"stat,omitempty"`
+			}
+			if err := cursor.Decode(&player); err != nil {
+				return nil, err
+			}
+			return player, nil
+		},
+	}
+}
+
 // GameTeamRecords .
 func GameTeamRecords(filter bson.M, stat string) *Pipeline {
 	pipeline := New(
