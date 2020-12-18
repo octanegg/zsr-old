@@ -11,6 +11,11 @@ import (
 
 // SeriesPlayerRecords .
 func SeriesPlayerRecords(filter bson.M, stat string) *Pipeline {
+	op := "$sum"
+	if stat == "rating" {
+		op = "$avg"
+	}
+
 	pipeline := New(
 		Match(filter),
 		Group(bson.M{
@@ -37,7 +42,7 @@ func SeriesPlayerRecords(filter bson.M, stat string) *Pipeline {
 				"$first": "$player",
 			},
 			"stat": bson.M{
-				"$sum": fmt.Sprintf("$stats.core.%s", stat),
+				op: fmt.Sprintf("$stats.core.%s", stat),
 			},
 		}),
 		Sort("stat", true),
@@ -54,7 +59,7 @@ func SeriesPlayerRecords(filter bson.M, stat string) *Pipeline {
 				Opponent *octane.Team   `json:"opponent,omitempty" bson:"opponent,omitempty"`
 				Winner   bool           `json:"winner,omitempty" bson:"winner,omitempty"`
 				Player   *octane.Player `json:"player,omitempty" bson:"player,omitempty"`
-				Stat     int            `json:"stat,omitempty" bson:"stat,omitempty"`
+				Stat     float64        `json:"stat,omitempty" bson:"stat,omitempty"`
 			}
 			if err := cursor.Decode(&player); err != nil {
 				return nil, err
