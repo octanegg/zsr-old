@@ -6,7 +6,9 @@
 *.test
 *.out
 *.rdb
+.DS_Store
 
+.vscode/
 vendor/
 
 run

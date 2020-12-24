@@ -12,8 +12,8 @@ import (
 type Event struct {
 	ID        *primitive.ObjectID `json:"_id" bson:"_id"`
 	Name      string              `json:"name,omitempty" bson:"name,omitempty"`
-	StartDate *time.Time          `json:"start_date,omitempty" bson:"start_date,omitempty"`
-	EndDate   *time.Time          `json:"end_date,omitempty" bson:"end_date,omitempty"`
+	StartDate *time.Time          `json:"startDate,omitempty" bson:"start_date,omitempty"`
+	EndDate   *time.Time          `json:"endDate,omitempty" bson:"end_date,omitempty"`
 	Region    string              `json:"region,omitempty" bson:"region,omitempty"`
 	Mode      int                 `json:"mode,omitempty" bson:"mode,omitempty"`
 	Prize     *Prize              `json:"prize,omitempty" bson:"prize,omitempty"`
@@ -27,8 +27,8 @@ type Stage struct {
 	Name       string      `json:"name,omitempty" bson:"name,omitempty"`
 	Format     string      `json:"format,omitempty" bson:"format,omitempty"`
 	Region     string      `json:"region,omitempty" bson:"region,omitempty"`
-	StartDate  *time.Time  `json:"start_date,omitempty" bson:"start_date,omitempty"`
-	EndDate    *time.Time  `json:"end_date,omitempty" bson:"end_date,omitempty"`
+	StartDate  *time.Time  `json:"startDate,omitempty" bson:"start_date,omitempty"`
+	EndDate    *time.Time  `json:"endDate,omitempty" bson:"end_date,omitempty"`
 	Prize      *Prize      `json:"prize,omitempty" bson:"prize,omitempty"`
 	Liquipedia string      `json:"liquipedia,omitempty" bson:"liquipedia,omitempty"`
 	Qualifier  bool        `json:"qualifier,omitempty" bson:"qualifier,omitempty"`
@@ -121,23 +121,19 @@ type Team struct {
 
 // Statline .
 type Statline struct {
-	ID       *primitive.ObjectID      `json:"_id" bson:"_id"`
-	Game     *Game                    `json:"game,omitempty" bson:"game,omitempty"`
-	Team     *Team                    `json:"team,omitempty" bson:"team,omitempty"`
-	Opponent *Team                    `json:"opponent,omitempty" bson:"opponent,omitempty"`
-	Winner   bool                     `json:"winner,omitempty" bson:"winner,omitempty"`
-	Player   *Player                  `json:"player,omitempty" bson:"player,omitempty"`
-	Stats    *ballchasing.PlayerStats `json:"stats,omitempty" bson:"stats,omitempty"`
+	ID       *primitive.ObjectID `json:"_id" bson:"_id"`
+	Game     *Game               `json:"game,omitempty" bson:"game,omitempty"`
+	Team     *Team               `json:"team,omitempty" bson:"team,omitempty"`
+	Opponent *Team               `json:"opponent,omitempty" bson:"opponent,omitempty"`
+	Winner   bool                `json:"winner,omitempty" bson:"winner,omitempty"`
+	Player   *Player             `json:"player,omitempty" bson:"player,omitempty"`
+	Stats    *StatlineStats      `json:"stats,omitempty" bson:"stats,omitempty"`
 }
 
-// Teamline .
-type Teamline struct {
-	ID       *primitive.ObjectID    `json:"_id" bson:"_id"`
-	Game     *Game                  `json:"game,omitempty" bson:"game,omitempty"`
-	Team     *Team                  `json:"team,omitempty" bson:"team,omitempty"`
-	Opponent *Team                  `json:"opponent,omitempty" bson:"opponent,omitempty"`
-	Winner   bool                   `json:"winner,omitempty" bson:"winner,omitempty"`
-	Stats    *ballchasing.TeamStats `json:"stats,omitempty" bson:"stats,omitempty"`
+// StatlineStats .
+type StatlineStats struct {
+	Player *ballchasing.PlayerStats `json:"player,omitempty" bson:"player,omitempty"`
+	Team   *ballchasing.TeamStats   `json:"team,omitempty" bson:"team,omitempty"`
 }
 
 func toEvents(cursor *mongo.Cursor) (interface{}, error) {
@@ -186,12 +182,4 @@ func toStatlines(cursor *mongo.Cursor) (interface{}, error) {
 		return nil, err
 	}
 	return statline, nil
-}
-
-func toTeamlines(cursor *mongo.Cursor) (interface{}, error) {
-	var teamline Teamline
-	if err := cursor.Decode(&teamline); err != nil {
-		return nil, err
-	}
-	return teamline, nil
 }

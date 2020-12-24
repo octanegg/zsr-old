@@ -16,7 +16,6 @@ type client struct {
 	PlayersCollection   collection.Collection
 	TeamsCollection     collection.Collection
 	StatlinesCollection collection.Collection
-	TeamlinesCollection collection.Collection
 }
 
 // Client .
@@ -27,7 +26,6 @@ type Client interface {
 	Players() collection.Collection
 	Teams() collection.Collection
 	Statlines() collection.Collection
-	Teamlines() collection.Collection
 }
 
 // New .
@@ -67,10 +65,6 @@ func New(uri string) (Client, error) {
 			db.Collection("statlines"),
 			toStatlines,
 		)
-		teamlines = collection.New(
-			db.Collection("teamlines"),
-			toStatlines,
-		)
 	)
 
 	return &client{
@@ -81,7 +75,6 @@ func New(uri string) (Client, error) {
 		PlayersCollection:   players,
 		TeamsCollection:     teams,
 		StatlinesCollection: statlines,
-		TeamlinesCollection: teamlines,
 	}, nil
 }
 
@@ -107,8 +100,4 @@ func (c *client) Teams() collection.Collection {
 
 func (c *client) Statlines() collection.Collection {
 	return c.StatlinesCollection
-}
-
-func (c *client) Teamlines() collection.Collection {
-	return c.TeamlinesCollection
 }

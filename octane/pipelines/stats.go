@@ -30,37 +30,40 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 				},
 			},
 			"score_total": bson.M{
-				"$sum": "$stats.core.score",
+				"$sum": "$stats.player.core.score",
 			},
 			"goals_total": bson.M{
-				"$sum": "$stats.core.goals",
+				"$sum": "$stats.player.core.goals",
 			},
 			"assists_total": bson.M{
-				"$sum": "$stats.core.assists",
+				"$sum": "$stats.player.core.assists",
 			},
 			"saves_total": bson.M{
-				"$sum": "$stats.core.saves",
+				"$sum": "$stats.player.core.saves",
 			},
 			"shots_total": bson.M{
-				"$sum": "$stats.core.shots",
+				"$sum": "$stats.player.core.shots",
+			},
+			"team_goals_total": bson.M{
+				"$sum": "$stats.team.core.goals",
 			},
 			"score_avg": bson.M{
-				"$avg": "$stats.core.score",
+				"$avg": "$stats.player.core.score",
 			},
 			"goals_avg": bson.M{
-				"$avg": "$stats.core.goals",
+				"$avg": "$stats.player.core.goals",
 			},
 			"assists_avg": bson.M{
-				"$avg": "$stats.core.assists",
+				"$avg": "$stats.player.core.assists",
 			},
 			"saves_avg": bson.M{
-				"$avg": "$stats.core.saves",
+				"$avg": "$stats.player.core.saves",
 			},
 			"shots_avg": bson.M{
-				"$avg": "$stats.core.shots",
+				"$avg": "$stats.player.core.shots",
 			},
 			"rating_avg": bson.M{
-				"$avg": "$stats.core.rating",
+				"$avg": "$stats.player.core.rating",
 			},
 		}),
 		Match(having),
@@ -76,20 +79,36 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 					"$wins", "$games",
 				},
 			},
-			"totals": bson.M{
-				"score":   "$score_total",
-				"goals":   "$goals_total",
-				"assists": "$assists_total",
-				"saves":   "$saves_total",
-				"shots":   "$shots_total",
-			},
 			"averages": bson.M{
 				"score":   "$score_avg",
 				"goals":   "$goals_avg",
 				"assists": "$assists_avg",
 				"saves":   "$saves_avg",
 				"shots":   "$shots_avg",
-				"rating":  "$rating_avg",
+				"shootingPercentage": bson.M{
+					"$cond": bson.A{
+						bson.M{"$eq": bson.A{"$shots_total", 0}},
+						1,
+						bson.M{
+							"$divide": bson.A{"$goals_total", "$shots_total"},
+						},
+					},
+				},
+				"goalParticipation": bson.M{
+					"$cond": bson.A{
+						bson.M{"$eq": bson.A{"$team_goals_total", 0}},
+						1,
+						bson.M{
+							"$divide": bson.A{
+								bson.M{
+									"$add": bson.A{"$goals_total", "$assists_total"},
+								},
+								"$team_goals_total",
+							},
+						},
+					},
+				},
+				"rating": "$rating_avg",
 			},
 		}),
 	)
@@ -102,21 +121,15 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 				Games         int            `json:"games" bson:"games"`
 				Wins          int            `json:"wins" bson:"wins"`
 				WinPercentage float64        `json:"win_percentage" bson:"win_percentage"`
-				Totals        struct {
-					Score   int     `json:"score" bson:"score"`
-					Goals   int     `json:"goals" bson:"goals"`
-					Assists int     `json:"assists" bson:"assists"`
-					Saves   int     `json:"saves" bson:"saves"`
-					Shots   int     `json:"shots" bson:"shots"`
-					Rating  float64 `json:"rating" bson:"rating"`
-				} `json:"totals" bson:"totals"`
-				Averages struct {
-					Score   float64 `json:"score" bson:"score"`
-					Goals   float64 `json:"goals" bson:"goals"`
-					Assists float64 `json:"assists" bson:"assists"`
-					Saves   float64 `json:"saves" bson:"saves"`
-					Shots   float64 `json:"shots" bson:"shots"`
-					Rating  float64 `json:"rating" bson:"rating"`
+				Averages      struct {
+					Score              float64 `json:"score" bson:"score"`
+					Goals              float64 `json:"goals" bson:"goals"`
+					Assists            float64 `json:"assists" bson:"assists"`
+					Saves              float64 `json:"saves" bson:"saves"`
+					Shots              float64 `json:"shots" bson:"shots"`
+					ShootingPercentage float64 `json:"shootingPercentage" bson:"shootingPercentage"`
+					GoalParticipation  float64 `json:"goalParticipation" bson:"goalParticipation"`
+					Rating             float64 `json:"rating" bson:"rating"`
 				} `json:"averages" bson:"averages"`
 			}
 			if err := cursor.Decode(&player); err != nil {

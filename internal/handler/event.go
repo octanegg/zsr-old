@@ -64,12 +64,19 @@ func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func eventsFilter(v url.Values) bson.M {
+	beforeField, afterField := "end_date", "start_date"
+	before, after := v.Get("before"), v.Get("after")
+	if date := v.Get("date"); date != "" {
+		beforeField, afterField = afterField, beforeField
+		before, after = date, date
+	}
+
 	return filter.New(
 		filter.Strings("name", v["name"]),
 		filter.Strings("tier", v["tier"]),
 		filter.Strings("region", v["region"]),
 		filter.Strings("mode", v["mode"]),
-		filter.BeforeDate("start_date", v.Get("before")),
-		filter.AfterDate("start_date", v.Get("after")),
+		filter.BeforeDate(beforeField, before),
+		filter.AfterDate(afterField, after),
 	)
 }

@@ -108,11 +108,6 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 		return err
 	}
 
-	_, err = h.Octane.Teamlines().Delete(bson.M{"game.match.event._id": linkage.NewEvent, "game.match.stage._id": linkage.NewStage})
-	if err != nil {
-		return err
-	}
-
 	allMatches, err := h.getMatches(linkage, &event)
 	if err != nil {
 		return err
@@ -122,7 +117,7 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 		return nil
 	}
 
-	var allPlayerStats, allTeamStats, allGames []interface{}
+	var allPlayerStats, allGames []interface{}
 	for _, m := range allMatches {
 		match := m.(*octane.Match)
 		if match.Blue.Team == nil || match.Orange.Team == nil {
@@ -141,7 +136,6 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 		for _, g := range games {
 			game := g.(*octane.Game)
 			allPlayerStats = append(allPlayerStats, h.getStats(game)...)
-			allTeamStats = append(allTeamStats, h.getTeamStats(game)...)
 		}
 		allGames = append(allGames, games...)
 	}
@@ -162,13 +156,6 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 
 	if len(allPlayerStats) > 0 {
 		_, err = h.Octane.Statlines().Insert(allPlayerStats)
-		if err != nil {
-			return err
-		}
-	}
-
-	if len(allTeamStats) > 0 {
-		_, err = h.Octane.Teamlines().Insert(allTeamStats)
 		if err != nil {
 			return err
 		}
@@ -331,7 +318,10 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 			Opponent: game.Orange.Team,
 			Winner:   game.Blue.Winner,
 			Player:   p.Player,
-			Stats:    p.Stats,
+			Stats: &octane.StatlineStats{
+				Player: p.Stats,
+				Team:   game.Blue.Stats,
+			},
 		})
 	}
 
@@ -350,45 +340,14 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 			Opponent: game.Blue.Team,
 			Winner:   game.Orange.Winner,
 			Player:   p.Player,
-			Stats:    p.Stats,
+			Stats: &octane.StatlineStats{
+				Player: p.Stats,
+				Team:   game.Orange.Stats,
+			},
 		})
 	}
 
 	return stats
-}
-
-func (h *handler) getTeamStats(game *octane.Game) []interface{} {
-	blueID, orangeID := primitive.NewObjectID(), primitive.NewObjectID()
-	return []interface{}{
-		&octane.Teamline{
-			ID: &blueID,
-			Game: &octane.Game{
-				ID:       game.ID,
-				Match:    game.Match,
-				Date:     game.Date,
-				Map:      game.Map,
-				Duration: game.Duration,
-			},
-			Team:     game.Blue.Team,
-			Opponent: game.Orange.Team,
-			Winner:   game.Blue.Winner,
-			Stats:    game.Blue.Stats,
-		},
-		&octane.Teamline{
-			ID: &orangeID,
-			Game: &octane.Game{
-				ID:       game.ID,
-				Match:    game.Match,
-				Date:     game.Date,
-				Map:      game.Map,
-				Duration: game.Duration,
-			},
-			Team:     game.Orange.Team,
-			Opponent: game.Blue.Team,
-			Winner:   game.Orange.Winner,
-			Stats:    game.Orange.Stats,
-		},
-	}
 }
 
 func toTeamStats(logs []Log) *ballchasing.TeamStats {
