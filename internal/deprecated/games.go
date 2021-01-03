@@ -35,19 +35,20 @@ type GameTeam struct {
 
 // Log .
 type Log struct {
-	Player   string  `json:"player"`
-	OctaneID string  `json:"-"`
-	Team     string  `json:"-"`
-	Number   int     `json:"-"`
-	MVP      bool    `json:"mvp"`
-	Score    int     `json:"score"`
-	Goals    int     `json:"goals"`
-	Assists  int     `json:"assists"`
-	Saves    int     `json:"saves"`
-	Shots    int     `json:"shots"`
-	SP       float64 `json:"shooting_percentage"`
-	GP       float64 `json:"goal_participation"`
-	Rating   float64 `json:"-"`
+	Player    string  `json:"player"`
+	OctaneID  string  `json:"-"`
+	Team      string  `json:"-"`
+	Number    int     `json:"-"`
+	MVP       bool    `json:"mvp"`
+	Score     int     `json:"score"`
+	Goals     int     `json:"goals"`
+	Assists   int     `json:"assists"`
+	Saves     int     `json:"saves"`
+	Shots     int     `json:"shots"`
+	SP        float64 `json:"shooting_percentage"`
+	GP        float64 `json:"goal_participation"`
+	Rating    float64 `json:"-"`
+	TeamGoals int     `json:"teamGoals"`
 }
 
 // Averages .

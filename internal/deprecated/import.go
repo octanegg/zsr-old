@@ -361,7 +361,9 @@ func toTeamStats(logs []Log) *ballchasing.TeamStats {
 		stats.Core.Assists += log.Assists
 		stats.Core.Saves += log.Saves
 		stats.Core.Shots += log.Shots
-		stats.Core.ShootingPercentage = float64(stats.Core.Goals) / float64(stats.Core.Shots)
+		if stats.Core.Shots > 0 {
+			stats.Core.ShootingPercentage = float64(stats.Core.Goals) / float64(stats.Core.Shots)
+		}
 	}
 
 	return stats
@@ -370,22 +372,30 @@ func toTeamStats(logs []Log) *ballchasing.TeamStats {
 func (h *handler) toPlayers(logs []Log) []*octane.PlayerStats {
 	var players []*octane.PlayerStats
 	for _, log := range logs {
-		players = append(players, &octane.PlayerStats{
+		player := &octane.PlayerStats{
 			Player: h.findOrInsertPlayer(log.Player),
 			Stats: &ballchasing.PlayerStats{
 				Core: &ballchasing.PlayerCore{
-					Score:              log.Score,
-					Goals:              log.Goals,
-					Assists:            log.Assists,
-					Saves:              log.Saves,
-					Shots:              log.Shots,
-					Mvp:                log.MVP,
-					ShootingPercentage: log.SP,
-					GoalParticipation:  log.GP,
-					Rating:             log.Rating,
+					Score:   log.Score,
+					Goals:   log.Goals,
+					Assists: log.Assists,
+					Saves:   log.Saves,
+					Shots:   log.Shots,
+					Mvp:     log.MVP,
+					Rating:  log.Rating,
 				},
 			},
-		})
+		}
+
+		if log.Shots > 0 {
+			player.Stats.Core.ShootingPercentage = float64(log.Goals) / float64(log.Shots)
+		}
+
+		if log.TeamGoals > 0 {
+			player.Stats.Core.GoalParticipation = float64(log.Goals+log.Assists) / float64(log.TeamGoals)
+		}
+
+		players = append(players, player)
 	}
 
 	return players

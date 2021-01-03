@@ -78,7 +78,6 @@ func matchesFilter(v url.Values) bson.M {
 		filter.Ints("event.mode", v["mode"]),
 		filter.Ints("stage._id", v["stage"]),
 		filter.Ints("substage", v["substage"]),
-		filter.BeforeDate("date", v.Get("before")),
-		filter.AfterDate("date", v.Get("after")),
+		filter.Dates("date", v.Get("before"), v.Get("after")),
 	)
 }

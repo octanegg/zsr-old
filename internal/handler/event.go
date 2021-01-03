@@ -76,7 +76,6 @@ func eventsFilter(v url.Values) bson.M {
 		filter.Strings("tier", v["tier"]),
 		filter.Strings("region", v["region"]),
 		filter.Ints("mode", v["mode"]),
-		filter.BeforeDate(beforeField, before),
-		filter.AfterDate(afterField, after),
+		filter.Dates("game.date", before, after),
 	)
 }

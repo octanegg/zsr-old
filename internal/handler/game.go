@@ -72,8 +72,7 @@ func gamesFilter(v url.Values) bson.M {
 		filter.Ints("match.stage._id", v["stage"]),
 		filter.Ints("match.substage", v["substage"]),
 		filter.ObjectIDs("match._id", v["match"]),
-		filter.BeforeDate("date", v.Get("before")),
-		filter.AfterDate("date", v.Get("after")),
+		filter.Dates("date", v.Get("before"), v.Get("after")),
 		filter.Or(
 			filter.Strings("blue.players.player._id", v["player"]),
 			filter.Strings("orange.players.player._id", v["player"]),

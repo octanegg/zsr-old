@@ -28,7 +28,9 @@ func (h *handler) GetPlayersStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(data)
+	json.NewEncoder(w).Encode(struct {
+		Records []interface{} `json:"stats"`
+	}{data})
 }
 
 func statsFilter(v url.Values) bson.M {
