@@ -6,14 +6,14 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// PlayerAggregate .
-func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
+// TeamAggregate .
+func TeamAggregate(filter bson.M, having bson.M) *Pipeline {
 	pipeline := New(
 		Match(filter),
 		Group(bson.M{
-			"_id": "$player._id",
-			"player": bson.M{
-				"$first": "$player",
+			"_id": "$team._id",
+			"team": bson.M{
+				"$first": "$team",
 			},
 			"games": bson.M{
 				"$sum": 1,
@@ -68,12 +68,10 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 		}),
 		Match(having),
 		Project(bson.M{
-			"_id":    "$_id",
-			"player": "$player",
-			"team":   "$team",
-			"event":  "$event",
-			"games":  "$games",
-			"wins":   "$wins",
+			"_id":   "$_id",
+			"team":  "$team",
+			"games": "$games",
+			"wins":  "$wins",
 			"win_percentage": bson.M{
 				"$divide": bson.A{
 					"$wins", "$games",
@@ -116,11 +114,11 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 	return &Pipeline{
 		Pipeline: pipeline,
 		Decode: func(cursor *mongo.Cursor) (interface{}, error) {
-			var player struct {
-				Player        *octane.Player `json:"player" bson:"player,omitempty"`
-				Games         int            `json:"games" bson:"games"`
-				Wins          int            `json:"wins" bson:"wins"`
-				WinPercentage float64        `json:"win_percentage" bson:"win_percentage"`
+			var team struct {
+				Team          *octane.Team `json:"team" bson:"team,omitempty"`
+				Games         int          `json:"games" bson:"games"`
+				Wins          int          `json:"wins" bson:"wins"`
+				WinPercentage float64      `json:"win_percentage" bson:"win_percentage"`
 				Averages      struct {
 					Score              float64 `json:"score" bson:"score"`
 					Goals              float64 `json:"goals" bson:"goals"`
@@ -132,10 +130,10 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 					Rating             float64 `json:"rating" bson:"rating"`
 				} `json:"averages" bson:"averages"`
 			}
-			if err := cursor.Decode(&player); err != nil {
+			if err := cursor.Decode(&team); err != nil {
 				return nil, err
 			}
-			return player, nil
+			return team, nil
 		},
 	}
 }

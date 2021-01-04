@@ -11,7 +11,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-func (h *handler) GetPlayersStats(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetPlayerStats(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
 
 	var having bson.M
@@ -20,6 +20,28 @@ func (h *handler) GetPlayersStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pipeline := pipelines.PlayerAggregate(statsFilter(v), having)
+	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(struct {
+		Records []interface{} `json:"stats"`
+	}{data})
+}
+
+func (h *handler) GetTeamStats(w http.ResponseWriter, r *http.Request) {
+	v := r.URL.Query()
+
+	var having bson.M
+	if len(v) == 1 && len(v["mode"]) > 0 {
+		having = bson.M{"games": bson.M{"$gt": 50}}
+	}
+
+	pipeline := pipelines.TeamAggregate(statsFilter(v), having)
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
