@@ -15,6 +15,9 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 			"player": bson.M{
 				"$first": "$player",
 			},
+			"teams": bson.M{
+				"$addToSet": "$team",
+			},
 			"games": bson.M{
 				"$sum": 1,
 			},
@@ -70,7 +73,7 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 		Project(bson.M{
 			"_id":    "$_id",
 			"player": "$player",
-			"team":   "$team",
+			"teams":  "$teams",
 			"games":  "$games",
 			"wins":   "$wins",
 			"win_percentage": bson.M{
@@ -117,6 +120,7 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 		Decode: func(cursor *mongo.Cursor) (interface{}, error) {
 			var player struct {
 				Player        *octane.Player `json:"player" bson:"player,omitempty"`
+				Teams         []*octane.Team `json:"teams" bson:"teams"`
 				Games         int            `json:"games" bson:"games"`
 				Wins          int            `json:"wins" bson:"wins"`
 				WinPercentage float64        `json:"win_percentage" bson:"win_percentage"`

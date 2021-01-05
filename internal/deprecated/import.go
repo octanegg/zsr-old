@@ -210,7 +210,6 @@ func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]inte
 			ID:       &id,
 			OctaneID: match.OctaneID,
 			Date:     match.Date,
-			Format:   match.Format,
 			Number:   match.Number,
 			Blue: &octane.MatchSide{
 				Score:  match.Blue.Score,
@@ -232,6 +231,15 @@ func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]inte
 				Name:   event.Stages[linkage.NewStage].Name,
 				Format: event.Stages[linkage.NewStage].Format,
 			},
+		}
+
+		winnerScore := match.Blue.Score
+		if match.Orange.Score > match.Blue.Score {
+			winnerScore = match.Orange.Score
+		}
+		newMatch.Format = &octane.Format{
+			Type:   "best",
+			Length: winnerScore*2 - 1,
 		}
 
 		if event.Stages[linkage.NewStage].Qualifier {

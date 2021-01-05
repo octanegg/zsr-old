@@ -20,7 +20,7 @@ func (h *handler) GetPlayerStats(w http.ResponseWriter, r *http.Request) {
 		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
-	pipeline := pipelines.PlayerAggregate(statsFilter(v), having)
+	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), having)
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -42,7 +42,7 @@ func (h *handler) GetTeamStats(w http.ResponseWriter, r *http.Request) {
 		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
-	pipeline := pipelines.TeamAggregate(statsFilter(v), having)
+	pipeline := pipelines.TeamAggregate(statlinesFilter(v), having)
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -56,7 +56,7 @@ func (h *handler) GetTeamStats(w http.ResponseWriter, r *http.Request) {
 	}{data})
 }
 
-func statsFilter(v url.Values) bson.M {
+func statlinesFilter(v url.Values) bson.M {
 	return filter.New(
 		filter.Strings("game.match.event.tier", v["tier"]),
 		filter.Strings("game.match.event.region", v["region"]),
@@ -69,5 +69,6 @@ func statsFilter(v url.Values) bson.M {
 		filter.ObjectIDs("opponent._id", v["opponent"]),
 		filter.Dates("game.date", v.Get("before"), v.Get("after")),
 		filter.Bool("winner", v.Get("winner")),
+		filter.Ints("game.match.format.length", v["bestOf"]),
 	)
 }

@@ -3,11 +3,9 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/octanegg/zsr/octane/collection"
-	"github.com/octanegg/zsr/octane/filter"
 	"github.com/octanegg/zsr/octane/pipelines"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -131,17 +129,4 @@ func (h *handler) GetSeriesRecords(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(struct {
 		Records []interface{} `json:"records"`
 	}{data})
-}
-
-func statlinesFilter(v url.Values) bson.M {
-	return filter.New(
-		filter.Strings("game.match.event.tier", v["tier"]),
-		filter.Strings("game.match.event.region", v["region"]),
-		filter.Ints("game.match.event.mode", v["mode"]),
-		filter.ObjectIDs("player._id", v["player"]),
-		filter.ObjectIDs("team._id", v["team"]),
-		filter.ObjectIDs("opponent._id", v["opponent"]),
-		filter.Dates("game.date", v.Get("before"), v.Get("after")),
-		filter.Bool("winner", v.Get("winner")),
-	)
 }

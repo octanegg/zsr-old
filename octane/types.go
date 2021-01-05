@@ -56,10 +56,16 @@ type Match struct {
 	Stage    *Stage              `json:"stage,omitempty" bson:"stage,omitempty"`
 	Substage int                 `json:"substage,omitempty" bson:"substage,omitempty"`
 	Date     *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
-	Format   string              `json:"format,omitempty" bson:"format,omitempty"`
+	Format   *Format             `json:"format,omitempty" bson:"format,omitempty"`
 	Blue     *MatchSide          `json:"blue,omitempty" bson:"blue,omitempty"`
 	Orange   *MatchSide          `json:"orange,omitempty" bson:"orange,omitempty"`
 	Number   int                 `json:"number,omitempty" bson:"number,omitempty"`
+}
+
+// Format .
+type Format struct {
+	Type   string `json:"type,omitempty" bson:"type,omitempty"`
+	Length int    `json:"length,omitempty" bson:"length,omitempty"`
 }
 
 // MatchSide .
