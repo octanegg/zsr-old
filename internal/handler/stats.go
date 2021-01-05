@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/octanegg/zsr/octane/filter"
@@ -15,8 +16,8 @@ func (h *handler) GetPlayerStats(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
 
 	var having bson.M
-	if len(v) == 1 && len(v["mode"]) > 0 {
-		having = bson.M{"games": bson.M{"$gt": 50}}
+	if minGames, err := strconv.Atoi(v.Get("minGames")); err == nil {
+		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
 	pipeline := pipelines.PlayerAggregate(statsFilter(v), having)
@@ -37,8 +38,8 @@ func (h *handler) GetTeamStats(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
 
 	var having bson.M
-	if len(v) == 1 && len(v["mode"]) > 0 {
-		having = bson.M{"games": bson.M{"$gt": 50}}
+	if minGames, err := strconv.Atoi(v.Get("minGames")); err == nil {
+		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
 	pipeline := pipelines.TeamAggregate(statsFilter(v), having)
@@ -63,6 +64,7 @@ func statsFilter(v url.Values) bson.M {
 		filter.ObjectIDs("game.match.event._id", v["event"]),
 		filter.Ints("game.match.stage._id", v["stage"]),
 		filter.ObjectIDs("player._id", v["player"]),
+		filter.Strings("player.country", v["nationality"]),
 		filter.ObjectIDs("team._id", v["team"]),
 		filter.ObjectIDs("opponent._id", v["opponent"]),
 		filter.Dates("game.date", v.Get("before"), v.Get("after")),
