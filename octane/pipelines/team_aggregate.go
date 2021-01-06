@@ -18,6 +18,9 @@ func TeamAggregate(filter bson.M, having bson.M) *Pipeline {
 			"games": bson.M{
 				"$sum": 1,
 			},
+			"mode": bson.M{
+				"$first": "$game.match.event.mode",
+			},
 			"wins": bson.M{
 				"$sum": bson.M{
 					"$cond": bson.A{
@@ -68,10 +71,14 @@ func TeamAggregate(filter bson.M, having bson.M) *Pipeline {
 		}),
 		Match(having),
 		Project(bson.M{
-			"_id":   "$_id",
-			"team":  "$team",
-			"games": "$games",
-			"wins":  "$wins",
+			"_id":  "$_id",
+			"team": "$team",
+			"games": bson.M{
+				"$divide": bson.A{"$games", "$mode"},
+			},
+			"wins": bson.M{
+				"$divide": bson.A{"$wins", "$mode"},
+			},
 			"win_percentage": bson.M{
 				"$divide": bson.A{
 					"$wins", "$games",

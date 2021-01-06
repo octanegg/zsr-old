@@ -53,7 +53,7 @@ func TeamGameRecords(filter bson.M, stat string) *Pipeline {
 				Game     *octane.Game `json:"game,omitempty" bson:"game,omitempty"`
 				Opponent *octane.Team `json:"opponent,omitempty" bson:"opponent,omitempty"`
 				Winner   bool         `json:"winner,omitempty" bson:"winner,omitempty"`
-				Stat     int          `json:"stat,omitempty" bson:"stat,omitempty"`
+				Stat     int          `json:"stat" bson:"stat"`
 			}
 			if err := cursor.Decode(&team); err != nil {
 				return nil, err

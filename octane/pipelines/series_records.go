@@ -70,7 +70,7 @@ func SeriesRecords(filter bson.M, stat string) *Pipeline {
 				Date   *time.Time       `json:"date,omitempty" bson:"date,omitempty"`
 				Blue   *octane.GameSide `json:"blue,omitempty" bson:"blue,omitempty"`
 				Orange *octane.GameSide `json:"orange,omitempty" bson:"orange,omitempty"`
-				Stat   int              `json:"stat,omitempty" bson:"stat,omitempty"`
+				Stat   int              `json:"stat" bson:"stat"`
 			}
 			if err := cursor.Decode(&team); err != nil {
 				return nil, err
