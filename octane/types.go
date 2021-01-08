@@ -70,9 +70,10 @@ type Format struct {
 
 // MatchSide .
 type MatchSide struct {
-	Score  int   `json:"score,omitempty" bson:"score,omitempty"`
-	Winner bool  `json:"winner,omitempty" bson:"winner,omitempty"`
-	Team   *Team `json:"team,omitempty" bson:"team,omitempty"`
+	Score   int       `json:"score,omitempty" bson:"score,omitempty"`
+	Winner  bool      `json:"winner,omitempty" bson:"winner,omitempty"`
+	Team    *Team     `json:"team,omitempty" bson:"team,omitempty"`
+	Players []*Player `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 // Game .

@@ -108,19 +108,19 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 		return err
 	}
 
-	allMatches, err := h.getMatches(linkage, &event)
+	matches, err := h.getMatches(linkage, &event)
 	if err != nil {
 		return err
 	}
 
-	if len(allMatches) == 0 {
+	if len(matches) == 0 {
 		return nil
 	}
 
-	var allPlayerStats, allGames []interface{}
-	for _, m := range allMatches {
+	var allPlayerStats, allGames, allMatches []interface{}
+	for _, m := range matches {
 		match := m.(*octane.Match)
-		if match.Blue.Team == nil || match.Orange.Team == nil {
+		if match.Blue == nil || match.Orange == nil {
 			continue
 		}
 
@@ -133,11 +133,17 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 			continue
 		}
 
-		for _, g := range games {
+		for i, g := range games {
 			game := g.(*octane.Game)
 			allPlayerStats = append(allPlayerStats, h.getStats(game)...)
+			if i == 0 {
+				match.Blue.Players = getGamePlayers(game.Blue.Players)
+				match.Orange.Players = getGamePlayers(game.Orange.Players)
+			}
 		}
+
 		allGames = append(allGames, games...)
+		allMatches = append(allMatches, match)
 	}
 
 	if len(allMatches) > 0 {
@@ -211,14 +217,6 @@ func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]inte
 			OctaneID: match.OctaneID,
 			Date:     match.Date,
 			Number:   match.Number,
-			Blue: &octane.MatchSide{
-				Score:  match.Blue.Score,
-				Winner: match.Blue.Winner,
-			},
-			Orange: &octane.MatchSide{
-				Score:  match.Orange.Score,
-				Winner: match.Orange.Winner,
-			},
 			Event: &octane.Event{
 				ID:     event.ID,
 				Name:   event.Name,
@@ -233,22 +231,31 @@ func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]inte
 			},
 		}
 
-		winnerScore := match.Blue.Score
-		if match.Orange.Score > match.Blue.Score {
-			winnerScore = match.Orange.Score
-		}
-		newMatch.Format = &octane.Format{
-			Type:   "best",
-			Length: winnerScore*2 - 1,
-		}
-
 		if event.Stages[linkage.NewStage].Qualifier {
 			newMatch.Stage.Qualifier = true
 		}
 
 		if match.Blue.Name != "" && match.Orange.Name != "" {
-			newMatch.Blue.Team = h.findOrInsertTeam(match.Blue.Name)
-			newMatch.Orange.Team = h.findOrInsertTeam(match.Orange.Name)
+			newMatch.Blue = &octane.MatchSide{
+				Team:   h.findOrInsertTeam(match.Blue.Name),
+				Score:  match.Blue.Score,
+				Winner: match.Blue.Winner,
+			}
+			newMatch.Orange = &octane.MatchSide{
+				Team:   h.findOrInsertTeam(match.Orange.Name),
+				Score:  match.Orange.Score,
+				Winner: match.Orange.Winner,
+			}
+
+			winnerScore := match.Blue.Score
+			if match.Orange.Score > match.Blue.Score {
+				winnerScore = match.Orange.Score
+			}
+
+			newMatch.Format = &octane.Format{
+				Type:   "best",
+				Length: winnerScore*2 - 1,
+			}
 		}
 
 		newMatches = append(newMatches, newMatch)
@@ -406,6 +413,14 @@ func (h *handler) toPlayers(logs []Log) []*octane.PlayerStats {
 		players = append(players, player)
 	}
 
+	return players
+}
+
+func getGamePlayers(playerStats []*octane.PlayerStats) []*octane.Player {
+	var players []*octane.Player
+	for _, stats := range playerStats {
+		players = append(players, stats.Player)
+	}
 	return players
 }
 

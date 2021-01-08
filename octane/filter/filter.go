@@ -167,3 +167,19 @@ func Or(fields ...*Field) *Field {
 		Value: f,
 	}
 }
+
+// ElemMatch .
+func ElemMatch(key string, field *Field) *Field {
+	if field == nil {
+		return nil
+	}
+	
+	return &Field{
+		Key: key,
+		Value: bson.M{
+			"$elemMatch": bson.M{
+				field.Key: field.Value,
+			},
+		},
+	}
+}

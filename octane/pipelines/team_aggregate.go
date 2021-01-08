@@ -47,9 +47,6 @@ func TeamAggregate(filter bson.M, having bson.M) *Pipeline {
 			"shots_total": bson.M{
 				"$sum": "$stats.player.core.shots",
 			},
-			"team_goals_total": bson.M{
-				"$sum": "$stats.team.core.goals",
-			},
 			"score_avg": bson.M{
 				"$avg": "$stats.player.core.score",
 			},
@@ -65,19 +62,20 @@ func TeamAggregate(filter bson.M, having bson.M) *Pipeline {
 			"shots_avg": bson.M{
 				"$avg": "$stats.player.core.shots",
 			},
-			"rating_avg": bson.M{
-				"$avg": "$stats.player.core.rating",
-			},
 		}),
 		Match(having),
 		Project(bson.M{
 			"_id":  "$_id",
 			"team": "$team",
 			"games": bson.M{
-				"$divide": bson.A{"$games", "$mode"},
+				"$toInt": bson.M{
+					"$divide": bson.A{"$games", "$mode"},
+				},
 			},
 			"wins": bson.M{
-				"$divide": bson.A{"$wins", "$mode"},
+				"$toInt": bson.M{
+					"$divide": bson.A{"$wins", "$mode"},
+				},
 			},
 			"win_percentage": bson.M{
 				"$divide": bson.A{
@@ -99,21 +97,6 @@ func TeamAggregate(filter bson.M, having bson.M) *Pipeline {
 						},
 					},
 				},
-				"goalParticipation": bson.M{
-					"$cond": bson.A{
-						bson.M{"$eq": bson.A{"$team_goals_total", 0}},
-						1,
-						bson.M{
-							"$divide": bson.A{
-								bson.M{
-									"$add": bson.A{"$goals_total", "$assists_total"},
-								},
-								"$team_goals_total",
-							},
-						},
-					},
-				},
-				"rating": "$rating_avg",
 			},
 		}),
 	)
@@ -133,8 +116,6 @@ func TeamAggregate(filter bson.M, having bson.M) *Pipeline {
 					Saves              float64 `json:"saves" bson:"saves"`
 					Shots              float64 `json:"shots" bson:"shots"`
 					ShootingPercentage float64 `json:"shootingPercentage" bson:"shootingPercentage"`
-					GoalParticipation  float64 `json:"goalParticipation" bson:"goalParticipation"`
-					Rating             float64 `json:"rating" bson:"rating"`
 				} `json:"averages" bson:"averages"`
 			}
 			if err := cursor.Decode(&team); err != nil {
