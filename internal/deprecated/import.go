@@ -120,29 +120,26 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 	var allPlayerStats, allGames, allMatches []interface{}
 	for _, m := range matches {
 		match := m.(*octane.Match)
-		if match.Blue == nil || match.Orange == nil {
-			continue
-		}
+		if match.Blue != nil && match.Orange != nil {
+			games, err := h.getGames(match)
+			if err != nil {
+				return err
+			}
 
-		games, err := h.getGames(match)
-		if err != nil {
-			return err
-		}
+			if len(games) > 0 {
+				for i, g := range games {
+					game := g.(*octane.Game)
+					allPlayerStats = append(allPlayerStats, h.getStats(game)...)
+					if i == 0 {
+						match.Blue.Players = getGamePlayers(game.Blue.Players)
+						match.Orange.Players = getGamePlayers(game.Orange.Players)
+					}
+				}
 
-		if len(games) == 0 {
-			continue
-		}
-
-		for i, g := range games {
-			game := g.(*octane.Game)
-			allPlayerStats = append(allPlayerStats, h.getStats(game)...)
-			if i == 0 {
-				match.Blue.Players = getGamePlayers(game.Blue.Players)
-				match.Orange.Players = getGamePlayers(game.Orange.Players)
+				allGames = append(allGames, games...)
 			}
 		}
 
-		allGames = append(allGames, games...)
 		allMatches = append(allMatches, match)
 	}
 
@@ -329,10 +326,19 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 				Map:      game.Map,
 				Duration: game.Duration,
 			},
-			Team:     game.Blue.Team,
-			Opponent: game.Orange.Team,
-			Winner:   game.Blue.Winner,
-			Player:   p.Player,
+			Team: &octane.MatchSide{
+				Score:   game.Blue.Stats.Core.Goals,
+				Winner:  game.Blue.Winner,
+				Team:    game.Blue.Team,
+				Players: getGamePlayers(game.Blue.Players),
+			},
+			Opponent: &octane.MatchSide{
+				Score:   game.Orange.Stats.Core.Goals,
+				Winner:  game.Orange.Winner,
+				Team:    game.Orange.Team,
+				Players: getGamePlayers(game.Orange.Players),
+			},
+			Player: p.Player,
 			Stats: &octane.StatlineStats{
 				Player: p.Stats,
 				Team:   game.Blue.Stats,
@@ -351,10 +357,19 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 				Map:      game.Map,
 				Duration: game.Duration,
 			},
-			Team:     game.Orange.Team,
-			Opponent: game.Blue.Team,
-			Winner:   game.Orange.Winner,
-			Player:   p.Player,
+			Team: &octane.MatchSide{
+				Score:   game.Orange.Stats.Core.Goals,
+				Winner:  game.Orange.Winner,
+				Team:    game.Orange.Team,
+				Players: getGamePlayers(game.Orange.Players),
+			},
+			Opponent: &octane.MatchSide{
+				Score:   game.Blue.Stats.Core.Goals,
+				Winner:  game.Blue.Winner,
+				Team:    game.Blue.Team,
+				Players: getGamePlayers(game.Blue.Players),
+			},
+			Player: p.Player,
 			Stats: &octane.StatlineStats{
 				Player: p.Stats,
 				Team:   game.Orange.Stats,

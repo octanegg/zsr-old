@@ -130,9 +130,8 @@ type Team struct {
 type Statline struct {
 	ID       *primitive.ObjectID `json:"_id" bson:"_id"`
 	Game     *Game               `json:"game,omitempty" bson:"game,omitempty"`
-	Team     *Team               `json:"team,omitempty" bson:"team,omitempty"`
-	Opponent *Team               `json:"opponent,omitempty" bson:"opponent,omitempty"`
-	Winner   bool                `json:"winner,omitempty" bson:"winner,omitempty"`
+	Team     *MatchSide          `json:"team,omitempty" bson:"team,omitempty"`
+	Opponent *MatchSide          `json:"opponent,omitempty" bson:"opponent,omitempty"`
 	Player   *Player             `json:"player,omitempty" bson:"player,omitempty"`
 	Stats    *StatlineStats      `json:"stats,omitempty" bson:"stats,omitempty"`
 }
