@@ -44,7 +44,10 @@ func Dates(key string, before, after string) *Field {
 	if before != "" {
 		b, err := time.Parse("2006-01-02", before)
 		if err != nil {
-			return nil
+			b, err = time.Parse(time.RFC3339, before)
+			if err != nil {
+				return nil
+			}
 		}
 		f["$lte"] = b
 	}
@@ -52,7 +55,10 @@ func Dates(key string, before, after string) *Field {
 	if after != "" {
 		a, err := time.Parse("2006-01-02", after)
 		if err != nil {
-			return nil
+			a, err = time.Parse(time.RFC3339, after)
+			if err != nil {
+				return nil
+			}
 		}
 		f["$gte"] = a
 	}
@@ -173,7 +179,7 @@ func ElemMatch(key string, field *Field) *Field {
 	if field == nil {
 		return nil
 	}
-	
+
 	return &Field{
 		Key: key,
 		Value: bson.M{
