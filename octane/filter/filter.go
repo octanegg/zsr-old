@@ -32,9 +32,14 @@ func Strings(key string, vals []string) *Field {
 		return nil
 	}
 
+	fields := []*Field{}
+	for _, val := range vals {
+		fields = append(fields, ElemMatch(key, Regex(val)))
+	}
+
 	return &Field{
-		Key:   key,
-		Value: bson.M{"$in": vals},
+		Key:   "$in",
+		Value: fields,
 	}
 }
 
@@ -187,5 +192,13 @@ func ElemMatch(key string, field *Field) *Field {
 				field.Key: field.Value,
 			},
 		},
+	}
+}
+
+// Regex .
+func Regex(val string) *Field {
+	return &Field{
+		Key:   "$regex",
+		Value: val,
 	}
 }
