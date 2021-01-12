@@ -11,9 +11,9 @@ func TeamAggregate(filter bson.M, having bson.M) *Pipeline {
 	pipeline := New(
 		Match(filter),
 		Group(bson.M{
-			"_id": "$team._id",
+			"_id": "$team.team._id",
 			"team": bson.M{
-				"$first": "$team",
+				"$first": "$team.team",
 			},
 			"games": bson.M{
 				"$sum": 1,
@@ -26,7 +26,7 @@ func TeamAggregate(filter bson.M, having bson.M) *Pipeline {
 					"$cond": bson.A{
 						bson.M{
 							"$eq": bson.A{
-								"$winner", true,
+								"$team.winner", true,
 							},
 						}, 1, 0,
 					},

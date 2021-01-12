@@ -6,20 +6,20 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// PlayerAggregate .
-func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
+// EventAggregate .
+func EventAggregate(filter bson.M, having bson.M) *Pipeline {
 	pipeline := New(
 		Match(filter),
 		Group(bson.M{
-			"_id": "$player._id",
-			"player": bson.M{
-				"$first": "$player",
-			},
-			"teams": bson.M{
-				"$addToSet": "$team.team",
+			"_id": "$game.match.event._id",
+			"event": bson.M{
+				"$first": "$game.match.event",
 			},
 			"games": bson.M{
 				"$sum": 1,
+			},
+			"mode": bson.M{
+				"$first": "$game.match.event.mode",
 			},
 			"wins": bson.M{
 				"$sum": bson.M{
@@ -47,9 +47,6 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 			"shots_total": bson.M{
 				"$sum": "$stats.player.core.shots",
 			},
-			"team_goals_total": bson.M{
-				"$sum": "$stats.team.core.goals",
-			},
 			"score_avg": bson.M{
 				"$avg": "$stats.player.core.score",
 			},
@@ -65,17 +62,21 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 			"shots_avg": bson.M{
 				"$avg": "$stats.player.core.shots",
 			},
-			"rating_avg": bson.M{
-				"$avg": "$stats.player.core.rating",
-			},
 		}),
 		Match(having),
 		Project(bson.M{
-			"_id":    "$_id",
-			"player": "$player",
-			"teams":  "$teams",
-			"games":  "$games",
-			"wins":   "$wins",
+			"_id":   "$_id",
+			"event": "$event",
+			"games": bson.M{
+				"$toInt": bson.M{
+					"$divide": bson.A{"$games", "$mode"},
+				},
+			},
+			"wins": bson.M{
+				"$toInt": bson.M{
+					"$divide": bson.A{"$wins", "$mode"},
+				},
+			},
 			"win_percentage": bson.M{
 				"$divide": bson.A{
 					"$wins", "$games",
@@ -96,21 +97,6 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 						},
 					},
 				},
-				"goalParticipation": bson.M{
-					"$cond": bson.A{
-						bson.M{"$eq": bson.A{"$team_goals_total", 0}},
-						1,
-						bson.M{
-							"$divide": bson.A{
-								bson.M{
-									"$add": bson.A{"$goals_total", "$assists_total"},
-								},
-								"$team_goals_total",
-							},
-						},
-					},
-				},
-				"rating": "$rating_avg",
 			},
 		}),
 	)
@@ -118,12 +104,11 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 	return &Pipeline{
 		Pipeline: pipeline,
 		Decode: func(cursor *mongo.Cursor) (interface{}, error) {
-			var player struct {
-				Player        *octane.Player `json:"player" bson:"player,omitempty"`
-				Teams         []*octane.Team `json:"teams" bson:"teams"`
-				Games         int            `json:"games" bson:"games"`
-				Wins          int            `json:"wins" bson:"wins"`
-				WinPercentage float64        `json:"win_percentage" bson:"win_percentage"`
+			var team struct {
+				Event         *octane.Event `json:"event" bson:"event,omitempty"`
+				Games         int           `json:"games" bson:"games"`
+				Wins          int           `json:"wins" bson:"wins"`
+				WinPercentage float64       `json:"win_percentage" bson:"win_percentage"`
 				Averages      struct {
 					Score              float64 `json:"score" bson:"score"`
 					Goals              float64 `json:"goals" bson:"goals"`
@@ -131,14 +116,12 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 					Saves              float64 `json:"saves" bson:"saves"`
 					Shots              float64 `json:"shots" bson:"shots"`
 					ShootingPercentage float64 `json:"shootingPercentage" bson:"shootingPercentage"`
-					GoalParticipation  float64 `json:"goalParticipation" bson:"goalParticipation"`
-					Rating             float64 `json:"rating" bson:"rating"`
 				} `json:"averages" bson:"averages"`
 			}
-			if err := cursor.Decode(&player); err != nil {
+			if err := cursor.Decode(&team); err != nil {
 				return nil, err
 			}
-			return player, nil
+			return team, nil
 		},
 	}
 }

@@ -16,9 +16,9 @@ func PlayerGameRecords(filter bson.M, stat string) *Pipeline {
 		Project(bson.M{
 			"game":     "$game",
 			"date":     "$date",
-			"team":     "$team",
-			"opponent": "$opponent",
-			"winner":   "$winner",
+			"team":     "$team.team",
+			"opponent": "$opponent.team",
+			"winner":   "$team.winner",
 			"player":   "$player",
 			"stat":     fmt.Sprintf("$stats.player.core.%s", stat),
 		}),
@@ -67,13 +67,13 @@ func PlayerSeriesRecords(filter bson.M, stat string) *Pipeline {
 				"$first": "$game.date",
 			},
 			"team": bson.M{
-				"$first": "$team",
+				"$first": "$team.team",
 			},
 			"opponent": bson.M{
-				"$first": "$opponent",
+				"$first": "$opponent.team",
 			},
 			"winner": bson.M{
-				"$first": "$winner",
+				"$first": "$team.winner",
 			},
 			"player": bson.M{
 				"$first": "$player",
