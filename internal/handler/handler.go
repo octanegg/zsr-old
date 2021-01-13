@@ -44,8 +44,11 @@ type Handler interface {
 	GetSeriesRecords(http.ResponseWriter, *http.Request)
 
 	GetPlayerStats(http.ResponseWriter, *http.Request)
+	GetPlayerTeamStats(http.ResponseWriter, *http.Request)
+	GetPlayerEventStats(http.ResponseWriter, *http.Request)
+
 	GetTeamStats(http.ResponseWriter, *http.Request)
-	GetEventStats(http.ResponseWriter, *http.Request)
+	GetTeamEventStats(http.ResponseWriter, *http.Request)
 
 	GetPlayerTeams(http.ResponseWriter, *http.Request)
 }

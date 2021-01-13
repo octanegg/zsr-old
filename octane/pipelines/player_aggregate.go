@@ -7,13 +7,16 @@ import (
 )
 
 // PlayerAggregate .
-func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
+func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 	pipeline := New(
 		Match(filter),
 		Group(bson.M{
-			"_id": "$player._id",
+			"_id": group,
 			"player": bson.M{
 				"$first": "$player",
+			},
+			"events": bson.M{
+				"$addToSet": "$game.match.event",
 			},
 			"teams": bson.M{
 				"$addToSet": "$team.team",
@@ -74,6 +77,7 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 			"_id":    "$_id",
 			"player": "$player",
 			"teams":  "$teams",
+			"events": "$events",
 			"games":  "$games",
 			"wins":   "$wins",
 			"win_percentage": bson.M{
@@ -119,11 +123,12 @@ func PlayerAggregate(filter bson.M, having bson.M) *Pipeline {
 		Pipeline: pipeline,
 		Decode: func(cursor *mongo.Cursor) (interface{}, error) {
 			var player struct {
-				Player        *octane.Player `json:"player" bson:"player,omitempty"`
-				Teams         []*octane.Team `json:"teams" bson:"teams"`
-				Games         int            `json:"games" bson:"games"`
-				Wins          int            `json:"wins" bson:"wins"`
-				WinPercentage float64        `json:"win_percentage" bson:"win_percentage"`
+				Player        *octane.Player  `json:"player" bson:"player,omitempty"`
+				Events        []*octane.Event `json:"events" bson:"events,omitempty"`
+				Teams         []*octane.Team  `json:"teams" bson:"teams"`
+				Games         int             `json:"games" bson:"games"`
+				Wins          int             `json:"wins" bson:"wins"`
+				WinPercentage float64         `json:"win_percentage" bson:"win_percentage"`
 				Averages      struct {
 					Score              float64 `json:"score" bson:"score"`
 					Goals              float64 `json:"goals" bson:"goals"`

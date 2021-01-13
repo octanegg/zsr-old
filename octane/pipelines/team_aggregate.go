@@ -7,11 +7,11 @@ import (
 )
 
 // TeamAggregate .
-func TeamAggregate(filter bson.M, having bson.M) *Pipeline {
+func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 	pipeline := New(
 		Match(filter),
 		Group(bson.M{
-			"_id": "$team.team._id",
+			"_id": group,
 			"team": bson.M{
 				"$first": "$team.team",
 			},
