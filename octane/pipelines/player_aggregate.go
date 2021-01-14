@@ -50,26 +50,11 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 			"shots_total": bson.M{
 				"$sum": "$stats.player.core.shots",
 			},
+			"rating_total": bson.M{
+				"$sum": "$stats.player.core.rating",
+			},
 			"team_goals_total": bson.M{
 				"$sum": "$stats.team.core.goals",
-			},
-			"score_avg": bson.M{
-				"$avg": "$stats.player.core.score",
-			},
-			"goals_avg": bson.M{
-				"$avg": "$stats.player.core.goals",
-			},
-			"assists_avg": bson.M{
-				"$avg": "$stats.player.core.assists",
-			},
-			"saves_avg": bson.M{
-				"$avg": "$stats.player.core.saves",
-			},
-			"shots_avg": bson.M{
-				"$avg": "$stats.player.core.shots",
-			},
-			"rating_avg": bson.M{
-				"$avg": "$stats.player.core.rating",
 			},
 		}),
 		Match(having),
@@ -86,11 +71,21 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 				},
 			},
 			"averages": bson.M{
-				"score":   "$score_avg",
-				"goals":   "$goals_avg",
-				"assists": "$assists_avg",
-				"saves":   "$saves_avg",
-				"shots":   "$shots_avg",
+				"score": bson.M{
+					"$divide": bson.A{"$score_total", "$games"},
+				},
+				"goals": bson.M{
+					"$divide": bson.A{"$goals_total", "$games"},
+				},
+				"assists": bson.M{
+					"$divide": bson.A{"$assists_total", "$games"},
+				},
+				"saves": bson.M{
+					"$divide": bson.A{"$saves_total", "$games"},
+				},
+				"shots": bson.M{
+					"$divide": bson.A{"$shots_total", "$games"},
+				},
 				"shootingPercentage": bson.M{
 					"$cond": bson.A{
 						bson.M{"$eq": bson.A{"$shots_total", 0}},
@@ -114,7 +109,9 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 						},
 					},
 				},
-				"rating": "$rating_avg",
+				"rating": bson.M{
+					"$divide": bson.A{"$rating_total", "$games"},
+				},
 			},
 		}),
 	)
@@ -123,8 +120,8 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 		Pipeline: pipeline,
 		Decode: func(cursor *mongo.Cursor) (interface{}, error) {
 			var player struct {
-				Player        *octane.Player  `json:"player" bson:"player,omitempty"`
-				Events        []*octane.Event `json:"events" bson:"events,omitempty"`
+				Player        *octane.Player  `json:"player" bson:"player"`
+				Events        []*octane.Event `json:"events" bson:"events"`
 				Teams         []*octane.Team  `json:"teams" bson:"teams"`
 				Games         int             `json:"games" bson:"games"`
 				Wins          int             `json:"wins" bson:"wins"`

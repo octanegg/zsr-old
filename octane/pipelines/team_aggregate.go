@@ -15,8 +15,16 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 			"team": bson.M{
 				"$first": "$team.team",
 			},
+			"events": bson.M{
+				"$addToSet": "$game.match.event",
+			},
+			"players": bson.M{
+				"$addToSet": "$player",
+			},
 			"games": bson.M{
-				"$sum": 1,
+				"$sum": bson.M{
+					"$divide": bson.A{1, "$game.match.event.mode"},
+				},
 			},
 			"mode": bson.M{
 				"$first": "$game.match.event.mode",
@@ -28,7 +36,9 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 							"$eq": bson.A{
 								"$team.winner", true,
 							},
-						}, 1, 0,
+						}, bson.M{
+							"$divide": bson.A{1, "$game.match.event.mode"},
+						}, 0,
 					},
 				},
 			},
@@ -47,35 +57,21 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 			"shots_total": bson.M{
 				"$sum": "$stats.player.core.shots",
 			},
-			"score_avg": bson.M{
-				"$avg": "$stats.player.core.score",
-			},
-			"goals_avg": bson.M{
-				"$avg": "$stats.player.core.goals",
-			},
-			"assists_avg": bson.M{
-				"$avg": "$stats.player.core.assists",
-			},
-			"saves_avg": bson.M{
-				"$avg": "$stats.player.core.saves",
-			},
-			"shots_avg": bson.M{
-				"$avg": "$stats.player.core.shots",
+			"rating_total": bson.M{
+				"$sum": "$stats.player.core.rating",
 			},
 		}),
 		Match(having),
 		Project(bson.M{
-			"_id":  "$_id",
-			"team": "$team",
+			"_id":     "$_id",
+			"team":    "$team",
+			"players": "$players",
+			"events":  "$events",
 			"games": bson.M{
-				"$toInt": bson.M{
-					"$divide": bson.A{"$games", "$mode"},
-				},
+				"$toInt": "$games",
 			},
 			"wins": bson.M{
-				"$toInt": bson.M{
-					"$divide": bson.A{"$wins", "$mode"},
-				},
+				"$toInt": "$wins",
 			},
 			"win_percentage": bson.M{
 				"$divide": bson.A{
@@ -83,11 +79,21 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 				},
 			},
 			"averages": bson.M{
-				"score":   "$score_avg",
-				"goals":   "$goals_avg",
-				"assists": "$assists_avg",
-				"saves":   "$saves_avg",
-				"shots":   "$shots_avg",
+				"score": bson.M{
+					"$divide": bson.A{"$score_total", "$games"},
+				},
+				"goals": bson.M{
+					"$divide": bson.A{"$goals_total", "$games"},
+				},
+				"assists": bson.M{
+					"$divide": bson.A{"$assists_total", "$games"},
+				},
+				"saves": bson.M{
+					"$divide": bson.A{"$saves_total", "$games"},
+				},
+				"shots": bson.M{
+					"$divide": bson.A{"$shots_total", "$games"},
+				},
 				"shootingPercentage": bson.M{
 					"$cond": bson.A{
 						bson.M{"$eq": bson.A{"$shots_total", 0}},
@@ -105,10 +111,12 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 		Pipeline: pipeline,
 		Decode: func(cursor *mongo.Cursor) (interface{}, error) {
 			var team struct {
-				Team          *octane.Team `json:"team" bson:"team,omitempty"`
-				Games         int          `json:"games" bson:"games"`
-				Wins          int          `json:"wins" bson:"wins"`
-				WinPercentage float64      `json:"win_percentage" bson:"win_percentage"`
+				Team          *octane.Team     `json:"team" bson:"team"`
+				Players       []*octane.Player `json:"players" bson:"players"`
+				Events        []*octane.Event  `json:"events" bson:"events"`
+				Games         int              `json:"games" bson:"games"`
+				Wins          int              `json:"wins" bson:"wins"`
+				WinPercentage float64          `json:"win_percentage" bson:"win_percentage"`
 				Averages      struct {
 					Score              float64 `json:"score" bson:"score"`
 					Goals              float64 `json:"goals" bson:"goals"`
