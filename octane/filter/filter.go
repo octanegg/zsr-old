@@ -32,14 +32,9 @@ func Strings(key string, vals []string) *Field {
 		return nil
 	}
 
-	fields := []*Field{}
-	for _, val := range vals {
-		fields = append(fields, ElemMatch(key, Regex(val)))
-	}
-
 	return &Field{
-		Key:   "$in",
-		Value: fields,
+		Key:   key,
+		Value: bson.M{"$in": vals},
 	}
 }
 
