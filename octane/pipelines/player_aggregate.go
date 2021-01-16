@@ -1,6 +1,8 @@
 package pipelines
 
 import (
+	"time"
+
 	"github.com/octanegg/zsr/octane"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -10,6 +12,7 @@ import (
 func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 	pipeline := New(
 		Match(filter),
+		Sort("game.date", false),
 		Group(bson.M{
 			"_id": group,
 			"player": bson.M{
@@ -17,6 +20,12 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 			},
 			"events": bson.M{
 				"$addToSet": "$game.match.event",
+			},
+			"start_date": bson.M{
+				"$first": "$game.date",
+			},
+			"end_date": bson.M{
+				"$last": "$game.date",
 			},
 			"teams": bson.M{
 				"$addToSet": "$team.team",
@@ -59,12 +68,14 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 		}),
 		Match(having),
 		Project(bson.M{
-			"_id":    "$_id",
-			"player": "$player",
-			"teams":  "$teams",
-			"events": "$events",
-			"games":  "$games",
-			"wins":   "$wins",
+			"_id":        "$_id",
+			"player":     "$player",
+			"teams":      "$teams",
+			"events":     "$events",
+			"start_date": "$start_date",
+			"end_date":   "$end_date",
+			"games":      "$games",
+			"wins":       "$wins",
 			"win_percentage": bson.M{
 				"$divide": bson.A{
 					"$wins", "$games",
@@ -114,6 +125,7 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 				},
 			},
 		}),
+		Sort("end_date", true),
 	)
 
 	return &Pipeline{
@@ -123,6 +135,8 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 				Player        *octane.Player  `json:"player" bson:"player"`
 				Events        []*octane.Event `json:"events" bson:"events"`
 				Teams         []*octane.Team  `json:"teams" bson:"teams"`
+				StartDate     *time.Time      `json:"start_date" bson:"start_date"`
+				EndDate       *time.Time      `json:"end_date" bson:"end_date"`
 				Games         int             `json:"games" bson:"games"`
 				Wins          int             `json:"wins" bson:"wins"`
 				WinPercentage float64         `json:"win_percentage" bson:"win_percentage"`

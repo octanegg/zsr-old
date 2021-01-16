@@ -1,6 +1,8 @@
 package pipelines
 
 import (
+	"time"
+
 	"github.com/octanegg/zsr/octane"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -10,6 +12,7 @@ import (
 func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 	pipeline := New(
 		Match(filter),
+		Sort("game.date", false),
 		Group(bson.M{
 			"_id": group,
 			"team": bson.M{
@@ -17,6 +20,12 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 			},
 			"events": bson.M{
 				"$addToSet": "$game.match.event",
+			},
+			"start_date": bson.M{
+				"$first": "$game.date",
+			},
+			"end_date": bson.M{
+				"$last": "$game.date",
 			},
 			"players": bson.M{
 				"$addToSet": "$player",
@@ -63,10 +72,12 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 		}),
 		Match(having),
 		Project(bson.M{
-			"_id":     "$_id",
-			"team":    "$team",
-			"players": "$players",
-			"events":  "$events",
+			"_id":        "$_id",
+			"team":       "$team",
+			"players":    "$players",
+			"events":     "$events",
+			"start_date": "$start_date",
+			"end_date":   "$end_date",
 			"games": bson.M{
 				"$toInt": "$games",
 			},
@@ -105,6 +116,7 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 				},
 			},
 		}),
+		Sort("end_date", true),
 	)
 
 	return &Pipeline{
@@ -114,6 +126,8 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 				Team          *octane.Team     `json:"team" bson:"team"`
 				Players       []*octane.Player `json:"players" bson:"players"`
 				Events        []*octane.Event  `json:"events" bson:"events"`
+				StartDate     *time.Time       `json:"start_date" bson:"start_date"`
+				EndDate       *time.Time       `json:"end_date" bson:"end_date"`
 				Games         int              `json:"games" bson:"games"`
 				Wins          int              `json:"wins" bson:"wins"`
 				WinPercentage float64          `json:"win_percentage" bson:"win_percentage"`
