@@ -160,7 +160,11 @@ func Or(fields ...*Field) *Field {
 	f := []bson.M{}
 	for _, field := range fields {
 		if field != nil {
-			f = append(f, bson.M{field.Key: field.Value})
+			if field.Key == "" {
+				f = append(f, field.Value.(bson.M))
+			} else {
+				f = append(f, bson.M{field.Key: field.Value})
+			}
 		}
 	}
 
@@ -170,6 +174,21 @@ func Or(fields ...*Field) *Field {
 
 	return &Field{
 		Key:   "$or",
+		Value: f,
+	}
+}
+
+// And .
+func And(fields ...*Field) *Field {
+	f := bson.M{}
+	for _, field := range fields {
+		if field == nil {
+			return nil
+		}
+		f[field.Key] = field.Value
+	}
+
+	return &Field{
 		Value: f,
 	}
 }

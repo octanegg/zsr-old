@@ -30,6 +30,9 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 			"teams": bson.M{
 				"$addToSet": "$team.team",
 			},
+			"opponents": bson.M{
+				"$addToSet": "$opponent.team",
+			},
 			"games": bson.M{
 				"$sum": 1,
 			},
@@ -71,6 +74,7 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 			"_id":        "$_id",
 			"player":     "$player",
 			"teams":      "$teams",
+			"opponents":  "$opponents",
 			"events":     "$events",
 			"start_date": "$start_date",
 			"end_date":   "$end_date",
@@ -135,11 +139,12 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 				Player        *octane.Player  `json:"player" bson:"player"`
 				Events        []*octane.Event `json:"events" bson:"events"`
 				Teams         []*octane.Team  `json:"teams" bson:"teams"`
-				StartDate     *time.Time      `json:"start_date" bson:"start_date"`
-				EndDate       *time.Time      `json:"end_date" bson:"end_date"`
+				Opponents     []*octane.Team  `json:"opponents" bson:"opponents"`
+				StartDate     *time.Time      `json:"startDate" bson:"start_date"`
+				EndDate       *time.Time      `json:"endDate" bson:"end_date"`
 				Games         int             `json:"games" bson:"games"`
 				Wins          int             `json:"wins" bson:"wins"`
-				WinPercentage float64         `json:"win_percentage" bson:"win_percentage"`
+				WinPercentage float64         `json:"winPercentage" bson:"win_percentage"`
 				Averages      struct {
 					Score              float64 `json:"score" bson:"score"`
 					Goals              float64 `json:"goals" bson:"goals"`

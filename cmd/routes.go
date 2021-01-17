@@ -63,9 +63,11 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 
 	r.HandleFunc("/stats/players", h.GetPlayerStats).Methods(http.MethodGet)
 	r.HandleFunc("/stats/players/teams", h.GetPlayerTeamStats).Methods(http.MethodGet)
+	r.HandleFunc("/stats/players/opponents", h.GetPlayerOpponentStats).Methods(http.MethodGet)
 	r.HandleFunc("/stats/players/events", h.GetPlayerEventStats).Methods(http.MethodGet)
 
 	r.HandleFunc("/stats/teams", h.GetTeamStats).Methods(http.MethodGet)
+	r.HandleFunc("/stats/teams/opponents", h.GetTeamOpponentStats).Methods(http.MethodGet)
 	r.HandleFunc("/stats/teams/events", h.GetTeamEventStats).Methods(http.MethodGet)
 
 	// admin
