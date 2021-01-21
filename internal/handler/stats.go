@@ -180,5 +180,6 @@ func statlinesFilter(v url.Values) bson.M {
 		filter.Dates("game.date", v.Get("before"), v.Get("after")),
 		filter.Bool("team.winner", v.Get("winner")),
 		filter.Ints("game.match.format.length", v["bestOf"]),
+		filter.Bool("game.match.stage.qualifier", v.Get("qualifier")),
 	)
 }

@@ -149,10 +149,9 @@ func (d *deprecated) GetGames(ctx *GetGamesContext) ([]*Game, error) {
 
 	for results.Next() {
 		var log Log
-		var tGoals *int
 		var mvp *int
 
-		err = results.Scan(&log.OctaneID, &log.Team, &log.Player, &log.Score, &log.Goals, &log.Assists, &log.Saves, &log.Shots, &tGoals, &log.Rating, &mvp, &log.Number)
+		err = results.Scan(&log.OctaneID, &log.Team, &log.Player, &log.Score, &log.Goals, &log.Assists, &log.Saves, &log.Shots, &log.TeamGoals, &log.Rating, &mvp, &log.Number)
 		if err != nil {
 			return nil, err
 		}
@@ -161,18 +160,20 @@ func (d *deprecated) GetGames(ctx *GetGamesContext) ([]*Game, error) {
 			log.SP = float64(log.Goals) / float64(log.Shots)
 		}
 
-		if *tGoals > 0 {
-			log.GP = (float64(log.Goals) + float64(log.Assists)) / float64(*tGoals)
+		if log.TeamGoals > 0 {
+			log.GP = (float64(log.Goals) + float64(log.Assists)) / float64(log.TeamGoals)
 		}
 
 		if *mvp == 1 {
 			log.MVP = true
 		}
 
-		if m[log.Number].Blue.Name == log.Team {
-			m[log.Number].Blue.Players = append(m[log.Number].Blue.Players, log)
-		} else {
-			m[log.Number].Orange.Players = append(m[log.Number].Orange.Players, log)
+		if _, ok := m[log.Number]; ok {
+			if m[log.Number].Blue.Name == log.Team {
+				m[log.Number].Blue.Players = append(m[log.Number].Blue.Players, log)
+			} else {
+				m[log.Number].Orange.Players = append(m[log.Number].Orange.Players, log)
+			}
 		}
 	}
 
