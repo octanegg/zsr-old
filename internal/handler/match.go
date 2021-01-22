@@ -78,6 +78,7 @@ func matchesFilter(v url.Values) bson.M {
 		filter.Ints("event.mode", v["mode"]),
 		filter.Ints("stage._id", v["stage"]),
 		filter.Ints("substage", v["substage"]),
+		filter.Strings("event.groups", v["group"]),
 		filter.Dates("date", v.Get("before"), v.Get("after")),
 		filter.Or(
 			filter.ElemMatch("blue.players", filter.ObjectIDs("_id", v["player"])),

@@ -221,6 +221,7 @@ func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]inte
 				Mode:   event.Mode,
 				Region: event.Region,
 				Tier:   event.Tier,
+				Groups: event.Groups,
 			},
 			Stage: &octane.Stage{
 				ID:     linkage.NewStage,
