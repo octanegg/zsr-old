@@ -130,7 +130,17 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 				for i, g := range games {
 					game := g.(*octane.Game)
 					allPlayerStats = append(allPlayerStats, h.getStats(game)...)
-					match.Games = append(match.Games, game.ID)
+
+					for game.Number > len(match.Games)+1 {
+						match.Games = append(match.Games, &octane.GameOverview{})
+					}
+					match.Games = append(match.Games, &octane.GameOverview{
+						ID:       game.ID,
+						Blue:     game.Blue.Stats.Core.Goals,
+						Orange:   game.Orange.Stats.Core.Goals,
+						Duration: game.Duration,
+					})
+
 					if i == 0 {
 						match.Blue.Players = getGamePlayers(game.Blue.Players)
 						match.Orange.Players = getGamePlayers(game.Orange.Players)
