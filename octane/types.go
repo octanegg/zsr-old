@@ -80,10 +80,10 @@ type Format struct {
 
 // MatchSide .
 type MatchSide struct {
-	Score   int       `json:"score,omitempty" bson:"score,omitempty"`
-	Winner  bool      `json:"winner,omitempty" bson:"winner,omitempty"`
-	Team    *Team     `json:"team,omitempty" bson:"team,omitempty"`
-	Players []*Player `json:"players,omitempty" bson:"players,omitempty"`
+	Score   int            `json:"score,omitempty" bson:"score,omitempty"`
+	Winner  bool           `json:"winner,omitempty" bson:"winner,omitempty"`
+	Team    *TeamStats     `json:"team,omitempty" bson:"team,omitempty"`
+	Players []*PlayerStats `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 // Game .
@@ -102,16 +102,21 @@ type Game struct {
 
 // GameSide .
 type GameSide struct {
-	Winner  bool                   `json:"winner,omitempty" bson:"winner,omitempty"`
-	Team    *Team                  `json:"team,omitempty" bson:"team,omitempty"`
-	Stats   *ballchasing.TeamStats `json:"stats,omitempty" bson:"stats,omitempty"`
-	Players []*PlayerStats         `json:"players,omitempty" bson:"players,omitempty"`
+	Winner  bool           `json:"winner,omitempty" bson:"winner,omitempty"`
+	Team    *TeamStats     `json:"team,omitempty" bson:"team,omitempty"`
+	Players []*PlayerStats `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 // PlayerStats .
 type PlayerStats struct {
 	Player *Player                  `json:"player,omitempty" bson:"player,omitempty"`
 	Stats  *ballchasing.PlayerStats `json:"stats,omitempty" bson:"stats,omitempty"`
+}
+
+// TeamStats .
+type TeamStats struct {
+	Team  *Team                  `json:"team,omitempty" bson:"team,omitempty"`
+	Stats *ballchasing.TeamStats `json:"stats,omitempty" bson:"stats,omitempty"`
 }
 
 // Player .
@@ -140,10 +145,18 @@ type Team struct {
 type Statline struct {
 	ID       *primitive.ObjectID `json:"_id" bson:"_id"`
 	Game     *Game               `json:"game,omitempty" bson:"game,omitempty"`
-	Team     *MatchSide          `json:"team,omitempty" bson:"team,omitempty"`
-	Opponent *MatchSide          `json:"opponent,omitempty" bson:"opponent,omitempty"`
+	Team     *StatlineSide       `json:"team,omitempty" bson:"team,omitempty"`
+	Opponent *StatlineSide       `json:"opponent,omitempty" bson:"opponent,omitempty"`
 	Player   *Player             `json:"player,omitempty" bson:"player,omitempty"`
 	Stats    *StatlineStats      `json:"stats,omitempty" bson:"stats,omitempty"`
+}
+
+// StatlineSide .
+type StatlineSide struct {
+	Score   int       `json:"score,omitempty" bson:"score,omitempty"`
+	Winner  bool      `json:"winner,omitempty" bson:"winner,omitempty"`
+	Team    *Team     `json:"team,omitempty" bson:"team,omitempty"`
+	Players []*Player `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 // StatlineStats .

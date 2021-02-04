@@ -17,8 +17,8 @@ func SeriesRecords(filter bson.M, stat string) *Pipeline {
 		query = bson.M{
 			"$sum": bson.M{
 				"$add": bson.A{
-					fmt.Sprintf("$blue.stats.core.%s", stat[:len(stat)-len("Total")]),
-					fmt.Sprintf("$orange.stats.core.%s", stat[:len(stat)-len("Total")]),
+					fmt.Sprintf("$blue.team.stats.core.%s", stat[:len(stat)-len("Total")]),
+					fmt.Sprintf("$orange.team.stats.core.%s", stat[:len(stat)-len("Total")]),
 				},
 			},
 		}
@@ -27,8 +27,8 @@ func SeriesRecords(filter bson.M, stat string) *Pipeline {
 		query = bson.M{
 			"$sum": bson.M{
 				"$subtract": bson.A{
-					fmt.Sprintf("$blue.stats.core.%s", stat[:len(stat)-len("Differential")]),
-					fmt.Sprintf("$orange.stats.core.%s", stat[:len(stat)-len("Differential")]),
+					fmt.Sprintf("$blue.team.stats.core.%s", stat[:len(stat)-len("Differential")]),
+					fmt.Sprintf("$orange.team.stats.core.%s", stat[:len(stat)-len("Differential")]),
 				},
 			},
 		}

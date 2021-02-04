@@ -127,27 +127,104 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 			}
 
 			if len(games) > 0 {
-				for i, g := range games {
+				var matchStats []interface{}
+				for _, g := range games {
 					game := g.(*octane.Game)
-					allPlayerStats = append(allPlayerStats, h.getStats(game)...)
+					matchStats = append(matchStats, h.getStats(game)...)
 
 					for game.Number > len(match.Games)+1 {
 						match.Games = append(match.Games, &octane.GameOverview{})
 					}
 					match.Games = append(match.Games, &octane.GameOverview{
 						ID:       game.ID,
-						Blue:     game.Blue.Stats.Core.Goals,
-						Orange:   game.Orange.Stats.Core.Goals,
+						Blue:     game.Blue.Team.Stats.Core.Goals,
+						Orange:   game.Orange.Team.Stats.Core.Goals,
 						Duration: game.Duration,
 					})
+				}
 
-					if i == 0 {
-						match.Blue.Players = getGamePlayers(game.Blue.Players)
-						match.Orange.Players = getGamePlayers(game.Orange.Players)
+				blue, orange := map[string]*octane.PlayerStats{}, map[string]*octane.PlayerStats{}
+				match.Blue.Team.Stats = &ballchasing.TeamStats{
+					Core: &ballchasing.TeamCore{},
+				}
+				match.Orange.Team.Stats = &ballchasing.TeamStats{
+					Core: &ballchasing.TeamCore{},
+				}
+				for _, s := range matchStats {
+					stat := s.(*octane.Statline)
+					if stat.Team.Team.ID == match.Blue.Team.Team.ID {
+						match.Blue.Team.Stats.Core.Score += stat.Stats.Player.Core.Score
+						match.Blue.Team.Stats.Core.Goals += stat.Stats.Player.Core.Goals
+						match.Blue.Team.Stats.Core.Assists += stat.Stats.Player.Core.Assists
+						match.Blue.Team.Stats.Core.Saves += stat.Stats.Player.Core.Saves
+						match.Blue.Team.Stats.Core.Shots += stat.Stats.Player.Core.Shots
+						if match.Blue.Team.Stats.Core.Shots > 0 {
+							match.Blue.Team.Stats.Core.ShootingPercentage = float64(match.Blue.Team.Stats.Core.Goals) / float64(match.Blue.Team.Stats.Core.Shots)
+						}
+
+						if _, ok := blue[stat.Player.ID.Hex()]; !ok {
+							blue[stat.Player.ID.Hex()] = &octane.PlayerStats{
+								Player: stat.Player,
+								Stats:  stat.Stats.Player,
+							}
+						} else {
+							blue[stat.Player.ID.Hex()].Stats.Core.Score += stat.Stats.Player.Core.Score
+							blue[stat.Player.ID.Hex()].Stats.Core.Goals += stat.Stats.Player.Core.Goals
+							blue[stat.Player.ID.Hex()].Stats.Core.Assists += stat.Stats.Player.Core.Assists
+							blue[stat.Player.ID.Hex()].Stats.Core.Saves += stat.Stats.Player.Core.Saves
+							blue[stat.Player.ID.Hex()].Stats.Core.Shots += stat.Stats.Player.Core.Shots
+							blue[stat.Player.ID.Hex()].Stats.Core.Rating += stat.Stats.Player.Core.Rating
+						}
+					} else {
+						match.Orange.Team.Stats.Core.Score += stat.Stats.Player.Core.Score
+						match.Orange.Team.Stats.Core.Goals += stat.Stats.Player.Core.Goals
+						match.Orange.Team.Stats.Core.Assists += stat.Stats.Player.Core.Assists
+						match.Orange.Team.Stats.Core.Saves += stat.Stats.Player.Core.Saves
+						match.Orange.Team.Stats.Core.Shots += stat.Stats.Player.Core.Shots
+						if match.Orange.Team.Stats.Core.Shots > 0 {
+							match.Orange.Team.Stats.Core.ShootingPercentage = float64(match.Orange.Team.Stats.Core.Goals) / float64(match.Orange.Team.Stats.Core.Shots)
+						}
+
+						if _, ok := orange[stat.Player.ID.Hex()]; !ok {
+							orange[stat.Player.ID.Hex()] = &octane.PlayerStats{
+								Player: stat.Player,
+								Stats:  stat.Stats.Player,
+							}
+						} else {
+							orange[stat.Player.ID.Hex()].Stats.Core.Score += stat.Stats.Player.Core.Score
+							orange[stat.Player.ID.Hex()].Stats.Core.Goals += stat.Stats.Player.Core.Goals
+							orange[stat.Player.ID.Hex()].Stats.Core.Assists += stat.Stats.Player.Core.Assists
+							orange[stat.Player.ID.Hex()].Stats.Core.Saves += stat.Stats.Player.Core.Saves
+							orange[stat.Player.ID.Hex()].Stats.Core.Shots += stat.Stats.Player.Core.Shots
+							orange[stat.Player.ID.Hex()].Stats.Core.Rating += stat.Stats.Player.Core.Rating
+						}
 					}
 				}
 
+				for _, player := range blue {
+					if player.Stats.Core.Shots > 0 {
+						player.Stats.Core.ShootingPercentage = float64(player.Stats.Core.Goals) / float64(player.Stats.Core.Shots)
+					}
+					if match.Blue.Team.Stats.Core.Goals > 0 {
+						player.Stats.Core.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(match.Blue.Team.Stats.Core.Goals)
+					}
+					player.Stats.Core.Rating /= float64(len(games))
+					match.Blue.Players = append(match.Blue.Players, player)
+				}
+
+				for _, player := range orange {
+					if player.Stats.Core.Shots > 0 {
+						player.Stats.Core.ShootingPercentage = float64(player.Stats.Core.Goals) / float64(player.Stats.Core.Shots)
+					}
+					if match.Orange.Team.Stats.Core.Goals > 0 {
+						player.Stats.Core.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(match.Orange.Team.Stats.Core.Goals)
+					}
+					player.Stats.Core.Rating /= float64(len(games))
+					match.Orange.Players = append(match.Orange.Players, player)
+				}
+
 				allGames = append(allGames, games...)
+				allPlayerStats = append(allPlayerStats, matchStats...)
 			}
 		}
 
@@ -246,12 +323,16 @@ func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]inte
 
 		if match.Blue.Name != "" && match.Orange.Name != "" {
 			newMatch.Blue = &octane.MatchSide{
-				Team:   h.findOrInsertTeam(match.Blue.Name),
+				Team: &octane.TeamStats{
+					Team: h.findOrInsertTeam(match.Blue.Name),
+				},
 				Score:  match.Blue.Score,
 				Winner: match.Blue.Winner,
 			}
 			newMatch.Orange = &octane.MatchSide{
-				Team:   h.findOrInsertTeam(match.Orange.Name),
+				Team: &octane.TeamStats{
+					Team: h.findOrInsertTeam(match.Orange.Name),
+				},
 				Score:  match.Orange.Score,
 				Winner: match.Orange.Winner,
 			}
@@ -276,8 +357,8 @@ func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]inte
 func (h *handler) getGames(match *octane.Match) ([]interface{}, error) {
 	oldGames, err := h.Deprecated.GetGames(&GetGamesContext{
 		OctaneID: match.OctaneID,
-		Blue:     match.Blue.Team.Name,
-		Orange:   match.Orange.Team.Name,
+		Blue:     match.Blue.Team.Team.Name,
+		Orange:   match.Orange.Team.Team.Name,
 	})
 	if err != nil {
 		return nil, err
@@ -285,7 +366,7 @@ func (h *handler) getGames(match *octane.Match) ([]interface{}, error) {
 
 	var newGames []interface{}
 	for _, game := range oldGames {
-		if game.Blue.Name == match.Orange.Team.Name {
+		if game.Blue.Name == match.Orange.Team.Team.Name {
 			game.Blue, game.Orange = game.Orange, game.Blue
 		}
 
@@ -297,13 +378,17 @@ func (h *handler) getGames(match *octane.Match) ([]interface{}, error) {
 			Map:      game.Map,
 			Duration: game.Duration,
 			Blue: &octane.GameSide{
-				Team:    match.Blue.Team,
-				Stats:   toTeamStats(game.Blue.Players),
+				Team: &octane.TeamStats{
+					Team:  match.Blue.Team.Team,
+					Stats: toTeamStats(game.Blue.Players),
+				},
 				Players: h.toPlayers(game.Blue.Players),
 			},
 			Orange: &octane.GameSide{
-				Team:    match.Orange.Team,
-				Stats:   toTeamStats(game.Orange.Players),
+				Team: &octane.TeamStats{
+					Team:  match.Orange.Team.Team,
+					Stats: toTeamStats(game.Orange.Players),
+				},
 				Players: h.toPlayers(game.Orange.Players),
 			},
 			Match: &octane.Match{
@@ -315,8 +400,8 @@ func (h *handler) getGames(match *octane.Match) ([]interface{}, error) {
 			Date: match.Date,
 		}
 
-		newGame.Blue.Winner = newGame.Blue.Stats.Core.Goals > newGame.Orange.Stats.Core.Goals
-		newGame.Orange.Winner = newGame.Orange.Stats.Core.Goals > newGame.Blue.Stats.Core.Goals
+		newGame.Blue.Winner = newGame.Blue.Team.Stats.Core.Goals > newGame.Orange.Team.Stats.Core.Goals
+		newGame.Orange.Winner = newGame.Orange.Team.Stats.Core.Goals > newGame.Blue.Team.Stats.Core.Goals
 
 		newGames = append(newGames, newGame)
 	}
@@ -338,22 +423,22 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 				Map:      game.Map,
 				Duration: game.Duration,
 			},
-			Team: &octane.MatchSide{
-				Score:   game.Blue.Stats.Core.Goals,
+			Team: &octane.StatlineSide{
+				Score:   game.Blue.Team.Stats.Core.Goals,
 				Winner:  game.Blue.Winner,
-				Team:    game.Blue.Team,
+				Team:    game.Blue.Team.Team,
 				Players: getGamePlayers(game.Blue.Players),
 			},
-			Opponent: &octane.MatchSide{
-				Score:   game.Orange.Stats.Core.Goals,
+			Opponent: &octane.StatlineSide{
+				Score:   game.Orange.Team.Stats.Core.Goals,
 				Winner:  game.Orange.Winner,
-				Team:    game.Orange.Team,
+				Team:    game.Orange.Team.Team,
 				Players: getGamePlayers(game.Orange.Players),
 			},
 			Player: p.Player,
 			Stats: &octane.StatlineStats{
 				Player: p.Stats,
-				Team:   game.Blue.Stats,
+				Team:   game.Blue.Team.Stats,
 			},
 		})
 	}
@@ -369,22 +454,22 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 				Map:      game.Map,
 				Duration: game.Duration,
 			},
-			Team: &octane.MatchSide{
-				Score:   game.Orange.Stats.Core.Goals,
+			Team: &octane.StatlineSide{
+				Score:   game.Orange.Team.Stats.Core.Goals,
 				Winner:  game.Orange.Winner,
-				Team:    game.Orange.Team,
+				Team:    game.Orange.Team.Team,
 				Players: getGamePlayers(game.Orange.Players),
 			},
-			Opponent: &octane.MatchSide{
-				Score:   game.Blue.Stats.Core.Goals,
+			Opponent: &octane.StatlineSide{
+				Score:   game.Blue.Team.Stats.Core.Goals,
 				Winner:  game.Blue.Winner,
-				Team:    game.Blue.Team,
+				Team:    game.Blue.Team.Team,
 				Players: getGamePlayers(game.Blue.Players),
 			},
 			Player: p.Player,
 			Stats: &octane.StatlineStats{
 				Player: p.Stats,
-				Team:   game.Orange.Stats,
+				Team:   game.Orange.Team.Stats,
 			},
 		})
 	}

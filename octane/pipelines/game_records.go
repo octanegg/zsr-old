@@ -15,8 +15,8 @@ import (
 func GameRecords(filter bson.M, stat string) *Pipeline {
 	query := bson.M{
 		"$add": bson.A{
-			fmt.Sprintf("$blue.stats.core.%s", stat[:len(stat)-len("Total")]),
-			fmt.Sprintf("$orange.stats.core.%s", stat[:len(stat)-len("Total")]),
+			fmt.Sprintf("$blue.team.stats.core.%s", stat[:len(stat)-len("Total")]),
+			fmt.Sprintf("$orange.team.stats.core.%s", stat[:len(stat)-len("Total")]),
 		},
 	}
 
@@ -25,20 +25,20 @@ func GameRecords(filter bson.M, stat string) *Pipeline {
 			"$cond": bson.A{
 				bson.M{
 					"$gt": bson.A{
-						fmt.Sprintf("$blue.stats.core.%s", stat[:len(stat)-len("Differential")]),
-						fmt.Sprintf("$orange.stats.core.%s", stat[:len(stat)-len("Differential")]),
+						fmt.Sprintf("$blue.team.stats.core.%s", stat[:len(stat)-len("Differential")]),
+						fmt.Sprintf("$orange.team.stats.core.%s", stat[:len(stat)-len("Differential")]),
 					},
 				},
 				bson.M{
 					"$subtract": bson.A{
-						fmt.Sprintf("$blue.stats.core.%s", stat[:len(stat)-len("Differential")]),
-						fmt.Sprintf("$orange.stats.core.%s", stat[:len(stat)-len("Differential")]),
+						fmt.Sprintf("$blue.team.stats.core.%s", stat[:len(stat)-len("Differential")]),
+						fmt.Sprintf("$orange.team.stats.core.%s", stat[:len(stat)-len("Differential")]),
 					},
 				},
 				bson.M{
 					"$subtract": bson.A{
-						fmt.Sprintf("$orange.stats.core.%s", stat[:len(stat)-len("Differential")]),
-						fmt.Sprintf("$blue.stats.core.%s", stat[:len(stat)-len("Differential")]),
+						fmt.Sprintf("$orange.team.stats.core.%s", stat[:len(stat)-len("Differential")]),
+						fmt.Sprintf("$blue.team.stats.core.%s", stat[:len(stat)-len("Differential")]),
 					},
 				},
 			},
