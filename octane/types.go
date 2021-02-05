@@ -18,6 +18,7 @@ type Event struct {
 	Mode      int                 `json:"mode,omitempty" bson:"mode,omitempty"`
 	Prize     *Prize              `json:"prize,omitempty" bson:"prize,omitempty"`
 	Tier      string              `json:"tier,omitempty" bson:"tier,omitempty"`
+	Image     string              `json:"image,omitempty" bson:"image,omitempty"`
 	Groups    []string            `json:"groups,omitempty" bson:"groups,omitempty"`
 	Stages    []*Stage            `json:"stages,omitempty" bson:"stages,omitempty"`
 }

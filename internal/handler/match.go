@@ -81,20 +81,20 @@ func matchesFilter(v url.Values) bson.M {
 		filter.Strings("event.groups", v["group"]),
 		filter.Dates("date", v.Get("before"), v.Get("after")),
 		filter.Or(
-			filter.ElemMatch("blue.players", filter.ObjectIDs("_id", v["player"])),
-			filter.ElemMatch("orange.players", filter.ObjectIDs("_id", v["player"])),
+			filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])),
+			filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])),
 		),
 		filter.Or(
-			filter.And(filter.ElemMatch("blue.players", filter.ObjectIDs("_id", v["player"])), filter.ObjectIDs("orange.team._id", v["opponent"])),
-			filter.And(filter.ElemMatch("orange.players", filter.ObjectIDs("_id", v["player"])), filter.ObjectIDs("blue.team._id", v["opponent"])),
+			filter.And(filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
+			filter.And(filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
 		),
 		filter.Or(
-			filter.ObjectIDs("blue.team._id", v["team"]),
-			filter.ObjectIDs("orange.team._id", v["team"]),
+			filter.ObjectIDs("blue.team.team._id", v["team"]),
+			filter.ObjectIDs("orange.team.team._id", v["team"]),
 		),
 		filter.Or(
-			filter.And(filter.ObjectIDs("blue.team._id", v["team"]), filter.ObjectIDs("orange.team._id", v["opponent"])),
-			filter.And(filter.ObjectIDs("orange.team._id", v["team"]), filter.ObjectIDs("blue.team._id", v["opponent"])),
+			filter.And(filter.ObjectIDs("blue.team.team._id", v["team"]), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
+			filter.And(filter.ObjectIDs("orange.team.team._id", v["team"]), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
 		),
 	)
 }
