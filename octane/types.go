@@ -52,17 +52,19 @@ type Prize struct {
 
 // Match .
 type Match struct {
-	ID       *primitive.ObjectID `json:"_id" bson:"_id"`
-	OctaneID string              `json:"octane_id,omitempty" bson:"octane_id,omitempty"`
-	Event    *Event              `json:"event,omitempty" bson:"event,omitempty"`
-	Stage    *Stage              `json:"stage,omitempty" bson:"stage,omitempty"`
-	Substage int                 `json:"substage,omitempty" bson:"substage,omitempty"`
-	Date     *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
-	Format   *Format             `json:"format,omitempty" bson:"format,omitempty"`
-	Blue     *MatchSide          `json:"blue,omitempty" bson:"blue,omitempty"`
-	Orange   *MatchSide          `json:"orange,omitempty" bson:"orange,omitempty"`
-	Number   int                 `json:"number,omitempty" bson:"number,omitempty"`
-	Games    []*GameOverview     `json:"games,omitempty" bson:"games,omitempty"`
+	ID                  *primitive.ObjectID `json:"_id" bson:"_id"`
+	OctaneID            string              `json:"octane_id,omitempty" bson:"octane_id,omitempty"`
+	Event               *Event              `json:"event,omitempty" bson:"event,omitempty"`
+	Stage               *Stage              `json:"stage,omitempty" bson:"stage,omitempty"`
+	Substage            int                 `json:"substage,omitempty" bson:"substage,omitempty"`
+	Date                *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
+	Format              *Format             `json:"format,omitempty" bson:"format,omitempty"`
+	Blue                *MatchSide          `json:"blue,omitempty" bson:"blue,omitempty"`
+	Orange              *MatchSide          `json:"orange,omitempty" bson:"orange,omitempty"`
+	Number              int                 `json:"number,omitempty" bson:"number,omitempty"`
+	ReverseSweep        bool                `json:"reverseSweep,omitempty" bson:"reverse_sweep,omitempty"`
+	ReverseSweepAttempt bool                `json:"reverseSweepAttempt,omitempty" bson:"reverse_sweep_attempt,omitempty"`
+	Games               []*GameOverview     `json:"games,omitempty" bson:"games,omitempty"`
 }
 
 // GameOverview .

@@ -165,16 +165,18 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 						if _, ok := blue[stat.Player.ID.Hex()]; !ok {
 							blue[stat.Player.ID.Hex()] = &octane.PlayerStats{
 								Player: stat.Player,
-								Stats:  stat.Stats.Player,
+								Stats: &ballchasing.PlayerStats{
+									Core: &ballchasing.PlayerCore{},
+								},
 							}
-						} else {
-							blue[stat.Player.ID.Hex()].Stats.Core.Score += stat.Stats.Player.Core.Score
-							blue[stat.Player.ID.Hex()].Stats.Core.Goals += stat.Stats.Player.Core.Goals
-							blue[stat.Player.ID.Hex()].Stats.Core.Assists += stat.Stats.Player.Core.Assists
-							blue[stat.Player.ID.Hex()].Stats.Core.Saves += stat.Stats.Player.Core.Saves
-							blue[stat.Player.ID.Hex()].Stats.Core.Shots += stat.Stats.Player.Core.Shots
-							blue[stat.Player.ID.Hex()].Stats.Core.Rating += stat.Stats.Player.Core.Rating
 						}
+
+						blue[stat.Player.ID.Hex()].Stats.Core.Score += stat.Stats.Player.Core.Score
+						blue[stat.Player.ID.Hex()].Stats.Core.Goals += stat.Stats.Player.Core.Goals
+						blue[stat.Player.ID.Hex()].Stats.Core.Assists += stat.Stats.Player.Core.Assists
+						blue[stat.Player.ID.Hex()].Stats.Core.Saves += stat.Stats.Player.Core.Saves
+						blue[stat.Player.ID.Hex()].Stats.Core.Shots += stat.Stats.Player.Core.Shots
+						blue[stat.Player.ID.Hex()].Stats.Core.Rating += stat.Stats.Player.Core.Rating
 					} else {
 						match.Orange.Team.Stats.Core.Score += stat.Stats.Player.Core.Score
 						match.Orange.Team.Stats.Core.Goals += stat.Stats.Player.Core.Goals
@@ -188,16 +190,18 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 						if _, ok := orange[stat.Player.ID.Hex()]; !ok {
 							orange[stat.Player.ID.Hex()] = &octane.PlayerStats{
 								Player: stat.Player,
-								Stats:  stat.Stats.Player,
+								Stats: &ballchasing.PlayerStats{
+									Core: &ballchasing.PlayerCore{},
+								},
 							}
-						} else {
-							orange[stat.Player.ID.Hex()].Stats.Core.Score += stat.Stats.Player.Core.Score
-							orange[stat.Player.ID.Hex()].Stats.Core.Goals += stat.Stats.Player.Core.Goals
-							orange[stat.Player.ID.Hex()].Stats.Core.Assists += stat.Stats.Player.Core.Assists
-							orange[stat.Player.ID.Hex()].Stats.Core.Saves += stat.Stats.Player.Core.Saves
-							orange[stat.Player.ID.Hex()].Stats.Core.Shots += stat.Stats.Player.Core.Shots
-							orange[stat.Player.ID.Hex()].Stats.Core.Rating += stat.Stats.Player.Core.Rating
 						}
+
+						orange[stat.Player.ID.Hex()].Stats.Core.Score += stat.Stats.Player.Core.Score
+						orange[stat.Player.ID.Hex()].Stats.Core.Goals += stat.Stats.Player.Core.Goals
+						orange[stat.Player.ID.Hex()].Stats.Core.Assists += stat.Stats.Player.Core.Assists
+						orange[stat.Player.ID.Hex()].Stats.Core.Saves += stat.Stats.Player.Core.Saves
+						orange[stat.Player.ID.Hex()].Stats.Core.Shots += stat.Stats.Player.Core.Shots
+						orange[stat.Player.ID.Hex()].Stats.Core.Rating += stat.Stats.Player.Core.Rating
 					}
 				}
 
@@ -225,6 +229,10 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 
 				allGames = append(allGames, games...)
 				allPlayerStats = append(allPlayerStats, matchStats...)
+
+				reverseSweepAttempt, reverseSweep := getSweepData(games)
+				match.ReverseSweepAttempt = reverseSweepAttempt
+				match.ReverseSweep = reverseSweep
 			}
 		}
 
@@ -253,6 +261,35 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 	}
 
 	return nil
+}
+
+func getSweepData(games []interface{}) (bool, bool) {
+	var format int
+	var _games []*octane.Game
+	for _, g := range games {
+		game := g.(*octane.Game)
+		_games = append(_games, game)
+		format = game.Match.Format.Length
+	}
+
+	var isReverseSweep, isReverseSweepAttempt bool
+
+	if len(games) == format {
+		isReverseSweepAttempt = true
+		firstWinnerIsBlue := _games[0].Blue.Winner
+		for i := 1; i < format/2; i++ {
+			if (firstWinnerIsBlue && !_games[i].Blue.Winner) || (!firstWinnerIsBlue && !_games[i].Orange.Winner) {
+				isReverseSweepAttempt = false
+				break
+			}
+		}
+
+		if isReverseSweepAttempt {
+			isReverseSweep = (firstWinnerIsBlue && _games[format-1].Orange.Winner) || (!firstWinnerIsBlue && _games[format-1].Blue.Winner)
+		}
+	}
+
+	return isReverseSweepAttempt, isReverseSweep
 }
 
 func (d *deprecated) getLinkages(events []int) ([]*EventLinkage, error) {
