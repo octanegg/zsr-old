@@ -583,12 +583,13 @@ func intsToStrings(a []int) []string {
 }
 
 func (h *handler) findOrInsertTeam(name string) *octane.Team {
-	t, err := h.Octane.Teams().FindOne(bson.M{"name": name})
+	t, err := h.Octane.Teams().FindOne(bson.M{"name": bson.M{"$regex": primitive.Regex{Pattern: fmt.Sprintf("^%s$", name), Options: "i"}}})
 	if err == nil {
 		team := t.(octane.Team)
 		return &octane.Team{
-			ID:   team.ID,
-			Name: team.Name,
+			ID:    team.ID,
+			Name:  team.Name,
+			Image: team.Image,
 		}
 	}
 
@@ -605,7 +606,7 @@ func (h *handler) findOrInsertTeam(name string) *octane.Team {
 }
 
 func (h *handler) findOrInsertPlayer(tag string) *octane.Player {
-	p, err := h.Octane.Players().FindOne(bson.M{"tag": tag})
+	p, err := h.Octane.Players().FindOne(bson.M{"tag": bson.M{"$regex": primitive.Regex{Pattern: fmt.Sprintf("^%s$", tag), Options: "i"}}})
 	if err == nil {
 		player := p.(octane.Player)
 		return &octane.Player{

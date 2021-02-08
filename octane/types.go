@@ -140,8 +140,9 @@ type Account struct {
 
 // Team .
 type Team struct {
-	ID   *primitive.ObjectID `json:"_id" bson:"_id"`
-	Name string              `json:"name,omitempty" bson:"name,omitempty"`
+	ID    *primitive.ObjectID `json:"_id" bson:"_id"`
+	Name  string              `json:"name,omitempty" bson:"name,omitempty"`
+	Image string              `json:"image,omitempty" bson:"image,omitempty"`
 }
 
 // Statline .
