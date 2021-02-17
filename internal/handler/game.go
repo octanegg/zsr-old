@@ -75,6 +75,7 @@ func gamesFilter(v url.Values) bson.M {
 		filter.Dates("date", v.Get("before"), v.Get("after")),
 		filter.Ints("match.format.length", v["bestOf"]),
 		filter.Strings("match.event.groups", v["group"]),
+		filter.Bool("match.stage.qualifier", v.Get("qualifier")),
 		filter.Or(
 			filter.Strings("blue.players.player._id", v["player"]),
 			filter.Strings("orange.players.player._id", v["player"]),

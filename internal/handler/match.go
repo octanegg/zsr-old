@@ -83,6 +83,7 @@ func matchesFilter(v url.Values) bson.M {
 		filter.Ints("format.length", v["bestOf"]),
 		filter.Bool("reverse_sweep", v.Get("reverseSweep")),
 		filter.Bool("reverse_sweep_attempt", v.Get("reverseSweepAttempt")),
+		filter.Bool("stage.qualifier", v.Get("qualifier")),
 		filter.Or(
 			filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])),
 			filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])),
