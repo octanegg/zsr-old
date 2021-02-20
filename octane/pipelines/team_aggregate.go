@@ -55,22 +55,29 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 				},
 			},
 			"score_total": bson.M{
-				"$sum": "$stats.player.core.score",
+				"$sum": bson.M{
+					"$divide": bson.A{"$stats.team.core.score", "$game.match.event.mode"},
+				},
 			},
 			"goals_total": bson.M{
-				"$sum": "$stats.player.core.goals",
+				"$sum": bson.M{
+					"$divide": bson.A{"$stats.team.core.goals", "$game.match.event.mode"},
+				},
 			},
 			"assists_total": bson.M{
-				"$sum": "$stats.player.core.assists",
+				"$sum": bson.M{
+					"$divide": bson.A{"$stats.team.core.assists", "$game.match.event.mode"},
+				},
 			},
 			"saves_total": bson.M{
-				"$sum": "$stats.player.core.saves",
+				"$sum": bson.M{
+					"$divide": bson.A{"$stats.team.core.saves", "$game.match.event.mode"},
+				},
 			},
 			"shots_total": bson.M{
-				"$sum": "$stats.player.core.shots",
-			},
-			"rating_total": bson.M{
-				"$sum": "$stats.player.core.rating",
+				"$sum": bson.M{
+					"$divide": bson.A{"$stats.team.core.shots", "$game.match.event.mode"},
+				},
 			},
 		}),
 		Match(having),

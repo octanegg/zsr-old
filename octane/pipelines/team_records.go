@@ -16,7 +16,7 @@ func TeamGameRecords(filter bson.M, stat string) *Pipeline {
 		Group(bson.M{
 			"_id": bson.M{
 				"game": "$game._id",
-				"team": "$team._id",
+				"team": "$team.team._id",
 			},
 			"game": bson.M{
 				"$first": "$game",
@@ -70,7 +70,7 @@ func TeamSeriesRecords(filter bson.M, stat string) *Pipeline {
 		Group(bson.M{
 			"_id": bson.M{
 				"match":  "$game.match._id",
-				"player": "$team._id",
+				"player": "$team.team._id",
 			},
 			"match": bson.M{
 				"$first": "$game.match",

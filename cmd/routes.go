@@ -57,7 +57,7 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 
 	// stats
 	r.HandleFunc("/records/players", h.GetPlayerRecords).Methods(http.MethodGet)
-	r.HandleFunc("/records/teams", h.GetPlayerRecords).Methods(http.MethodGet)
+	r.HandleFunc("/records/teams", h.GetTeamRecords).Methods(http.MethodGet)
 	r.HandleFunc("/records/games", h.GetGameRecords).Methods(http.MethodGet)
 	r.HandleFunc("/records/series", h.GetSeriesRecords).Methods(http.MethodGet)
 
