@@ -75,9 +75,12 @@ func Dates(key string, before, after string) *Field {
 
 // BeforeDate .
 func BeforeDate(key string, val string) *Field {
-	t, err := time.Parse(time.RFC3339, val)
+	t, err := time.Parse("2006-01-02", val)
 	if err != nil {
-		return nil
+		t, err = time.Parse(time.RFC3339, val)
+		if err != nil {
+			return nil
+		}
 	}
 
 	return &Field{
@@ -88,9 +91,12 @@ func BeforeDate(key string, val string) *Field {
 
 // AfterDate .
 func AfterDate(key string, val string) *Field {
-	t, err := time.Parse(time.RFC3339, val)
+	t, err := time.Parse("2006-01-02", val)
 	if err != nil {
-		return nil
+		t, err = time.Parse(time.RFC3339, val)
+		if err != nil {
+			return nil
+		}
 	}
 
 	return &Field{
