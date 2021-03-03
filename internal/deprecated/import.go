@@ -475,8 +475,9 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 			},
 			Player: p.Player,
 			Stats: &octane.StatlineStats{
-				Player: p.Stats,
-				Team:   game.Blue.Team.Stats,
+				Player:   p.Stats,
+				Team:     game.Blue.Team.Stats,
+				Opponent: game.Orange.Team.Stats,
 			},
 		})
 	}
@@ -506,8 +507,9 @@ func (h *handler) getStats(game *octane.Game) []interface{} {
 			},
 			Player: p.Player,
 			Stats: &octane.StatlineStats{
-				Player: p.Stats,
-				Team:   game.Orange.Team.Stats,
+				Player:   p.Stats,
+				Team:     game.Orange.Team.Stats,
+				Opponent: game.Blue.Team.Stats,
 			},
 		})
 	}

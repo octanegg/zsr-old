@@ -79,6 +79,31 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 					"$divide": bson.A{"$stats.team.core.shots", "$game.match.event.mode"},
 				},
 			},
+			"opp_score_total": bson.M{
+				"$sum": bson.M{
+					"$divide": bson.A{"$stats.opponent.core.score", "$game.match.event.mode"},
+				},
+			},
+			"opp_goals_total": bson.M{
+				"$sum": bson.M{
+					"$divide": bson.A{"$stats.opponent.core.goals", "$game.match.event.mode"},
+				},
+			},
+			"opp_assists_total": bson.M{
+				"$sum": bson.M{
+					"$divide": bson.A{"$stats.opponent.core.assists", "$game.match.event.mode"},
+				},
+			},
+			"opp_saves_total": bson.M{
+				"$sum": bson.M{
+					"$divide": bson.A{"$stats.opponent.core.saves", "$game.match.event.mode"},
+				},
+			},
+			"opp_shots_total": bson.M{
+				"$sum": bson.M{
+					"$divide": bson.A{"$stats.opponent.core.shots", "$game.match.event.mode"},
+				},
+			},
 		}),
 		Match(having),
 		Project(bson.M{
@@ -100,28 +125,119 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 					"$wins", "$games",
 				},
 			},
-			"averages": bson.M{
-				"score": bson.M{
-					"$divide": bson.A{"$score_total", "$games"},
+			"stats": bson.M{
+				"averages": bson.M{
+					"score": bson.M{
+						"$divide": bson.A{"$score_total", "$games"},
+					},
+					"goals": bson.M{
+						"$divide": bson.A{"$goals_total", "$games"},
+					},
+					"assists": bson.M{
+						"$divide": bson.A{"$assists_total", "$games"},
+					},
+					"saves": bson.M{
+						"$divide": bson.A{"$saves_total", "$games"},
+					},
+					"shots": bson.M{
+						"$divide": bson.A{"$shots_total", "$games"},
+					},
+					"shootingPercentage": bson.M{
+						"$cond": bson.A{
+							bson.M{"$eq": bson.A{"$shots_total", 0}},
+							1,
+							bson.M{
+								"$divide": bson.A{"$goals_total", "$shots_total"},
+							},
+						},
+					},
+					"savePercentage": bson.M{
+						"$divide": bson.A{
+							"$saves_total", bson.M{
+								"$sum": bson.A{"$saves_total", "$opp_goals_total"},
+							},
+						},
+					},
 				},
-				"goals": bson.M{
-					"$divide": bson.A{"$goals_total", "$games"},
+				"against": bson.M{
+					"score": bson.M{
+						"$divide": bson.A{"$opp_score_total", "$games"},
+					},
+					"goals": bson.M{
+						"$divide": bson.A{"$opp_goals_total", "$games"},
+					},
+					"assists": bson.M{
+						"$divide": bson.A{"$opp_assists_total", "$games"},
+					},
+					"saves": bson.M{
+						"$divide": bson.A{"$opp_saves_total", "$games"},
+					},
+					"shots": bson.M{
+						"$divide": bson.A{"$opp_shots_total", "$games"},
+					},
+					"shootingPercentage": bson.M{
+						"$cond": bson.A{
+							bson.M{"$eq": bson.A{"$opp_shots_total", 0}},
+							1,
+							bson.M{
+								"$divide": bson.A{"$opp_goals_total", "$opp_shots_total"},
+							},
+						},
+					},
+					"savePercentage": bson.M{
+						"$divide": bson.A{
+							"$opp_saves_total", bson.M{
+								"$sum": bson.A{"$opp_saves_total", "$goals_total"},
+							},
+						},
+					},
 				},
-				"assists": bson.M{
-					"$divide": bson.A{"$assists_total", "$games"},
+				"totals": bson.M{
+					"score":   "$score_total",
+					"goals":   "$goals_total",
+					"assists": "$assists_total",
+					"saves":   "$saves_total",
+					"shots":   "$shots_total",
 				},
-				"saves": bson.M{
-					"$divide": bson.A{"$saves_total", "$games"},
-				},
-				"shots": bson.M{
-					"$divide": bson.A{"$shots_total", "$games"},
-				},
-				"shootingPercentage": bson.M{
-					"$cond": bson.A{
-						bson.M{"$eq": bson.A{"$shots_total", 0}},
-						1,
-						bson.M{
-							"$divide": bson.A{"$goals_total", "$shots_total"},
+				"differentials": bson.M{
+					"score": bson.M{
+						"$divide": bson.A{
+							bson.M{
+								"$subtract": bson.A{"$score_total", "$opp_score_total"},
+							},
+							"$games",
+						},
+					},
+					"goals": bson.M{
+						"$divide": bson.A{
+							bson.M{
+								"$subtract": bson.A{"$goals_total", "$opp_goals_total"},
+							},
+							"$games",
+						},
+					},
+					"assists": bson.M{
+						"$divide": bson.A{
+							bson.M{
+								"$subtract": bson.A{"$assists_total", "$opp_assists_total"},
+							},
+							"$games",
+						},
+					},
+					"saves": bson.M{
+						"$divide": bson.A{
+							bson.M{
+								"$subtract": bson.A{"$saves_total", "$opp_saves_total"},
+							},
+							"$games",
+						},
+					},
+					"shots": bson.M{
+						"$divide": bson.A{
+							bson.M{
+								"$subtract": bson.A{"$shots_total", "$opp_shots_total"},
+							},
+							"$games",
 						},
 					},
 				},
@@ -143,14 +259,40 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 				Games         int              `json:"games" bson:"games"`
 				Wins          int              `json:"wins" bson:"wins"`
 				WinPercentage float64          `json:"winPercentage" bson:"win_percentage"`
-				Averages      struct {
-					Score              float64 `json:"score" bson:"score"`
-					Goals              float64 `json:"goals" bson:"goals"`
-					Assists            float64 `json:"assists" bson:"assists"`
-					Saves              float64 `json:"saves" bson:"saves"`
-					Shots              float64 `json:"shots" bson:"shots"`
-					ShootingPercentage float64 `json:"shootingPercentage" bson:"shootingPercentage"`
-				} `json:"averages" bson:"averages"`
+				Stats         struct {
+					Averages struct {
+						Score              float64 `json:"score" bson:"score"`
+						Goals              float64 `json:"goals" bson:"goals"`
+						Assists            float64 `json:"assists" bson:"assists"`
+						Saves              float64 `json:"saves" bson:"saves"`
+						Shots              float64 `json:"shots" bson:"shots"`
+						ShootingPercentage float64 `json:"shootingPercentage" bson:"shootingPercentage"`
+						SavePercentage     float64 `json:"savePercentage" bson:"savePercentage"`
+					} `json:"averages" bson:"averages"`
+					Against struct {
+						Score              float64 `json:"score" bson:"score"`
+						Goals              float64 `json:"goals" bson:"goals"`
+						Assists            float64 `json:"assists" bson:"assists"`
+						Saves              float64 `json:"saves" bson:"saves"`
+						Shots              float64 `json:"shots" bson:"shots"`
+						ShootingPercentage float64 `json:"shootingPercentage" bson:"shootingPercentage"`
+						SavePercentage     float64 `json:"savePercentage" bson:"savePercentage"`
+					} `json:"against" bson:"against"`
+					Totals struct {
+						Score   float64 `json:"score" bson:"score"`
+						Goals   float64 `json:"goals" bson:"goals"`
+						Assists float64 `json:"assists" bson:"assists"`
+						Saves   float64 `json:"saves" bson:"saves"`
+						Shots   float64 `json:"shots" bson:"shots"`
+					} `json:"totals" bson:"totals"`
+					Differentials struct {
+						Score   float64 `json:"score" bson:"score"`
+						Goals   float64 `json:"goals" bson:"goals"`
+						Assists float64 `json:"assists" bson:"assists"`
+						Saves   float64 `json:"saves" bson:"saves"`
+						Shots   float64 `json:"shots" bson:"shots"`
+					} `json:"differentials" bson:"differentials"`
+				} `json:"stats" bson:"stats"`
 			}
 			if err := cursor.Decode(&team); err != nil {
 				return nil, err

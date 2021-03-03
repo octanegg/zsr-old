@@ -165,8 +165,9 @@ type StatlineSide struct {
 
 // StatlineStats .
 type StatlineStats struct {
-	Player *ballchasing.PlayerStats `json:"player,omitempty" bson:"player,omitempty"`
-	Team   *ballchasing.TeamStats   `json:"team,omitempty" bson:"team,omitempty"`
+	Player   *ballchasing.PlayerStats `json:"player,omitempty" bson:"player,omitempty"`
+	Team     *ballchasing.TeamStats   `json:"team,omitempty" bson:"team,omitempty"`
+	Opponent *ballchasing.TeamStats   `json:"opponent,omitempty" bson:"opponent,omitempty"`
 }
 
 func toEvents(cursor *mongo.Cursor) (interface{}, error) {
