@@ -14,6 +14,7 @@ import (
 type Collection interface {
 	Find(bson.M, bson.M, *Pagination) ([]interface{}, error)
 	FindOne(bson.M) (interface{}, error)
+	UpdateOne(interface{}, interface{}) (interface{}, error)
 	Insert([]interface{}) ([]interface{}, error)
 	InsertOne(interface{}) (*primitive.ObjectID, error)
 	Delete(bson.M) (int64, error)
@@ -81,6 +82,15 @@ func (c *collection) FindOne(filter bson.M) (interface{}, error) {
 	}
 
 	return data[0], nil
+}
+
+func (c *collection) UpdateOne(filter, data interface{}) (interface{}, error) {
+	res, err := c.Collection.UpdateOne(context.TODO(), filter, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.UpsertedID, nil
 }
 
 func (c *collection) Insert(data []interface{}) ([]interface{}, error) {

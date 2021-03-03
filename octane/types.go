@@ -39,7 +39,7 @@ type Stage struct {
 
 // Substage .
 type Substage struct {
-	ID     int    `json:"_id,omitempty" bson:"_id,omitempty"`
+	ID     int    `json:"_id" bson:"_id"`
 	Name   string `json:"name,omitempty" bson:"name,omitempty"`
 	Format string `json:"format,omitempty" bson:"format,omitempty"`
 }
@@ -52,7 +52,7 @@ type Prize struct {
 
 // Match .
 type Match struct {
-	ID                  *primitive.ObjectID `json:"_id" bson:"_id"`
+	ID                  *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	OctaneID            string              `json:"octane_id,omitempty" bson:"octane_id,omitempty"`
 	Event               *Event              `json:"event,omitempty" bson:"event,omitempty"`
 	Stage               *Stage              `json:"stage,omitempty" bson:"stage,omitempty"`
@@ -91,7 +91,7 @@ type MatchSide struct {
 
 // Game .
 type Game struct {
-	ID            *primitive.ObjectID `json:"_id" bson:"_id"`
+	ID            *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	OctaneID      string              `json:"octane_id,omitempty" bson:"octane_id,omitempty"`
 	Number        int                 `json:"number,omitempty" bson:"number,omitempty"`
 	Match         *Match              `json:"match,omitempty" bson:"match,omitempty"`
@@ -124,7 +124,7 @@ type TeamStats struct {
 
 // Player .
 type Player struct {
-	ID      *primitive.ObjectID `json:"_id" bson:"_id"`
+	ID      *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Tag     string              `json:"tag,omitempty" bson:"tag,omitempty"`
 	Name    string              `json:"name,omitempty" bson:"name,omitempty"`
 	Country string              `json:"country,omitempty" bson:"country,omitempty"`
@@ -140,14 +140,14 @@ type Account struct {
 
 // Team .
 type Team struct {
-	ID    *primitive.ObjectID `json:"_id" bson:"_id"`
+	ID    *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Name  string              `json:"name,omitempty" bson:"name,omitempty"`
 	Image string              `json:"image,omitempty" bson:"image,omitempty"`
 }
 
 // Statline .
 type Statline struct {
-	ID       *primitive.ObjectID `json:"_id" bson:"_id"`
+	ID       *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 	Game     *Game               `json:"game,omitempty" bson:"game,omitempty"`
 	Team     *StatlineSide       `json:"team,omitempty" bson:"team,omitempty"`
 	Opponent *StatlineSide       `json:"opponent,omitempty" bson:"opponent,omitempty"`
