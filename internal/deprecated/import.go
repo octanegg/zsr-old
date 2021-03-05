@@ -20,7 +20,7 @@ import (
 
 const (
 	linkagesSQL = "SELECT old_event, old_stage, new_event, new_stage FROM mapping"
-	numWorkers  = 50
+	numWorkers  = 40
 )
 
 // EventLinkage .
@@ -153,55 +153,57 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 				}
 				for _, stat := range matchStats {
 					if stat.Team.Team.ID == match.Blue.Team.Team.ID {
-						match.Blue.Team.Stats.Core.Score += stat.Stats.Player.Core.Score
-						match.Blue.Team.Stats.Core.Goals += stat.Stats.Player.Core.Goals
-						match.Blue.Team.Stats.Core.Assists += stat.Stats.Player.Core.Assists
-						match.Blue.Team.Stats.Core.Saves += stat.Stats.Player.Core.Saves
-						match.Blue.Team.Stats.Core.Shots += stat.Stats.Player.Core.Shots
+						match.Blue.Team.Stats.Core.Score += stat.Player.Stats.Core.Score
+						match.Blue.Team.Stats.Core.Goals += stat.Player.Stats.Core.Goals
+						match.Blue.Team.Stats.Core.Assists += stat.Player.Stats.Core.Assists
+						match.Blue.Team.Stats.Core.Saves += stat.Player.Stats.Core.Saves
+						match.Blue.Team.Stats.Core.Shots += stat.Player.Stats.Core.Shots
 						if match.Blue.Team.Stats.Core.Shots > 0 {
 							match.Blue.Team.Stats.Core.ShootingPercentage = float64(match.Blue.Team.Stats.Core.Goals) / float64(match.Blue.Team.Stats.Core.Shots)
 						}
 
-						if _, ok := blue[stat.Player.ID.Hex()]; !ok {
-							blue[stat.Player.ID.Hex()] = &octane.PlayerStats{
-								Player: stat.Player,
+						if _, ok := blue[stat.Player.Player.ID.Hex()]; !ok {
+							blue[stat.Player.Player.ID.Hex()] = &octane.PlayerStats{
+								Player: stat.Player.Player,
 								Stats: &ballchasing.PlayerStats{
 									Core: &ballchasing.PlayerCore{},
 								},
+								Advanced: &octane.AdvancedStats{},
 							}
 						}
 
-						blue[stat.Player.ID.Hex()].Stats.Core.Score += stat.Stats.Player.Core.Score
-						blue[stat.Player.ID.Hex()].Stats.Core.Goals += stat.Stats.Player.Core.Goals
-						blue[stat.Player.ID.Hex()].Stats.Core.Assists += stat.Stats.Player.Core.Assists
-						blue[stat.Player.ID.Hex()].Stats.Core.Saves += stat.Stats.Player.Core.Saves
-						blue[stat.Player.ID.Hex()].Stats.Core.Shots += stat.Stats.Player.Core.Shots
-						blue[stat.Player.ID.Hex()].Stats.Core.Rating += stat.Stats.Player.Core.Rating
+						blue[stat.Player.Player.ID.Hex()].Stats.Core.Score += stat.Player.Stats.Core.Score
+						blue[stat.Player.Player.ID.Hex()].Stats.Core.Goals += stat.Player.Stats.Core.Goals
+						blue[stat.Player.Player.ID.Hex()].Stats.Core.Assists += stat.Player.Stats.Core.Assists
+						blue[stat.Player.Player.ID.Hex()].Stats.Core.Saves += stat.Player.Stats.Core.Saves
+						blue[stat.Player.Player.ID.Hex()].Stats.Core.Shots += stat.Player.Stats.Core.Shots
+						blue[stat.Player.Player.ID.Hex()].Advanced.Rating += stat.Player.Advanced.Rating
 					} else {
-						match.Orange.Team.Stats.Core.Score += stat.Stats.Player.Core.Score
-						match.Orange.Team.Stats.Core.Goals += stat.Stats.Player.Core.Goals
-						match.Orange.Team.Stats.Core.Assists += stat.Stats.Player.Core.Assists
-						match.Orange.Team.Stats.Core.Saves += stat.Stats.Player.Core.Saves
-						match.Orange.Team.Stats.Core.Shots += stat.Stats.Player.Core.Shots
+						match.Orange.Team.Stats.Core.Score += stat.Player.Stats.Core.Score
+						match.Orange.Team.Stats.Core.Goals += stat.Player.Stats.Core.Goals
+						match.Orange.Team.Stats.Core.Assists += stat.Player.Stats.Core.Assists
+						match.Orange.Team.Stats.Core.Saves += stat.Player.Stats.Core.Saves
+						match.Orange.Team.Stats.Core.Shots += stat.Player.Stats.Core.Shots
 						if match.Orange.Team.Stats.Core.Shots > 0 {
 							match.Orange.Team.Stats.Core.ShootingPercentage = float64(match.Orange.Team.Stats.Core.Goals) / float64(match.Orange.Team.Stats.Core.Shots)
 						}
 
-						if _, ok := orange[stat.Player.ID.Hex()]; !ok {
-							orange[stat.Player.ID.Hex()] = &octane.PlayerStats{
-								Player: stat.Player,
+						if _, ok := orange[stat.Player.Player.ID.Hex()]; !ok {
+							orange[stat.Player.Player.ID.Hex()] = &octane.PlayerStats{
+								Player: stat.Player.Player,
 								Stats: &ballchasing.PlayerStats{
 									Core: &ballchasing.PlayerCore{},
 								},
+								Advanced: &octane.AdvancedStats{},
 							}
 						}
 
-						orange[stat.Player.ID.Hex()].Stats.Core.Score += stat.Stats.Player.Core.Score
-						orange[stat.Player.ID.Hex()].Stats.Core.Goals += stat.Stats.Player.Core.Goals
-						orange[stat.Player.ID.Hex()].Stats.Core.Assists += stat.Stats.Player.Core.Assists
-						orange[stat.Player.ID.Hex()].Stats.Core.Saves += stat.Stats.Player.Core.Saves
-						orange[stat.Player.ID.Hex()].Stats.Core.Shots += stat.Stats.Player.Core.Shots
-						orange[stat.Player.ID.Hex()].Stats.Core.Rating += stat.Stats.Player.Core.Rating
+						orange[stat.Player.Player.ID.Hex()].Stats.Core.Score += stat.Player.Stats.Core.Score
+						orange[stat.Player.Player.ID.Hex()].Stats.Core.Goals += stat.Player.Stats.Core.Goals
+						orange[stat.Player.Player.ID.Hex()].Stats.Core.Assists += stat.Player.Stats.Core.Assists
+						orange[stat.Player.Player.ID.Hex()].Stats.Core.Saves += stat.Player.Stats.Core.Saves
+						orange[stat.Player.Player.ID.Hex()].Stats.Core.Shots += stat.Player.Stats.Core.Shots
+						orange[stat.Player.Player.ID.Hex()].Advanced.Rating += stat.Player.Advanced.Rating
 					}
 				}
 
@@ -210,9 +212,9 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 						player.Stats.Core.ShootingPercentage = float64(player.Stats.Core.Goals) / float64(player.Stats.Core.Shots)
 					}
 					if match.Blue.Team.Stats.Core.Goals > 0 {
-						player.Stats.Core.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(match.Blue.Team.Stats.Core.Goals)
+						player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(match.Blue.Team.Stats.Core.Goals)
 					}
-					player.Stats.Core.Rating /= float64(len(games))
+					player.Advanced.Rating /= float64(len(games))
 					match.Blue.Players = append(match.Blue.Players, player)
 				}
 
@@ -221,9 +223,9 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 						player.Stats.Core.ShootingPercentage = float64(player.Stats.Core.Goals) / float64(player.Stats.Core.Shots)
 					}
 					if match.Orange.Team.Stats.Core.Goals > 0 {
-						player.Stats.Core.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(match.Orange.Team.Stats.Core.Goals)
+						player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(match.Orange.Team.Stats.Core.Goals)
 					}
-					player.Stats.Core.Rating /= float64(len(games))
+					player.Advanced.Rating /= float64(len(games))
 					match.Orange.Players = append(match.Orange.Players, player)
 				}
 
@@ -263,8 +265,7 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 				}
 				gameID = *id
 			} else {
-				game := g.(octane.Game)
-				gameID = *game.ID
+				gameID = *g.(octane.Game).ID
 				game.ID = nil
 				if _, err = h.Octane.Games().UpdateOne(bson.M{"_id": gameID}, bson.M{"$set": game}); err != nil {
 					return err
@@ -375,7 +376,7 @@ func (h *handler) getMatches(linkage *EventLinkage, event *octane.Event) ([]inte
 				Groups: event.Groups,
 			},
 			Stage: &octane.Stage{
-				ID:     event.Stages[linkage.NewStage].ID,
+				ID:     linkage.NewStage,
 				Name:   event.Stages[linkage.NewStage].Name,
 				Format: event.Stages[linkage.NewStage].Format,
 			},
@@ -439,7 +440,9 @@ func (h *handler) getGames(match *octane.Match) ([]*octane.Game, error) {
 			ID:       &id,
 			OctaneID: game.OctaneID,
 			Number:   game.Number,
-			Map:      game.Map,
+			Map: &octane.Map{
+				Name: game.Map,
+			},
 			Duration: game.Duration,
 			Blue: &octane.GameSide{
 				Team: &octane.TeamStats{
@@ -491,20 +494,17 @@ func (h *handler) getStats(game *octane.Game) []*octane.Statline {
 				Score:   game.Blue.Team.Stats.Core.Goals,
 				Winner:  game.Blue.Winner,
 				Team:    game.Blue.Team.Team,
+				Stats:   game.Blue.Team.Stats,
 				Players: getGamePlayers(game.Blue.Players),
 			},
 			Opponent: &octane.StatlineSide{
 				Score:   game.Orange.Team.Stats.Core.Goals,
 				Winner:  game.Orange.Winner,
 				Team:    game.Orange.Team.Team,
+				Stats:   game.Orange.Team.Stats,
 				Players: getGamePlayers(game.Orange.Players),
 			},
-			Player: p.Player,
-			Stats: &octane.StatlineStats{
-				Player:   p.Stats,
-				Team:     game.Blue.Team.Stats,
-				Opponent: game.Orange.Team.Stats,
-			},
+			Player: p,
 		})
 	}
 
@@ -523,20 +523,17 @@ func (h *handler) getStats(game *octane.Game) []*octane.Statline {
 				Score:   game.Orange.Team.Stats.Core.Goals,
 				Winner:  game.Orange.Winner,
 				Team:    game.Orange.Team.Team,
+				Stats:   game.Orange.Team.Stats,
 				Players: getGamePlayers(game.Orange.Players),
 			},
 			Opponent: &octane.StatlineSide{
 				Score:   game.Blue.Team.Stats.Core.Goals,
 				Winner:  game.Blue.Winner,
 				Team:    game.Blue.Team.Team,
+				Stats:   game.Blue.Team.Stats,
 				Players: getGamePlayers(game.Blue.Players),
 			},
-			Player: p.Player,
-			Stats: &octane.StatlineStats{
-				Player:   p.Stats,
-				Team:     game.Orange.Team.Stats,
-				Opponent: game.Blue.Team.Stats,
-			},
+			Player: p,
 		})
 	}
 
@@ -574,9 +571,11 @@ func (h *handler) toPlayers(logs []Log) []*octane.PlayerStats {
 					Assists: log.Assists,
 					Saves:   log.Saves,
 					Shots:   log.Shots,
-					Mvp:     log.MVP,
-					Rating:  log.Rating,
 				},
+			},
+			Advanced: &octane.AdvancedStats{
+				MVP:    log.MVP,
+				Rating: log.Rating,
 			},
 		}
 
@@ -585,7 +584,7 @@ func (h *handler) toPlayers(logs []Log) []*octane.PlayerStats {
 		}
 
 		if log.TeamGoals > 0 {
-			player.Stats.Core.GoalParticipation = float64(log.Goals+log.Assists) / float64(log.TeamGoals)
+			player.Advanced.GoalParticipation = float64(log.Goals+log.Assists) / float64(log.TeamGoals)
 		}
 
 		players = append(players, player)

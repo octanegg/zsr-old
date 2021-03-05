@@ -95,7 +95,7 @@ type Game struct {
 	OctaneID      string              `json:"octane_id,omitempty" bson:"octane_id,omitempty"`
 	Number        int                 `json:"number,omitempty" bson:"number,omitempty"`
 	Match         *Match              `json:"match,omitempty" bson:"match,omitempty"`
-	Map           string              `json:"map,omitempty" bson:"map,omitempty"`
+	Map           *Map                `json:"map,omitempty" bson:"map,omitempty"`
 	Duration      int                 `json:"duration,omitempty" bson:"duration,omitempty"`
 	Date          *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
 	Blue          *GameSide           `json:"blue,omitempty" bson:"blue,omitempty"`
@@ -112,8 +112,18 @@ type GameSide struct {
 
 // PlayerStats .
 type PlayerStats struct {
-	Player *Player                  `json:"player,omitempty" bson:"player,omitempty"`
-	Stats  *ballchasing.PlayerStats `json:"stats,omitempty" bson:"stats,omitempty"`
+	Player   *Player                  `json:"player,omitempty" bson:"player,omitempty"`
+	Car      *Car                     `json:"car,omitempty" bson:"car,omitempty"`
+	Camera   *ballchasing.Camera      `json:"camera,omitempty" bson:"camera,omitempty"`
+	Stats    *ballchasing.PlayerStats `json:"stats,omitempty" bson:"stats,omitempty"`
+	Advanced *AdvancedStats           `json:"advanced,omitempty" bson:"advanced,omitempty"`
+}
+
+// AdvancedStats .
+type AdvancedStats struct {
+	GoalParticipation float64 `json:"goal_participation" bson:"goal_participation"`
+	Rating            float64 `json:"rating,omitempty" bson:"rating,omitempty"`
+	MVP               bool    `json:"mvp,omitempty" bson:"mvp,omitempty"`
 }
 
 // TeamStats .
@@ -122,14 +132,26 @@ type TeamStats struct {
 	Stats *ballchasing.TeamStats `json:"stats,omitempty" bson:"stats,omitempty"`
 }
 
+// Map .
+type Map struct {
+	ID   string `json:"id,omitempty" bson:"id,omitempty"`
+	Name string `json:"name,omitempty" bson:"name,omitempty"`
+}
+
+// Car .
+type Car struct {
+	ID   int    `json:"id,omitempty" bson:"id,omitempty"`
+	Name string `json:"name,omitempty" bson:"name,omitempty"`
+}
+
 // Player .
 type Player struct {
-	ID      *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Tag     string              `json:"tag,omitempty" bson:"tag,omitempty"`
-	Name    string              `json:"name,omitempty" bson:"name,omitempty"`
-	Country string              `json:"country,omitempty" bson:"country,omitempty"`
-	Team    string              `json:"team,omitempty" bson:"team,omitempty"`
-	Account *Account            `json:"account,omitempty" bson:"account,omitempty"`
+	ID       *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Tag      string              `json:"tag,omitempty" bson:"tag,omitempty"`
+	Name     string              `json:"name,omitempty" bson:"name,omitempty"`
+	Country  string              `json:"country,omitempty" bson:"country,omitempty"`
+	Team     string              `json:"team,omitempty" bson:"team,omitempty"`
+	Accounts []*Account          `json:"accounts,omitempty" bson:"accounts,omitempty"`
 }
 
 // Account .
@@ -151,23 +173,16 @@ type Statline struct {
 	Game     *Game               `json:"game,omitempty" bson:"game,omitempty"`
 	Team     *StatlineSide       `json:"team,omitempty" bson:"team,omitempty"`
 	Opponent *StatlineSide       `json:"opponent,omitempty" bson:"opponent,omitempty"`
-	Player   *Player             `json:"player,omitempty" bson:"player,omitempty"`
-	Stats    *StatlineStats      `json:"stats,omitempty" bson:"stats,omitempty"`
+	Player   *PlayerStats        `json:"player,omitempty" bson:"player,omitempty"`
 }
 
 // StatlineSide .
 type StatlineSide struct {
-	Score   int       `json:"score,omitempty" bson:"score,omitempty"`
-	Winner  bool      `json:"winner,omitempty" bson:"winner,omitempty"`
-	Team    *Team     `json:"team,omitempty" bson:"team,omitempty"`
-	Players []*Player `json:"players,omitempty" bson:"players,omitempty"`
-}
-
-// StatlineStats .
-type StatlineStats struct {
-	Player   *ballchasing.PlayerStats `json:"player,omitempty" bson:"player,omitempty"`
-	Team     *ballchasing.TeamStats   `json:"team,omitempty" bson:"team,omitempty"`
-	Opponent *ballchasing.TeamStats   `json:"opponent,omitempty" bson:"opponent,omitempty"`
+	Score   int                    `json:"score,omitempty" bson:"score,omitempty"`
+	Winner  bool                   `json:"winner,omitempty" bson:"winner,omitempty"`
+	Team    *Team                  `json:"team,omitempty" bson:"team,omitempty"`
+	Stats   *ballchasing.TeamStats `json:"stats,omitempty" bson:"stats,omitempty"`
+	Players []*Player              `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 func toEvents(cursor *mongo.Cursor) (interface{}, error) {

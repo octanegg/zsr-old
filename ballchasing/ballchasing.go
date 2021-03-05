@@ -13,22 +13,22 @@ const (
 	BaseURL = "https://ballchasing.com/api"
 )
 
-type racer struct {
+type client struct {
 	AuthToken string
 }
 
-// Racer .
-type Racer interface {
+// Client .
+type Client interface {
 	GetReplay(string) (*Replay, error)
 	ListReplays(map[string][]string) (*Replays, error)
 }
 
 // New .
-func New(authToken string) Racer {
-	return &racer{authToken}
+func New(authToken string) Client {
+	return &client{authToken}
 }
 
-func (b *racer) GetReplay(id string) (*Replay, error) {
+func (b *client) GetReplay(id string) (*Replay, error) {
 	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, BaseURL+"/replays/"+id, nil)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (b *racer) GetReplay(id string) (*Replay, error) {
 	return &replay, nil
 }
 
-func (b *racer) ListReplays(params map[string][]string) (*Replays, error) {
+func (b *client) ListReplays(params map[string][]string) (*Replays, error) {
 	req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, BaseURL+"/replays", nil)
 	if err != nil {
 		return nil, err

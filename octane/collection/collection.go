@@ -2,7 +2,6 @@ package collection
 
 import (
 	"context"
-	"errors"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -31,6 +30,13 @@ type Pagination struct {
 	Page     int64 `json:"page"`
 	PerPage  int64 `json:"perPage"`
 	PageSize int   `json:"pageSize"`
+}
+
+// NoDataError .
+type NoDataError struct{}
+
+func (e *NoDataError) Error() string {
+	return "no data found"
 }
 
 // New .
@@ -78,7 +84,7 @@ func (c *collection) FindOne(filter bson.M) (interface{}, error) {
 	}
 
 	if len(data) == 0 {
-		return nil, errors.New("no data found")
+		return nil, &NoDataError{}
 	}
 
 	return data[0], nil

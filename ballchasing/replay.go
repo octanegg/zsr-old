@@ -106,9 +106,6 @@ type PlayerCore struct {
 	Assists            int     `json:"assists" bson:"assists"`
 	Score              int     `json:"score" bson:"score"`
 	ShootingPercentage float64 `json:"shooting_percentage" bson:"shooting_percentage"`
-	GoalParticipation  float64 `json:"goal_participation" bson:"goal_participation"`
-	Rating             float64 `json:"rating,omitempty" bson:"rating,omitempty"`
-	Mvp                bool    `json:"mvp,omitempty" bson:"mvp,omitempty"`
 }
 
 // PlayerBoost .
