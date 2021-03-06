@@ -31,7 +31,7 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 				"$last": "$game.date",
 			},
 			"players": bson.M{
-				"$addToSet": "$player",
+				"$addToSet": "$player.player",
 			},
 			"games": bson.M{
 				"$sum": bson.M{
@@ -56,52 +56,52 @@ func TeamAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline {
 			},
 			"score_total": bson.M{
 				"$sum": bson.M{
-					"$divide": bson.A{"$stats.team.core.score", "$game.match.event.mode"},
+					"$divide": bson.A{"$team.stats.core.score", "$game.match.event.mode"},
 				},
 			},
 			"goals_total": bson.M{
 				"$sum": bson.M{
-					"$divide": bson.A{"$stats.team.core.goals", "$game.match.event.mode"},
+					"$divide": bson.A{"$team.stats.core.goals", "$game.match.event.mode"},
 				},
 			},
 			"assists_total": bson.M{
 				"$sum": bson.M{
-					"$divide": bson.A{"$stats.team.core.assists", "$game.match.event.mode"},
+					"$divide": bson.A{"$team.stats.core.assists", "$game.match.event.mode"},
 				},
 			},
 			"saves_total": bson.M{
 				"$sum": bson.M{
-					"$divide": bson.A{"$stats.team.core.saves", "$game.match.event.mode"},
+					"$divide": bson.A{"$team.stats.core.saves", "$game.match.event.mode"},
 				},
 			},
 			"shots_total": bson.M{
 				"$sum": bson.M{
-					"$divide": bson.A{"$stats.team.core.shots", "$game.match.event.mode"},
+					"$divide": bson.A{"$team.stats.core.shots", "$game.match.event.mode"},
 				},
 			},
 			"opp_score_total": bson.M{
 				"$sum": bson.M{
-					"$divide": bson.A{"$stats.opponent.core.score", "$game.match.event.mode"},
+					"$divide": bson.A{"$opponent.stats.core.score", "$game.match.event.mode"},
 				},
 			},
 			"opp_goals_total": bson.M{
 				"$sum": bson.M{
-					"$divide": bson.A{"$stats.opponent.core.goals", "$game.match.event.mode"},
+					"$divide": bson.A{"$opponent.stats.core.goals", "$game.match.event.mode"},
 				},
 			},
 			"opp_assists_total": bson.M{
 				"$sum": bson.M{
-					"$divide": bson.A{"$stats.opponent.core.assists", "$game.match.event.mode"},
+					"$divide": bson.A{"$opponent.stats.core.assists", "$game.match.event.mode"},
 				},
 			},
 			"opp_saves_total": bson.M{
 				"$sum": bson.M{
-					"$divide": bson.A{"$stats.opponent.core.saves", "$game.match.event.mode"},
+					"$divide": bson.A{"$opponent.stats.core.saves", "$game.match.event.mode"},
 				},
 			},
 			"opp_shots_total": bson.M{
 				"$sum": bson.M{
-					"$divide": bson.A{"$stats.opponent.core.shots", "$game.match.event.mode"},
+					"$divide": bson.A{"$opponent.stats.core.shots", "$game.match.event.mode"},
 				},
 			},
 		}),

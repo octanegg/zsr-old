@@ -67,7 +67,7 @@ func GameRecords(filter bson.M, stat string) *Pipeline {
 			var team struct {
 				ID       *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
 				Match    *octane.Match       `json:"match,omitempty" bson:"match,omitempty"`
-				Map      string              `json:"map,omitempty" bson:"map,omitempty"`
+				Map      *octane.Map         `json:"map,omitempty" bson:"map,omitempty"`
 				Duration int                 `json:"duration,omitempty" bson:"duration,omitempty"`
 				Date     *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
 				Blue     *octane.GameSide    `json:"blue,omitempty" bson:"blue,omitempty"`

@@ -20,7 +20,7 @@ func (h *handler) GetPlayerStats(w http.ResponseWriter, r *http.Request) {
 		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
-	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), "$player._id", having)
+	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), "$player.player._id", having)
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -173,8 +173,8 @@ func statlinesFilter(v url.Values) bson.M {
 		filter.Ints("game.match.event.mode", v["mode"]),
 		filter.ObjectIDs("game.match.event._id", v["event"]),
 		filter.Ints("game.match.stage._id", v["stage"]),
-		filter.ObjectIDs("player._id", v["player"]),
-		filter.Strings("player.country", v["nationality"]),
+		filter.ObjectIDs("player.player._id", v["player"]),
+		filter.Strings("player.player.country", v["nationality"]),
 		filter.ObjectIDs("team.team._id", v["team"]),
 		filter.ObjectIDs("opponent.team._id", v["opponent"]),
 		filter.Dates("game.date", v.Get("before"), v.Get("after")),

@@ -19,8 +19,8 @@ func PlayerGameRecords(filter bson.M, stat string) *Pipeline {
 			"team":     "$team.team",
 			"opponent": "$opponent.team",
 			"winner":   "$team.winner",
-			"player":   "$player",
-			"stat":     fmt.Sprintf("$stats.player.core.%s", stat),
+			"player":   "$player.player",
+			"stat":     fmt.Sprintf("$player.stats.core.%s", stat),
 		}),
 		Sort("stat", true),
 		Limit(25),
@@ -58,7 +58,7 @@ func PlayerSeriesRecords(filter bson.M, stat string) *Pipeline {
 		Group(bson.M{
 			"_id": bson.M{
 				"match":  "$game.match._id",
-				"player": "$player._id",
+				"player": "$player.player_id",
 			},
 			"match": bson.M{
 				"$first": "$game.match",
@@ -76,10 +76,10 @@ func PlayerSeriesRecords(filter bson.M, stat string) *Pipeline {
 				"$first": "$team.winner",
 			},
 			"player": bson.M{
-				"$first": "$player",
+				"$first": "$player.player",
 			},
 			"stat": bson.M{
-				op: fmt.Sprintf("$stats.player.core.%s", stat),
+				op: fmt.Sprintf("$player.stats.core.%s", stat),
 			},
 		}),
 		Sort("stat", true),

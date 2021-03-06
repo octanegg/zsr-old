@@ -16,7 +16,7 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 		Group(bson.M{
 			"_id": group,
 			"player": bson.M{
-				"$first": "$player",
+				"$first": "$player.player",
 			},
 			"events": bson.M{
 				"$addToSet": "$game.match.event",
@@ -48,25 +48,25 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M) *Pipeline 
 				},
 			},
 			"score_total": bson.M{
-				"$sum": "$stats.player.core.score",
+				"$sum": "$player.stats.core.score",
 			},
 			"goals_total": bson.M{
-				"$sum": "$stats.player.core.goals",
+				"$sum": "$player.stats.core.goals",
 			},
 			"assists_total": bson.M{
-				"$sum": "$stats.player.core.assists",
+				"$sum": "$player.stats.core.assists",
 			},
 			"saves_total": bson.M{
-				"$sum": "$stats.player.core.saves",
+				"$sum": "$player.stats.core.saves",
 			},
 			"shots_total": bson.M{
-				"$sum": "$stats.player.core.shots",
+				"$sum": "$player.stats.core.shots",
 			},
 			"rating_total": bson.M{
-				"$sum": "$stats.player.core.rating",
+				"$sum": "$player.advanced.rating",
 			},
 			"team_goals_total": bson.M{
-				"$sum": "$stats.team.core.goals",
+				"$sum": "$team.stats.core.goals",
 			},
 		}),
 		Match(having),

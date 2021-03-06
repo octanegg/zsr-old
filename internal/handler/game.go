@@ -81,8 +81,8 @@ func gamesFilter(v url.Values) bson.M {
 			filter.Strings("orange.players.player._id", v["player"]),
 		),
 		filter.Or(
-			filter.Strings("blue.team._id", v["team"]),
-			filter.Strings("orange.team._id", v["team"]),
+			filter.Strings("blue.team.team._id", v["team"]),
+			filter.Strings("orange.team.team._id", v["team"]),
 		),
 	)
 }
