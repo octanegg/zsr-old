@@ -13,6 +13,7 @@ import (
 type Collection interface {
 	Find(bson.M, bson.M, *Pagination) ([]interface{}, error)
 	FindOne(bson.M) (interface{}, error)
+	Update(interface{}, interface{}) (interface{}, error)
 	UpdateOne(interface{}, interface{}) (interface{}, error)
 	Insert([]interface{}) ([]interface{}, error)
 	InsertOne(interface{}) (*primitive.ObjectID, error)
@@ -88,6 +89,15 @@ func (c *collection) FindOne(filter bson.M) (interface{}, error) {
 	}
 
 	return data[0], nil
+}
+
+func (c *collection) Update(filter, data interface{}) (interface{}, error) {
+	res, err := c.Collection.UpdateMany(context.TODO(), filter, data)
+	if err != nil {
+		return nil, err
+	}
+
+	return res.UpsertedID, nil
 }
 
 func (c *collection) UpdateOne(filter, data interface{}) (interface{}, error) {
