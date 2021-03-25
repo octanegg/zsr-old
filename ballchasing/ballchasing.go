@@ -3,9 +3,12 @@ package ballchasing
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+
+	"github.com/cenkalti/backoff"
 )
 
 const (
@@ -36,19 +39,31 @@ func (b *client) GetReplay(id string) (*Replay, error) {
 
 	req.Header.Set("Authorization", b.AuthToken)
 
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
 	var replay Replay
-	if err := json.Unmarshal(body, &replay); err != nil {
+	operation := func() error {
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode == http.StatusTooManyRequests {
+			return errors.New(http.StatusText(http.StatusTooManyRequests))
+		}
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			return err
+		}
+
+		if err := json.Unmarshal(body, &replay); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	if err := backoff.Retry(operation, backoff.NewExponentialBackOff()); err != nil {
 		return nil, err
 	}
 
