@@ -49,6 +49,7 @@ func GameRecords(filter bson.M, stat string) *Pipeline {
 		Match(filter),
 		Project(bson.M{
 			"_id":      "$_id",
+			"number":   "$number",
 			"match":    "$match",
 			"map":      "$map",
 			"duration": "$duration",
@@ -56,6 +57,46 @@ func GameRecords(filter bson.M, stat string) *Pipeline {
 			"blue":     "$blue",
 			"orange":   "$orange",
 			"stat":     query,
+		}),
+		Sort("stat", true),
+		Limit(25),
+	)
+
+	return &Pipeline{
+		Pipeline: pipeline,
+		Decode: func(cursor *mongo.Cursor) (interface{}, error) {
+			var team struct {
+				ID       *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+				Number   int                 `json:"number,omitempty" bson:"number,omitempty"`
+				Match    *octane.Match       `json:"match,omitempty" bson:"match,omitempty"`
+				Map      *octane.Map         `json:"map,omitempty" bson:"map,omitempty"`
+				Duration int                 `json:"duration,omitempty" bson:"duration,omitempty"`
+				Date     *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
+				Blue     *octane.GameSide    `json:"blue,omitempty" bson:"blue,omitempty"`
+				Orange   *octane.GameSide    `json:"orange,omitempty" bson:"orange,omitempty"`
+				Stat     int                 `json:"stat" bson:"stat"`
+			}
+			if err := cursor.Decode(&team); err != nil {
+				return nil, err
+			}
+			return team, nil
+		},
+	}
+}
+
+// GameDurationRecords .
+func GameDurationRecords(filter bson.M) *Pipeline {
+	pipeline := New(
+		Match(filter),
+		Project(bson.M{
+			"_id":      "$_id",
+			"match":    "$match",
+			"map":      "$map",
+			"duration": "$duration",
+			"date":     "$date",
+			"blue":     "$blue",
+			"orange":   "$orange",
+			"stat":     "$duration",
 		}),
 		Sort("stat", true),
 		Limit(25),

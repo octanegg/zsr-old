@@ -5,26 +5,17 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/pipelines"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 func (h *handler) GetPlayerRecords(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
 
-	typ, stat := v.Get("type"), v.Get("stat")
-	if typ == "" || stat == "" {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), "invalid type or stat"})
-		return
-	}
-
 	var p *pipelines.Pipeline
-	if typ == "game" {
-		p = pipelines.PlayerGameRecords(statlinesFilter(v), stat)
+	if v.Get("type") == "game" {
+		p = pipelines.PlayerGameRecords(statlinesFilter(v), v.Get("stat"))
 	} else {
-		p = pipelines.PlayerSeriesRecords(statlinesFilter(v), stat)
+		p = pipelines.PlayerSeriesRecords(statlinesFilter(v), v.Get("stat"))
 	}
 
 	data, err := h.Octane.Statlines().Pipeline(p.Pipeline, p.Decode)
@@ -43,18 +34,11 @@ func (h *handler) GetPlayerRecords(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GetTeamRecords(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
 
-	typ, stat := v.Get("type"), v.Get("stat")
-	if typ == "" || stat == "" {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), "invalid type or stat"})
-		return
-	}
-
 	var p *pipelines.Pipeline
-	if typ == "game" {
-		p = pipelines.TeamGameRecords(statlinesFilter(v), stat)
+	if v.Get("type") == "game" {
+		p = pipelines.TeamGameRecords(statlinesFilter(v), v.Get("stat"))
 	} else {
-		p = pipelines.TeamSeriesRecords(statlinesFilter(v), stat)
+		p = pipelines.TeamSeriesRecords(statlinesFilter(v), v.Get("stat"))
 	}
 
 	data, err := h.Octane.Statlines().Pipeline(p.Pipeline, p.Decode)
@@ -73,25 +57,16 @@ func (h *handler) GetTeamRecords(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GetGameRecords(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
 
-	stat := v.Get("stat")
-	if stat == "" {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), "invalid stat"})
-		return
-	}
-
 	var (
 		data []interface{}
 		err  error
 	)
 
-	if stat == "duration" {
-		data, err = h.Octane.Games().Find(gamesFilter(v), bson.M{"duration": -1}, &collection.Pagination{
-			Page:    1,
-			PerPage: 25,
-		})
+	if v.Get("stat") == "duration" {
+		p := pipelines.GameDurationRecords(gamesFilter(v))
+		data, err = h.Octane.Games().Pipeline(p.Pipeline, p.Decode)
 	} else {
-		p := pipelines.GameRecords(gamesFilter(v), stat)
+		p := pipelines.GameRecords(gamesFilter(v), v.Get("stat"))
 		data, err = h.Octane.Games().Pipeline(p.Pipeline, p.Decode)
 	}
 
@@ -110,15 +85,19 @@ func (h *handler) GetGameRecords(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GetSeriesRecords(w http.ResponseWriter, r *http.Request) {
 	v := r.URL.Query()
 
-	stat := v.Get("stat")
-	if stat == "" {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), "invalid stat"})
-		return
+	var (
+		data []interface{}
+		err  error
+	)
+
+	if v.Get("stat") == "duration" {
+		p := pipelines.SeriesDurationRecords(gamesFilter(v))
+		data, err = h.Octane.Games().Pipeline(p.Pipeline, p.Decode)
+	} else {
+		p := pipelines.SeriesRecords(gamesFilter(v), v.Get("stat"))
+		data, err = h.Octane.Games().Pipeline(p.Pipeline, p.Decode)
 	}
 
-	p := pipelines.SeriesRecords(gamesFilter(v), stat)
-	data, err := h.Octane.Games().Pipeline(p.Pipeline, p.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})

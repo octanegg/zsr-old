@@ -79,3 +79,49 @@ func SeriesRecords(filter bson.M, stat string) *Pipeline {
 		},
 	}
 }
+
+// SeriesDurationRecords .
+func SeriesDurationRecords(filter bson.M) *Pipeline {
+	pipeline := New(
+		Match(filter),
+		Group(bson.M{
+			"_id": bson.M{
+				"match": "$match._id",
+			},
+			"match": bson.M{
+				"$first": "$match",
+			},
+			"date": bson.M{
+				"$first": "$date",
+			},
+			"blue": bson.M{
+				"$last": "$blue",
+			},
+			"orange": bson.M{
+				"$last": "$orange",
+			},
+			"stat": bson.M{
+				"$sum": "$duration",
+			},
+		}),
+		Sort("stat", true),
+		Limit(25),
+	)
+
+	return &Pipeline{
+		Pipeline: pipeline,
+		Decode: func(cursor *mongo.Cursor) (interface{}, error) {
+			var team struct {
+				Match  *octane.Match    `json:"match,omitempty" bson:"match,omitempty"`
+				Date   *time.Time       `json:"date,omitempty" bson:"date,omitempty"`
+				Blue   *octane.GameSide `json:"blue,omitempty" bson:"blue,omitempty"`
+				Orange *octane.GameSide `json:"orange,omitempty" bson:"orange,omitempty"`
+				Stat   int              `json:"stat" bson:"stat"`
+			}
+			if err := cursor.Decode(&team); err != nil {
+				return nil, err
+			}
+			return team, nil
+		},
+	}
+}

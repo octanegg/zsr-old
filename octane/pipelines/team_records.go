@@ -1,7 +1,6 @@
 package pipelines
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/octanegg/zsr/octane"
@@ -31,7 +30,7 @@ func TeamGameRecords(filter bson.M, stat string) *Pipeline {
 				"$first": "$team.winner",
 			},
 			"stat": bson.M{
-				"$sum": fmt.Sprintf("$player.stats.core.%s", stat),
+				"$sum": GetTeamStatsMapping(stat),
 			},
 		}),
 		Project(bson.M{
@@ -39,7 +38,12 @@ func TeamGameRecords(filter bson.M, stat string) *Pipeline {
 			"team":     "$team",
 			"opponent": "$opponent",
 			"winner":   "$winner",
-			"stat":     "$stat",
+			"stat": bson.M{
+				"$divide": bson.A{
+					"$stat",
+					"$game.match.event.mode",
+				},
+			},
 		}),
 		Sort("stat", true),
 		Limit(25),
@@ -88,7 +92,7 @@ func TeamSeriesRecords(filter bson.M, stat string) *Pipeline {
 				"$first": "$team.winner",
 			},
 			"stat": bson.M{
-				"$sum": fmt.Sprintf("$player.stats.core.%s", stat),
+				"$sum": GetTeamStatsMapping(stat),
 			},
 		}),
 		Sort("stat", true),

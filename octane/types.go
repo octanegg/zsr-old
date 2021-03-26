@@ -69,10 +69,11 @@ type Match struct {
 
 // GameOverview .
 type GameOverview struct {
-	ID       *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	Blue     int                 `json:"blue" bson:"blue"`
-	Orange   int                 `json:"orange" bson:"orange"`
-	Duration int                 `json:"duration,omitempty" bson:"duration,omitempty"`
+	ID            *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Blue          float64             `json:"blue" bson:"blue"`
+	Orange        float64             `json:"orange" bson:"orange"`
+	Duration      int                 `json:"duration,omitempty" bson:"duration,omitempty"`
+	BallchasingID string              `json:"ballchasing,omitempty" bson:"ballchasing,omitempty"`
 }
 
 // Format .
@@ -121,7 +122,7 @@ type PlayerStats struct {
 
 // AdvancedStats .
 type AdvancedStats struct {
-	GoalParticipation float64 `json:"goal_participation" bson:"goal_participation"`
+	GoalParticipation float64 `json:"goalParticipation" bson:"goal_participation"`
 	Rating            float64 `json:"rating,omitempty" bson:"rating,omitempty"`
 	MVP               bool    `json:"mvp,omitempty" bson:"mvp,omitempty"`
 }
@@ -178,7 +179,7 @@ type Statline struct {
 
 // StatlineSide .
 type StatlineSide struct {
-	Score   int                    `json:"score,omitempty" bson:"score,omitempty"`
+	Score   float64                `json:"score,omitempty" bson:"score,omitempty"`
 	Winner  bool                   `json:"winner,omitempty" bson:"winner,omitempty"`
 	Team    *Team                  `json:"team,omitempty" bson:"team,omitempty"`
 	Stats   *ballchasing.TeamStats `json:"stats,omitempty" bson:"stats,omitempty"`

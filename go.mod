@@ -3,6 +3,7 @@ module github.com/octanegg/zsr
 go 1.12
 
 require (
+	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/gorilla/mux v1.8.0

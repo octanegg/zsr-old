@@ -20,7 +20,7 @@ func (h *handler) GetPlayerStats(w http.ResponseWriter, r *http.Request) {
 		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
-	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), "$player.player._id", having)
+	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), "$player.player._id", having, v.Get("cluster"))
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -42,7 +42,7 @@ func (h *handler) GetPlayerTeamStats(w http.ResponseWriter, r *http.Request) {
 		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
-	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), "$team.team._id", having)
+	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), "$team.team._id", having, v.Get("cluster"))
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -64,7 +64,7 @@ func (h *handler) GetPlayerOpponentStats(w http.ResponseWriter, r *http.Request)
 		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
-	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), "$opponent.team._id", having)
+	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), "$opponent.team._id", having, v.Get("cluster"))
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -86,7 +86,7 @@ func (h *handler) GetPlayerEventStats(w http.ResponseWriter, r *http.Request) {
 		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
-	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), "$game.match.event._id", having)
+	pipeline := pipelines.PlayerAggregate(statlinesFilter(v), "$game.match.event._id", having, v.Get("cluster"))
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -108,7 +108,7 @@ func (h *handler) GetTeamStats(w http.ResponseWriter, r *http.Request) {
 		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
-	pipeline := pipelines.TeamAggregate(statlinesFilter(v), "$team.team._id", having)
+	pipeline := pipelines.TeamAggregate(statlinesFilter(v), "$team.team._id", having, v.Get("cluster"))
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -130,7 +130,7 @@ func (h *handler) GetTeamOpponentStats(w http.ResponseWriter, r *http.Request) {
 		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
-	pipeline := pipelines.TeamAggregate(statlinesFilter(v), "$opponent.team._id", having)
+	pipeline := pipelines.TeamAggregate(statlinesFilter(v), "$opponent.team._id", having, v.Get("cluster"))
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -152,7 +152,7 @@ func (h *handler) GetTeamEventStats(w http.ResponseWriter, r *http.Request) {
 		having = bson.M{"games": bson.M{"$gt": minGames}}
 	}
 
-	pipeline := pipelines.TeamAggregate(statlinesFilter(v), "$game.match.event._id", having)
+	pipeline := pipelines.TeamAggregate(statlinesFilter(v), "$game.match.event._id", having, v.Get("cluster"))
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

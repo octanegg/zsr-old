@@ -159,7 +159,7 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 						match.Blue.Team.Stats.Core.Saves += stat.Player.Stats.Core.Saves
 						match.Blue.Team.Stats.Core.Shots += stat.Player.Stats.Core.Shots
 						if match.Blue.Team.Stats.Core.Shots > 0 {
-							match.Blue.Team.Stats.Core.ShootingPercentage = float64(match.Blue.Team.Stats.Core.Goals) / float64(match.Blue.Team.Stats.Core.Shots)
+							match.Blue.Team.Stats.Core.ShootingPercentage = float64(match.Blue.Team.Stats.Core.Goals) / float64(match.Blue.Team.Stats.Core.Shots) * 100
 						}
 
 						if _, ok := blue[stat.Player.Player.ID.Hex()]; !ok {
@@ -185,7 +185,7 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 						match.Orange.Team.Stats.Core.Saves += stat.Player.Stats.Core.Saves
 						match.Orange.Team.Stats.Core.Shots += stat.Player.Stats.Core.Shots
 						if match.Orange.Team.Stats.Core.Shots > 0 {
-							match.Orange.Team.Stats.Core.ShootingPercentage = float64(match.Orange.Team.Stats.Core.Goals) / float64(match.Orange.Team.Stats.Core.Shots)
+							match.Orange.Team.Stats.Core.ShootingPercentage = float64(match.Orange.Team.Stats.Core.Goals) / float64(match.Orange.Team.Stats.Core.Shots) * 100
 						}
 
 						if _, ok := orange[stat.Player.Player.ID.Hex()]; !ok {
@@ -209,10 +209,10 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 
 				for _, player := range blue {
 					if player.Stats.Core.Shots > 0 {
-						player.Stats.Core.ShootingPercentage = float64(player.Stats.Core.Goals) / float64(player.Stats.Core.Shots)
+						player.Stats.Core.ShootingPercentage = float64(player.Stats.Core.Goals) / float64(player.Stats.Core.Shots) * 100
 					}
 					if match.Blue.Team.Stats.Core.Goals > 0 {
-						player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(match.Blue.Team.Stats.Core.Goals)
+						player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(match.Blue.Team.Stats.Core.Goals) * 100
 					}
 					player.Advanced.Rating /= float64(len(games))
 					match.Blue.Players = append(match.Blue.Players, player)
@@ -220,10 +220,10 @@ func (h *handler) singleImport(linkage *EventLinkage) error {
 
 				for _, player := range orange {
 					if player.Stats.Core.Shots > 0 {
-						player.Stats.Core.ShootingPercentage = float64(player.Stats.Core.Goals) / float64(player.Stats.Core.Shots)
+						player.Stats.Core.ShootingPercentage = float64(player.Stats.Core.Goals) / float64(player.Stats.Core.Shots) * 100
 					}
 					if match.Orange.Team.Stats.Core.Goals > 0 {
-						player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(match.Orange.Team.Stats.Core.Goals)
+						player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(match.Orange.Team.Stats.Core.Goals) * 100
 					}
 					player.Advanced.Rating /= float64(len(games))
 					match.Orange.Players = append(match.Orange.Players, player)
@@ -552,7 +552,7 @@ func toTeamStats(logs []Log) *ballchasing.TeamStats {
 		stats.Core.Saves += log.Saves
 		stats.Core.Shots += log.Shots
 		if stats.Core.Shots > 0 {
-			stats.Core.ShootingPercentage = float64(stats.Core.Goals) / float64(stats.Core.Shots)
+			stats.Core.ShootingPercentage = float64(stats.Core.Goals) / float64(stats.Core.Shots) * 100
 		}
 	}
 
@@ -580,11 +580,11 @@ func (h *handler) toPlayers(logs []Log) []*octane.PlayerStats {
 		}
 
 		if log.Shots > 0 {
-			player.Stats.Core.ShootingPercentage = float64(log.Goals) / float64(log.Shots)
+			player.Stats.Core.ShootingPercentage = float64(log.Goals) / float64(log.Shots) * 100
 		}
 
 		if log.TeamGoals > 0 {
-			player.Advanced.GoalParticipation = float64(log.Goals+log.Assists) / float64(log.TeamGoals)
+			player.Advanced.GoalParticipation = float64(log.Goals+log.Assists) / float64(log.TeamGoals) * 100
 		}
 
 		players = append(players, player)

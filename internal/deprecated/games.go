@@ -27,10 +27,10 @@ type Game struct {
 
 // GameTeam .
 type GameTeam struct {
-	Name    string `json:"name"`
-	Winner  bool   `json:"winner"`
-	Goals   int    `json:"goals"`
-	Players []Log  `json:"players"`
+	Name    string  `json:"name"`
+	Winner  bool    `json:"winner"`
+	Goals   float64 `json:"goals"`
+	Players []Log   `json:"players"`
 }
 
 // Log .
@@ -40,15 +40,15 @@ type Log struct {
 	Team      string  `json:"-"`
 	Number    int     `json:"-"`
 	MVP       bool    `json:"mvp"`
-	Score     int     `json:"score"`
-	Goals     int     `json:"goals"`
-	Assists   int     `json:"assists"`
-	Saves     int     `json:"saves"`
-	Shots     int     `json:"shots"`
+	Score     float64 `json:"score"`
+	Goals     float64 `json:"goals"`
+	Assists   float64 `json:"assists"`
+	Saves     float64 `json:"saves"`
+	Shots     float64 `json:"shots"`
 	SP        float64 `json:"shooting_percentage"`
 	GP        float64 `json:"goal_participation"`
 	Rating    float64 `json:"-"`
-	TeamGoals int     `json:"teamGoals"`
+	TeamGoals float64 `json:"teamGoals"`
 }
 
 // Averages .
@@ -360,7 +360,7 @@ func (d *deprecated) getAverages() (*Averages, error) {
 	return &avg, nil
 }
 
-func (d *deprecated) getAverageScore(log Log) int {
+func (d *deprecated) getAverageScore(log Log) float64 {
 	stmt := "SELECT AVG(Score) FROM Logs, octane.Events WHERE event_id = Event AND mode = 3 AND Date > '2019-01-01' AND Goals = ? AND Assists = ? AND Saves = ? AND Shots = ?"
 	res := d.DB.QueryRow(stmt, log.Goals, log.Assists, log.Saves, log.Shots)
 
@@ -369,7 +369,7 @@ func (d *deprecated) getAverageScore(log Log) int {
 		return 0
 	}
 
-	return int(avg)
+	return avg
 }
 
 func getTeamStats(players []Log) *Log {
