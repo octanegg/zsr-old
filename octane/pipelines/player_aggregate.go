@@ -164,22 +164,6 @@ func playerAggregateStats(cluster string) bson.M {
 				}
 			}
 
-			for _, field := range FieldsToAverageAsInt {
-				if strings.Contains(k, field) {
-					m[v] = bson.M{
-						"$toInt": bson.M{
-							"$cond": bson.A{
-								bson.M{"$gt": bson.A{"$game_replays", 0}},
-								bson.M{
-									"$divide": bson.A{fmt.Sprintf("$%s", k), "$game_replays"},
-								}, 0,
-							},
-						},
-					}
-					isAverage = true
-				}
-			}
-
 			for _, field := range FieldsToAverage {
 				if strings.Contains(k, field) {
 					m[v] = bson.M{
@@ -195,20 +179,9 @@ func playerAggregateStats(cluster string) bson.M {
 			}
 
 			if !isAverage {
-				if cluster == "game" {
-					if groupName != "core" && groupName != "advanced" {
-						m[v] = bson.M{
-							"$cond": bson.A{
-								bson.M{"$gt": bson.A{"$game_replays", 0}},
-								bson.M{
-									"$divide": bson.A{fmt.Sprintf("$%s", k), "$game_replays"},
-								}, 0,
-							},
-						}
-					} else {
-						m[v] = bson.M{
-							"$divide": bson.A{fmt.Sprintf("$%s", k), "$games"},
-						}
+				if cluster == "total" {
+					m[v] = bson.M{
+						"$divide": bson.A{fmt.Sprintf("$%s", k), 1},
 					}
 				} else if cluster == "series" {
 					if groupName != "core" && groupName != "advanced" {
@@ -226,8 +199,19 @@ func playerAggregateStats(cluster string) bson.M {
 						}
 					}
 				} else {
-					m[v] = bson.M{
-						"$divide": bson.A{fmt.Sprintf("$%s", k), 1},
+					if groupName != "core" && groupName != "advanced" {
+						m[v] = bson.M{
+							"$cond": bson.A{
+								bson.M{"$gt": bson.A{"$game_replays", 0}},
+								bson.M{
+									"$divide": bson.A{fmt.Sprintf("$%s", k), "$game_replays"},
+								}, 0,
+							},
+						}
+					} else {
+						m[v] = bson.M{
+							"$divide": bson.A{fmt.Sprintf("$%s", k), "$games"},
+						}
 					}
 				}
 			}

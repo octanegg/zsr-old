@@ -210,6 +210,15 @@ var FieldsToAverage = []string{
 }
 
 var FieldsToAverageOverReplays = []string{
+	"bpm",
+	"bcpm",
+	"avgSpeed",
+	"avgSpeedPercentage",
+	"percentSlowSpeed",
+	"avgDistanceToBall",
+	"avgDistanceToBallPossession",
+	"avgDistanceToBallNoPossession",
+	"avgDistanceToMates",
 	"avgPowerslideDuration",
 	"percentZeroBoost",
 	"percentFullBoost",
@@ -233,18 +242,6 @@ var FieldsToAverageOverReplays = []string{
 	"percentMostForward",
 	"percentClosestToBall",
 	"percentFarthestFromBall",
-}
-
-var FieldsToAverageAsInt = []string{
-	"bpm",
-	"bcpm",
-	"avgSpeed",
-	"avgSpeedPercentage",
-	"percentSlowSpeed",
-	"avgDistanceToBall",
-	"avgDistanceToBallPossession",
-	"avgDistanceToBallNoPossession",
-	"avgDistanceToMates",
 }
 
 func PlayerStatsMapping() map[string]string {

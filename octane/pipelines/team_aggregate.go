@@ -151,14 +151,18 @@ func teamAggregateGroup(group interface{}) bson.M {
 	for groupName, group := range TeamStats {
 		for k, v := range group {
 			m[k] = bson.M{
-				"$sum": TeamStatToField(groupName, v),
+				"$sum": bson.M{
+					"$divide": bson.A{TeamStatToField(groupName, v), "$game.match.event.mode"},
+				},
 			}
 		}
 	}
 
 	for k, v := range TeamCore {
 		m[fmt.Sprintf("%sOpponent", k)] = bson.M{
-			"$sum": fmt.Sprintf("$opponent.stats.core.%s", v),
+			"$sum": bson.M{
+				"$divide": bson.A{fmt.Sprintf("$opponent.stats.core.%s", v), "$game.match.event.mode"},
+			},
 		}
 	}
 
@@ -179,22 +183,6 @@ func teamAggregateStats(cluster string) bson.M {
 							bson.M{
 								"$divide": bson.A{fmt.Sprintf("$%s", k), "$game_replays"},
 							}, 0,
-						},
-					}
-					isAverage = true
-				}
-			}
-
-			for _, field := range FieldsToAverageAsInt {
-				if strings.Contains(k, field) {
-					m[v] = bson.M{
-						"$toInt": bson.M{
-							"$cond": bson.A{
-								bson.M{"$gt": bson.A{"$game_replays", 0}},
-								bson.M{
-									"$divide": bson.A{fmt.Sprintf("$%s", k), "$game_replays"},
-								}, 0,
-							},
 						},
 					}
 					isAverage = true
@@ -233,20 +221,9 @@ func teamAggregateStats(cluster string) bson.M {
 			}
 
 			if !isAverage {
-				if cluster == "game" {
-					if groupName != "core" && groupName != "advanced" {
-						m[v] = bson.M{
-							"$cond": bson.A{
-								bson.M{"$gt": bson.A{"$game_replays", 0}},
-								bson.M{
-									"$divide": bson.A{fmt.Sprintf("$%s", k), "$game_replays"},
-								}, 0,
-							},
-						}
-					} else {
-						m[v] = bson.M{
-							"$divide": bson.A{fmt.Sprintf("$%s", k), "$games"},
-						}
+				if cluster == "total" {
+					m[v] = bson.M{
+						"$divide": bson.A{fmt.Sprintf("$%s", k), 1},
 					}
 				} else if cluster == "series" {
 					if groupName != "core" && groupName != "advanced" {
@@ -264,8 +241,19 @@ func teamAggregateStats(cluster string) bson.M {
 						}
 					}
 				} else {
-					m[v] = bson.M{
-						"$divide": bson.A{fmt.Sprintf("$%s", k), 1},
+					if groupName != "core" && groupName != "advanced" {
+						m[v] = bson.M{
+							"$cond": bson.A{
+								bson.M{"$gt": bson.A{"$game_replays", 0}},
+								bson.M{
+									"$divide": bson.A{fmt.Sprintf("$%s", k), "$game_replays"},
+								}, 0,
+							},
+						}
+					} else {
+						m[v] = bson.M{
+							"$divide": bson.A{fmt.Sprintf("$%s", k), "$games"},
+						}
 					}
 				}
 			}
