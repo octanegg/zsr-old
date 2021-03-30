@@ -120,7 +120,9 @@ func teamAggregateGroup(group interface{}) bson.M {
 				"$cond": bson.A{
 					bson.M{
 						"$ifNull": bson.A{"$game.ballchasing", false},
-					}, 1, 0,
+					}, bson.M{
+						"$divide": bson.A{1, "$game.match.event.mode"},
+					}, 0,
 				},
 			},
 		},
@@ -283,18 +285,11 @@ func teamAggregateStats(cluster string) bson.M {
 					},
 				},
 			}
-		} else if cluster == "game" {
+		} else if cluster == "total" {
 			differential[v] = bson.M{
-				"$divide": bson.A{
-					bson.M{
-						"$subtract": bson.A{fmt.Sprintf("$%s", k), fmt.Sprintf("$%sOpponent", k)},
-					},
-					"$games",
-				},
+				"$subtract": bson.A{fmt.Sprintf("$%s", k), fmt.Sprintf("$%sOpponent", k)},
 			}
-			against[v] = bson.M{
-				"$divide": bson.A{fmt.Sprintf("$%sOpponent", k), "$games"},
-			}
+			against[v] = fmt.Sprintf("$%sOpponent", k)
 		} else if cluster == "series" {
 			differential[v] = bson.M{
 				"$divide": bson.A{
@@ -313,9 +308,16 @@ func teamAggregateStats(cluster string) bson.M {
 			}
 		} else {
 			differential[v] = bson.M{
-				"$subtract": bson.A{fmt.Sprintf("$%s", k), fmt.Sprintf("$%sOpponent", k)},
+				"$divide": bson.A{
+					bson.M{
+						"$subtract": bson.A{fmt.Sprintf("$%s", k), fmt.Sprintf("$%sOpponent", k)},
+					},
+					"$games",
+				},
 			}
-			against[v] = fmt.Sprintf("$%sOpponent", k)
+			against[v] = bson.M{
+				"$divide": bson.A{fmt.Sprintf("$%sOpponent", k), "$games"},
+			}
 		}
 	}
 

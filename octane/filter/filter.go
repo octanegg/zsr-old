@@ -199,6 +199,29 @@ func And(fields ...*Field) *Field {
 	}
 }
 
+// ExplicitAnd .
+func ExplicitAnd(fields ...*Field) *Field {
+	f := []bson.M{}
+	for _, field := range fields {
+		if field != nil {
+			if field.Key == "" {
+				f = append(f, field.Value.(bson.M))
+			} else {
+				f = append(f, bson.M{field.Key: field.Value})
+			}
+		}
+	}
+
+	if len(f) == 0 {
+		return nil
+	}
+
+	return &Field{
+		Key:   "$and",
+		Value: f,
+	}
+}
+
 // ElemMatch .
 func ElemMatch(key string, field *Field) *Field {
 	if field == nil {

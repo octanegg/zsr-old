@@ -95,6 +95,19 @@ func TeamSeriesRecords(filter bson.M, stat string) *Pipeline {
 				"$sum": GetTeamStatsMapping(stat),
 			},
 		}),
+		Project(bson.M{
+			"match":    "$match",
+			"date":     "$date",
+			"team":     "$team",
+			"opponent": "$opponent",
+			"winner":   "$winner",
+			"stat": bson.M{
+				"$divide": bson.A{
+					"$stat",
+					"$match.event.mode",
+				},
+			},
+		}),
 		Sort("stat", true),
 		Limit(25),
 	)

@@ -84,21 +84,23 @@ func matchesFilter(v url.Values) bson.M {
 		filter.Bool("reverse_sweep", v.Get("reverseSweep")),
 		filter.Bool("reverse_sweep_attempt", v.Get("reverseSweepAttempt")),
 		filter.Bool("stage.qualifier", v.Get("qualifier")),
-		filter.Or(
-			filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])),
-			filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])),
-		),
-		filter.Or(
-			filter.And(filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
-			filter.And(filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
-		),
-		filter.Or(
-			filter.ObjectIDs("blue.team.team._id", v["team"]),
-			filter.ObjectIDs("orange.team.team._id", v["team"]),
-		),
-		filter.Or(
-			filter.And(filter.ObjectIDs("blue.team.team._id", v["team"]), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
-			filter.And(filter.ObjectIDs("orange.team.team._id", v["team"]), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
+		filter.ExplicitAnd(
+			filter.Or(
+				filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])),
+				filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])),
+			),
+			filter.Or(
+				filter.And(filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
+				filter.And(filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
+			),
+			filter.Or(
+				filter.ObjectIDs("blue.team.team._id", v["team"]),
+				filter.ObjectIDs("orange.team.team._id", v["team"]),
+			),
+			filter.Or(
+				filter.And(filter.ObjectIDs("blue.team.team._id", v["team"]), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
+				filter.And(filter.ObjectIDs("orange.team.team._id", v["team"]), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
+			),
 		),
 	)
 }
