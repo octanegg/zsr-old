@@ -24,6 +24,8 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 		Methods(http.MethodGet)
 	e.HandleFunc("/{_id}", h.GetEvent).
 		Methods(http.MethodGet)
+	e.HandleFunc("/{_id}/participants", h.GetEventParticipants).
+		Methods(http.MethodGet)
 
 	// matches
 	m := r.PathPrefix("/matches").Subrouter()
