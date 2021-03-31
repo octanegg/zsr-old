@@ -65,14 +65,12 @@ func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetEventParticipants(w http.ResponseWriter, r *http.Request) {
-	id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
-	}
+	filter := filter.New(
+		filter.ObjectIDs("game.match.event._id", []string{mux.Vars(r)["_id"]}),
+		filter.Ints("game.match.stage._id", r.URL.Query()["stage"]),
+	)
 
-	pipeline := pipelines.EventParticipants(&id)
+	pipeline := pipelines.EventParticipants(filter)
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

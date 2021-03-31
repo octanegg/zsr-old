@@ -3,16 +3,13 @@ package pipelines
 import (
 	"github.com/octanegg/zsr/octane"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // EventParticipants .
-func EventParticipants(event *primitive.ObjectID) *Pipeline {
+func EventParticipants(filter bson.M) *Pipeline {
 	pipeline := New(
-		Match(bson.M{
-			"game.match.event._id": event,
-		}),
+		Match(filter),
 		Group(bson.M{
 			"_id": bson.M{
 				"event": "$game.match.event._id",
