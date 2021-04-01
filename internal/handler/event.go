@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/url"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/filter"
-	"github.com/octanegg/zsr/octane/pipelines"
+	"github.com/octanegg/zsr/octane/stats"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -66,27 +68,32 @@ func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
 
 func (h *handler) GetEventParticipants(w http.ResponseWriter, r *http.Request) {
 	filter := filter.New(
-		filter.ObjectIDs("game.match.event._id", []string{mux.Vars(r)["_id"]}),
-		filter.Ints("game.match.stage._id", r.URL.Query()["stage"]),
+		filter.ObjectIDs("event._id", []string{mux.Vars(r)["_id"]}),
 	)
 
-	pipeline := pipelines.EventParticipants(filter)
-	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
+	matches, err := h.Octane.Matches().Find(filter, nil, nil)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
-	if data == nil {
+	stages := []int{}
+	for _, stage := range r.URL.Query()["stage"] {
+		i, _ := strconv.Atoi(stage)
+		stages = append(stages, i)
+	}
+
+	participants := stats.GetEventParticipants(matches, stages)
+	if participants == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(struct {
-		Participants []interface{} `json:"participants"`
-	}{data})
+		Participants []*octane.Participant `json:"participants"`
+	}{participants})
 }
 
 func eventsFilter(v url.Values) bson.M {

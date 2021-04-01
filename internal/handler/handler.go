@@ -54,6 +54,8 @@ type Handler interface {
 
 	GetEventParticipants(http.ResponseWriter, *http.Request)
 	GetPlayerTeams(http.ResponseWriter, *http.Request)
+
+	UpdatePlayer(http.ResponseWriter, *http.Request)
 }
 
 // New .

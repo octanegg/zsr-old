@@ -151,7 +151,7 @@ type Player struct {
 	Tag      string              `json:"tag,omitempty" bson:"tag,omitempty"`
 	Name     string              `json:"name,omitempty" bson:"name,omitempty"`
 	Country  string              `json:"country,omitempty" bson:"country,omitempty"`
-	Team     string              `json:"team,omitempty" bson:"team,omitempty"`
+	Team     *Team               `json:"team,omitempty" bson:"team,omitempty"`
 	Accounts []*Account          `json:"accounts,omitempty" bson:"accounts,omitempty"`
 }
 
@@ -184,6 +184,11 @@ type StatlineSide struct {
 	Team    *Team                  `json:"team,omitempty" bson:"team,omitempty"`
 	Stats   *ballchasing.TeamStats `json:"stats,omitempty" bson:"stats,omitempty"`
 	Players []*Player              `json:"players,omitempty" bson:"players,omitempty"`
+}
+
+type Participant struct {
+	Team    *Team     `json:"team,omitempty" bson:"team,omitempty"`
+	Players []*Player `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 func toEvents(cursor *mongo.Cursor) (interface{}, error) {

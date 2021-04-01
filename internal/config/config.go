@@ -10,8 +10,8 @@ const (
 	// EnvOldDBURI .
 	EnvOldDBURI = "OLD_DB_URI"
 
-	// EnvSigner .
-	EnvSigner = "SIGNER"
+	// EnvApiKey .
+	EnvApiKey = "API_KEY"
 
 	// ErrNoObjectFoundForID .
 	ErrNoObjectFoundForID = "no object found for id"
@@ -42,4 +42,7 @@ const (
 
 	// HeaderAuthorization .
 	HeaderAuthorization = "Authorization"
+
+	// HeaderApiKey .
+	HeaderApiKey = "X-Api-Key"
 )

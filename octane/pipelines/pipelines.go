@@ -55,6 +55,17 @@ func Project(m bson.M) bson.M {
 	}
 }
 
+// Unwind .
+func Unwind(m string) bson.M {
+	if m == "" {
+		return nil
+	}
+
+	return bson.M{
+		"$unwind": m,
+	}
+}
+
 // Sort .
 func Sort(key string, descending bool) bson.M {
 	var order int

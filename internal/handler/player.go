@@ -2,11 +2,15 @@ package handler
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/zsr/internal/config"
+	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/filter"
 	"github.com/octanegg/zsr/octane/pipelines"
@@ -62,6 +66,45 @@ func (h *handler) GetPlayer(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
+}
+
+func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var player octane.Player
+	if err := json.Unmarshal(body, &player); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+
+	}
+
+	id := player.ID
+	player.ID = nil
+
+	update := bson.M{"$set": player}
+
+	if player.Team == nil {
+		unset := bson.M{
+			"team": "",
+		}
+		update["$unset"] = unset
+	}
+
+	if _, err := h.Octane.Players().UpdateOne(bson.M{"_id": id}, update); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *handler) GetPlayerTeams(w http.ResponseWriter, r *http.Request) {

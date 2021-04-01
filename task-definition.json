@@ -45,8 +45,8 @@
           "name": "CACHE_URI"
         },
         {
-          "valueFrom": "signer",
-          "name": "SIGNER"
+          "valueFrom": "api-key",
+          "name": "API_KEY"
         }
       ],
       "dockerSecurityOptions": null,

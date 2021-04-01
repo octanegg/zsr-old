@@ -47,6 +47,8 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 		Methods(http.MethodGet)
 	p.HandleFunc("/{_id}", h.GetPlayer).
 		Methods(http.MethodGet)
+	p.HandleFunc("/{_id}", h.UpdatePlayer).
+		Methods(http.MethodPut)
 	p.HandleFunc("/{_id}/teams", h.GetPlayerTeams).
 		Methods(http.MethodGet)
 
