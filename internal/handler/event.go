@@ -84,7 +84,7 @@ func (h *handler) GetEventParticipants(w http.ResponseWriter, r *http.Request) {
 		stages = append(stages, i)
 	}
 
-	participants := stats.GetEventParticipants(matches, stages)
+	participants := stats.EventParticipants(matches, stages)
 	if participants == nil {
 		w.WriteHeader(http.StatusNotFound)
 		return

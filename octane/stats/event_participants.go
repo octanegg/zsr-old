@@ -4,16 +4,17 @@ import (
 	"sort"
 
 	"github.com/octanegg/zsr/octane"
+	"github.com/octanegg/zsr/util"
 )
 
-func GetEventParticipants(matches []interface{}, stages []int) []*octane.Participant {
+func EventParticipants(matches []interface{}, stages []int) []*octane.Participant {
 	participantsMap := make(map[string]*octane.Participant)
 	teams := []string{}
 	for _, m := range matches {
 		match := m.(octane.Match)
 		if match.Blue != nil {
 			id := match.Blue.Team.Team.ID.Hex()
-			if (len(stages) == 0 || containsInt(stages, match.Stage.ID)) && !containsString(teams, id) {
+			if (len(stages) == 0 || util.ContainsInt(stages, match.Stage.ID)) && !util.ContainsString(teams, id) {
 				teams = append(teams, id)
 			}
 
@@ -27,7 +28,7 @@ func GetEventParticipants(matches []interface{}, stages []int) []*octane.Partici
 		}
 		if match.Orange != nil {
 			id := match.Orange.Team.Team.ID.Hex()
-			if (len(stages) == 0 || containsInt(stages, match.Stage.ID)) && !containsString(teams, id) {
+			if (len(stages) == 0 || util.ContainsInt(stages, match.Stage.ID)) && !util.ContainsString(teams, id) {
 				teams = append(teams, id)
 			}
 
@@ -69,22 +70,4 @@ func getPlayers(exists []*octane.Player, toAdd []*octane.PlayerStats) []*octane.
 		}
 	}
 	return players
-}
-
-func containsInt(s []int, e int) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
-}
-
-func containsString(s []string, e string) bool {
-	for _, a := range s {
-		if a == e {
-			return true
-		}
-	}
-	return false
 }

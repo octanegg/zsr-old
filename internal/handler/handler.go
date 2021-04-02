@@ -52,6 +52,7 @@ type Handler interface {
 	GetTeamOpponentStats(http.ResponseWriter, *http.Request)
 	GetTeamEventStats(http.ResponseWriter, *http.Request)
 
+	GetActiveTeams(http.ResponseWriter, *http.Request)
 	GetEventParticipants(http.ResponseWriter, *http.Request)
 	GetPlayerTeams(http.ResponseWriter, *http.Request)
 
