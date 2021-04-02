@@ -2,15 +2,19 @@ package handler
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/zsr/internal/config"
 	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/filter"
+	"github.com/octanegg/zsr/octane/helper"
 	"github.com/octanegg/zsr/octane/stats"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -64,6 +68,38 @@ func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
+}
+
+func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var event octane.Event
+	if err := json.Unmarshal(body, &event); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+
+	}
+
+	id := event.ID
+	event.ID = nil
+
+	if _, err := h.Octane.Events().UpdateOne(bson.M{"_id": id}, bson.M{"$set": event}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	helper.UpdateEvent(h.Octane, id, id)
 }
 
 func (h *handler) GetEventParticipants(w http.ResponseWriter, r *http.Request) {

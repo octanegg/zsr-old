@@ -24,6 +24,8 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 		Methods(http.MethodGet)
 	e.HandleFunc("/{_id}", h.GetEvent).
 		Methods(http.MethodGet)
+	e.HandleFunc("/{_id}", h.UpdateEvent).
+		Methods(http.MethodPut)
 	e.HandleFunc("/{_id}/participants", h.GetEventParticipants).
 		Methods(http.MethodGet)
 
@@ -60,6 +62,8 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 		Methods(http.MethodGet)
 	t.HandleFunc("/{_id}", h.GetTeam).
 		Methods(http.MethodGet)
+	t.HandleFunc("/{_id}", h.UpdateTeam).
+		Methods(http.MethodPut)
 
 	// stats
 	r.HandleFunc("/records/players", h.GetPlayerRecords).Methods(http.MethodGet)

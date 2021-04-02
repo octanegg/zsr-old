@@ -13,6 +13,7 @@ import (
 	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/filter"
+	"github.com/octanegg/zsr/octane/helper"
 	"github.com/octanegg/zsr/octane/pipelines"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -105,6 +106,8 @@ func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusOK)
+
+	helper.UpdatePlayer(h.Octane, id, id)
 }
 
 func (h *handler) GetPlayerTeams(w http.ResponseWriter, r *http.Request) {
