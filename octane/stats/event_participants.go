@@ -45,6 +45,29 @@ func EventParticipants(matches []interface{}, stages []int) []*octane.Participan
 	participants := []*octane.Participant{}
 	for _, team := range teams {
 		participant := participantsMap[team]
+		sort.Slice(participant.Players, func(i, j int) bool {
+			a := participant.Players[i]
+			b := participant.Players[j]
+
+			if a.Coach && b.Coach {
+				return a.Tag < b.Tag
+			}
+
+			if a.Coach || b.Coach {
+				return !a.Coach
+			}
+
+			if a.Substitute && b.Substitute {
+				return a.Tag < b.Tag
+			}
+
+			if a.Substitute || b.Substitute {
+				return !a.Substitute
+			}
+
+			return a.Tag < b.Tag
+		})
+
 		if len(participant.Players) > 0 {
 			participants = append(participants, participant)
 		}

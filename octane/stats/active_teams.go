@@ -24,6 +24,28 @@ func ActiveTeams(players []interface{}, regions []string) []*octane.Participant 
 	participants := []*octane.Participant{}
 	for _, participant := range participantsMap {
 		if len(regions) == 0 || util.ContainsString(regions, participant.Team.Region) {
+			sort.Slice(participant.Players, func(i, j int) bool {
+				a := participant.Players[i]
+				b := participant.Players[j]
+
+				if a.Coach && b.Coach {
+					return a.Tag < b.Tag
+				}
+
+				if a.Coach || b.Coach {
+					return !a.Coach
+				}
+
+				if a.Substitute && b.Substitute {
+					return a.Tag < b.Tag
+				}
+
+				if a.Substitute || b.Substitute {
+					return !a.Substitute
+				}
+
+				return a.Tag < b.Tag
+			})
 			participants = append(participants, participant)
 		}
 	}
