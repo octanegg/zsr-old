@@ -70,6 +70,37 @@ func (h *handler) GetEvent(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(data)
 }
 
+func (h *handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var event octane.Event
+	if err := json.Unmarshal(body, &event); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+
+	}
+
+	id, err := h.Octane.Events().InsertOne(event)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(struct {
+		ID string `json:"_id"`
+	}{id.Hex()})
+}
+
 func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
 		w.WriteHeader(http.StatusUnauthorized)

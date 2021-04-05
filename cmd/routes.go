@@ -22,6 +22,8 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	e := r.PathPrefix("/events").Subrouter()
 	e.HandleFunc("", h.GetEvents).
 		Methods(http.MethodGet)
+	e.HandleFunc("", h.CreateEvent).
+		Methods(http.MethodPost)
 	e.HandleFunc("/{_id}", h.GetEvent).
 		Methods(http.MethodGet)
 	e.HandleFunc("/{_id}", h.UpdateEvent).
@@ -47,6 +49,8 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	p := r.PathPrefix("/players").Subrouter()
 	p.HandleFunc("", h.GetPlayers).
 		Methods(http.MethodGet)
+	p.HandleFunc("", h.CreatePlayer).
+		Methods(http.MethodPost)
 	p.HandleFunc("/{_id}", h.GetPlayer).
 		Methods(http.MethodGet)
 	p.HandleFunc("/{_id}", h.UpdatePlayer).
@@ -58,6 +62,8 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	t := r.PathPrefix("/teams").Subrouter()
 	t.HandleFunc("", h.GetTeams).
 		Methods(http.MethodGet)
+	t.HandleFunc("", h.CreateTeam).
+		Methods(http.MethodPost)
 	t.HandleFunc("/active", h.GetActiveTeams).
 		Methods(http.MethodGet)
 	t.HandleFunc("/{_id}", h.GetTeam).

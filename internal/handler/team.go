@@ -69,6 +69,37 @@ func (h *handler) GetTeam(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(data)
 }
 
+func (h *handler) CreateTeam(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var team octane.Team
+	if err := json.Unmarshal(body, &team); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+
+	}
+
+	id, err := h.Octane.Teams().InsertOne(team)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(struct {
+		ID string `json:"_id"`
+	}{id.Hex()})
+}
+
 func (h *handler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
 		w.WriteHeader(http.StatusUnauthorized)
