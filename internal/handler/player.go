@@ -123,13 +123,21 @@ func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 	player.ID = nil
 
 	update := bson.M{"$set": player}
+	unset := bson.M{}
 
 	if player.Team == nil {
-		unset := bson.M{
-			"team": "",
-		}
-		update["$unset"] = unset
+		unset["team"] = ""
 	}
+
+	if !player.Substitute {
+		unset["substitute"] = ""
+	}
+
+	if !player.Coach {
+		unset["coach"] = ""
+	}
+
+	update["$unset"] = unset
 
 	if _, err := h.Octane.Players().UpdateOne(bson.M{"_id": id}, update); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

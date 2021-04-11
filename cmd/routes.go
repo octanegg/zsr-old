@@ -35,8 +35,14 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	m := r.PathPrefix("/matches").Subrouter()
 	m.HandleFunc("", h.GetMatches).
 		Methods(http.MethodGet)
+	m.HandleFunc("", h.UpdateMatches).
+		Methods(http.MethodPut)
+	m.HandleFunc("", h.CreateMatch).
+		Methods(http.MethodPost)
 	m.HandleFunc("/{_id}", h.GetMatch).
 		Methods(http.MethodGet)
+	m.HandleFunc("/{_id}", h.UpdateMatch).
+		Methods(http.MethodPut)
 
 	// games
 	g := r.PathPrefix("/games").Subrouter()

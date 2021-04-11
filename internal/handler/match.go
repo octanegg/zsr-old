@@ -3,13 +3,18 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"time"
 
 	"github.com/gorilla/mux"
+	"github.com/octanegg/zsr/internal/config"
+	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/filter"
+	"github.com/octanegg/zsr/octane/helper"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -68,6 +73,164 @@ func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
+}
+
+func (h *handler) CreateMatch(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var match octane.Match
+	if err := json.Unmarshal(body, &match); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+
+	}
+
+	id, err := h.Octane.Matches().InsertOne(match)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(struct {
+		ID string `json:"_id"`
+	}{id.Hex()})
+}
+
+func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var match octane.Match
+	if err := json.Unmarshal(body, &match); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+
+	}
+
+	set := bson.M{
+		"number": match.Number,
+		"date":   match.Date,
+	}
+
+	unset := bson.M{}
+
+	if match.Blue != nil {
+		set["blue.team.team"] = match.Blue.Team.Team
+		set["blue.score"] = match.Blue.Score
+		set["blue.winner"] = match.Blue.Score > match.Orange.Score
+	} else {
+		unset["blue"] = ""
+	}
+
+	if match.Orange != nil {
+		set["orange.team.team"] = match.Orange.Team.Team
+		set["orange.score"] = match.Orange.Score
+		set["orange.winner"] = match.Orange.Score > match.Blue.Score
+	} else {
+		unset["orange"] = ""
+	}
+
+	if match.Format != nil {
+		set["format"] = match.Format
+	} else {
+		unset["format"] = ""
+	}
+
+	update := bson.M{"$set": set}
+	if len(unset) > 0 {
+		update["$unset"] = unset
+	}
+
+	if _, err := h.Octane.Matches().UpdateOne(bson.M{"_id": match.ID}, update); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	helper.UpdateMatch(h.Octane, match.ID, match.ID)
+}
+
+func (h *handler) UpdateMatches(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var matches []octane.Match
+	if err := json.Unmarshal(body, &matches); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	for _, match := range matches {
+		set := bson.M{
+			"number": match.Number,
+			"date":   match.Date,
+		}
+
+		unset := bson.M{}
+
+		if match.Blue != nil {
+			set["blue.team.team"] = match.Blue.Team.Team
+			set["blue.score"] = match.Blue.Score
+			set["blue.winner"] = match.Blue.Score > match.Orange.Score
+		} else {
+			unset["blue"] = ""
+		}
+
+		if match.Orange != nil {
+			set["orange.team.team"] = match.Orange.Team.Team
+			set["orange.score"] = match.Orange.Score
+			set["orange.winner"] = match.Orange.Score > match.Blue.Score
+		} else {
+			unset["orange"] = ""
+		}
+
+		if match.Format != nil {
+			set["format"] = match.Format
+		} else {
+			unset["format"] = ""
+		}
+
+		update := bson.M{"$set": set}
+		if len(unset) > 0 {
+			update["$unset"] = unset
+		}
+
+		if _, err := h.Octane.Matches().UpdateOne(bson.M{"_id": match.ID}, update); err != nil {
+			continue
+		}
+
+		helper.UpdateMatch(h.Octane, match.ID, match.ID)
+	}
 }
 
 func matchesFilter(v url.Values) bson.M {
