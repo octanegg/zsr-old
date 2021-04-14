@@ -93,7 +93,6 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	r.HandleFunc("/stats/teams/events", h.GetTeamEventStats).Methods(http.MethodGet)
 
 	// admin
-	r.HandleFunc("/import", d.Import).Methods(http.MethodPost)
 	s := r.PathPrefix("/deprecated").Subrouter()
 	s.HandleFunc("/matches", d.UpdateMatch).Methods(http.MethodPost)
 	s.HandleFunc("/matches/{id}", d.GetMatch).Methods(http.MethodGet)

@@ -23,8 +23,6 @@ type Deprecated interface {
 	DeleteGame(*DeleteGameContext) error
 	GetGames(*GetGamesContext) ([]*Game, error)
 	InsertGame(*Game) error
-
-	getLinkages([]int) ([]*EventLinkage, error)
 }
 
 // New .

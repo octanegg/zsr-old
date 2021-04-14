@@ -80,7 +80,7 @@ func EventParticipants(matches []interface{}, stages []int) []*octane.Participan
 	return participants
 }
 
-func getPlayers(exists []*octane.Player, toAdd []*octane.PlayerStats) []*octane.Player {
+func getPlayers(exists []*octane.Player, toAdd []*octane.PlayerInfo) []*octane.Player {
 	m := make(map[string]bool)
 	for _, p := range exists {
 		m[p.ID.Hex()] = true
