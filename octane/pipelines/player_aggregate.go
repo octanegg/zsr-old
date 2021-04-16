@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/octanegg/zsr/ballchasing"
 	"github.com/octanegg/zsr/octane"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -59,12 +58,12 @@ func PlayerAggregate(filter bson.M, group interface{}, having bson.M, cluster st
 				Wins          int             `json:"wins" bson:"wins"`
 				WinPercentage float64         `json:"winPercentage" bson:"win_percentage"`
 				Stats         struct {
-					Core        *ballchasing.PlayerCore        `json:"core" bson:"core"`
-					Boost       *ballchasing.PlayerBoost       `json:"boost" bson:"boost"`
-					Movement    *ballchasing.PlayerMovement    `json:"movement" bson:"movement"`
-					Positioning *ballchasing.PlayerPositioning `json:"positioning" bson:"positioning"`
-					Demolitions *ballchasing.PlayerDemolitions `json:"demo" bson:"demo"`
-					Advanced    *octane.AdvancedStats          `json:"advanced" bson:"advanced"`
+					Core        *octane.PlayerCore        `json:"core" bson:"core"`
+					Boost       *octane.PlayerBoost       `json:"boost" bson:"boost"`
+					Movement    *octane.PlayerMovement    `json:"movement" bson:"movement"`
+					Positioning *octane.PlayerPositioning `json:"positioning" bson:"positioning"`
+					Demolitions *octane.PlayerDemolitions `json:"demo" bson:"demo"`
+					Advanced    *octane.AdvancedStats     `json:"advanced" bson:"advanced"`
 				} `json:"stats" bson:"stats"`
 			}
 			if err := cursor.Decode(&player); err != nil {
