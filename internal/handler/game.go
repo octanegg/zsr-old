@@ -76,13 +76,23 @@ func gamesFilter(v url.Values) bson.M {
 		filter.Ints("match.format.length", v["bestOf"]),
 		filter.Strings("match.event.groups", v["group"]),
 		filter.Bool("match.stage.qualifier", v.Get("qualifier")),
-		filter.Or(
-			filter.Strings("blue.players.player._id", v["player"]),
-			filter.Strings("orange.players.player._id", v["player"]),
-		),
-		filter.Or(
-			filter.Strings("blue.team.team._id", v["team"]),
-			filter.Strings("orange.team.team._id", v["team"]),
+		filter.ExplicitAnd(
+			filter.Or(
+				filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])),
+				filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])),
+			),
+			filter.Or(
+				filter.And(filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
+				filter.And(filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
+			),
+			filter.Or(
+				filter.ObjectIDs("blue.team.team._id", v["team"]),
+				filter.ObjectIDs("orange.team.team._id", v["team"]),
+			),
+			filter.Or(
+				filter.And(filter.ObjectIDs("blue.team.team._id", v["team"]), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
+				filter.And(filter.ObjectIDs("orange.team.team._id", v["team"]), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
+			),
 		),
 	)
 }

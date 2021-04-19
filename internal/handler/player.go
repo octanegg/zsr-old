@@ -187,6 +187,6 @@ func playersFilter(v url.Values) bson.M {
 	return filter.New(
 		filter.Strings("country", v["country"]),
 		filter.Strings("tag", v["tag"]),
-		filter.ObjectIDs("team", v["team"]),
+		filter.ObjectIDs("team._id", v["team"]),
 	)
 }
