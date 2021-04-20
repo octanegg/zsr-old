@@ -38,12 +38,7 @@ func TeamGameRecords(filter bson.M, stat string) *Pipeline {
 			"team":     "$team",
 			"opponent": "$opponent",
 			"winner":   "$winner",
-			"stat": bson.M{
-				"$divide": bson.A{
-					"$stat",
-					"$game.match.event.mode",
-				},
-			},
+			"stat":     "$stat",
 		}),
 		Sort("stat", true),
 		Limit(25),
@@ -57,7 +52,7 @@ func TeamGameRecords(filter bson.M, stat string) *Pipeline {
 				Game     *octane.Game `json:"game,omitempty" bson:"game,omitempty"`
 				Opponent *octane.Team `json:"opponent,omitempty" bson:"opponent,omitempty"`
 				Winner   bool         `json:"winner,omitempty" bson:"winner,omitempty"`
-				Stat     int          `json:"stat" bson:"stat"`
+				Stat     float64      `json:"stat" bson:"stat"`
 			}
 			if err := cursor.Decode(&team); err != nil {
 				return nil, err
@@ -101,12 +96,7 @@ func TeamSeriesRecords(filter bson.M, stat string) *Pipeline {
 			"team":     "$team",
 			"opponent": "$opponent",
 			"winner":   "$winner",
-			"stat": bson.M{
-				"$divide": bson.A{
-					"$stat",
-					"$match.event.mode",
-				},
-			},
+			"stat":     "$stat",
 		}),
 		Sort("stat", true),
 		Limit(25),
@@ -121,7 +111,7 @@ func TeamSeriesRecords(filter bson.M, stat string) *Pipeline {
 				Team     *octane.Team  `json:"team,omitempty" bson:"team,omitempty"`
 				Opponent *octane.Team  `json:"opponent,omitempty" bson:"opponent,omitempty"`
 				Winner   bool          `json:"winner,omitempty" bson:"winner,omitempty"`
-				Stat     int           `json:"stat,omitempty" bson:"stat,omitempty"`
+				Stat     float64       `json:"stat,omitempty" bson:"stat,omitempty"`
 			}
 			if err := cursor.Decode(&team); err != nil {
 				return nil, err

@@ -300,5 +300,5 @@ func GetTeamStatsMapping(stat string) string {
 }
 
 func TeamStatToField(group, stat string) string {
-	return fmt.Sprintf("$team.stats.%s.%s", group, stat)
+	return fmt.Sprintf("$player.stats.%s.%s", group, stat)
 }
