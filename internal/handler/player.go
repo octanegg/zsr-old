@@ -14,7 +14,6 @@ import (
 	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/filter"
 	"github.com/octanegg/zsr/octane/helper"
-	"github.com/octanegg/zsr/octane/pipelines"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -157,30 +156,66 @@ func (h *handler) GetPlayerTeams(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	player, err := h.Octane.Players().FindOne(bson.M{"_id": id})
+	data, err := h.Octane.Statlines().Distinct("team.team", bson.M{"player.player._id": id, "game.match.event.mode": 3})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
-	if player == nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
-
-	pipeline := pipelines.PlayerTeams(bson.M{"player._id": id})
-	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
+	var teams []*octane.Team
+	for _, t := range data {
+		bytes, _ := bson.Marshal(t.(bson.D).Map())
+		var team *octane.Team
+		bson.Unmarshal(bytes, &team)
+		teams = append(teams, team)
 	}
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(struct {
-		Records []interface{} `json:"teams"`
-	}{data})
+		Records []*octane.Team `json:"teams"`
+	}{teams})
+}
+
+func (h *handler) GetPlayerOpponents(w http.ResponseWriter, r *http.Request) {
+	id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	filter := bson.M{"player.player._id": id, "game.match.event.mode": 3}
+
+	if v := r.URL.Query().Get("team"); v != "" {
+		teamId, err := primitive.ObjectIDFromHex(v)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+			return
+		}
+		filter["team.team._id"] = teamId
+	}
+
+	data, err := h.Octane.Statlines().Distinct("opponent.team", filter)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	var teams []*octane.Team
+	for _, t := range data {
+		bytes, _ := bson.Marshal(t.(bson.D).Map())
+		var team *octane.Team
+		bson.Unmarshal(bytes, &team)
+		teams = append(teams, team)
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(struct {
+		Records []*octane.Team `json:"teams"`
+	}{teams})
 }
 
 func playersFilter(v url.Values) bson.M {

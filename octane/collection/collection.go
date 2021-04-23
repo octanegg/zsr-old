@@ -13,6 +13,7 @@ import (
 type Collection interface {
 	Find(bson.M, bson.M, *Pagination) ([]interface{}, error)
 	FindOne(bson.M) (interface{}, error)
+	Distinct(string, bson.M) ([]interface{}, error)
 	Update(interface{}, interface{}) (interface{}, error)
 	UpdateOne(interface{}, interface{}) (interface{}, error)
 	Insert([]interface{}) ([]interface{}, error)
@@ -89,6 +90,15 @@ func (c *collection) FindOne(filter bson.M) (interface{}, error) {
 	}
 
 	return data[0], nil
+}
+
+func (c *collection) Distinct(field string, filter bson.M) ([]interface{}, error) {
+	data, err := c.Collection.Distinct(context.TODO(), field, filter)
+	if err != nil {
+		return nil, err
+	}
+
+	return data, nil
 }
 
 func (c *collection) Update(filter, data interface{}) (interface{}, error) {

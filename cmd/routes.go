@@ -63,6 +63,8 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 		Methods(http.MethodPut)
 	p.HandleFunc("/{_id}/teams", h.GetPlayerTeams).
 		Methods(http.MethodGet)
+	p.HandleFunc("/{_id}/opponents", h.GetPlayerOpponents).
+		Methods(http.MethodGet)
 
 	// teams
 	t := r.PathPrefix("/teams").Subrouter()
