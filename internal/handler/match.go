@@ -84,12 +84,14 @@ func (h *handler) CreateMatch(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
 	var match octane.Match
 	if err := json.Unmarshal(body, &match); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 
 	}
@@ -100,6 +102,7 @@ func (h *handler) CreateMatch(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := h.Octane.Matches().InsertOne(match); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
@@ -118,12 +121,14 @@ func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
 	var match octane.Match
 	if err := json.Unmarshal(body, &match); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 
 	}
@@ -166,6 +171,7 @@ func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := h.Octane.Matches().UpdateOne(bson.M{"_id": match.ID}, update); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
@@ -196,44 +202,56 @@ func (h *handler) UpdateMatches(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	for _, match := range matches {
-		set := bson.M{
-			"number": match.Number,
-			"date":   match.Date,
-		}
+		if match.ID != nil {
+			set := bson.M{
+				"number": match.Number,
+				"date":   match.Date,
+			}
 
-		unset := bson.M{}
+			unset := bson.M{}
 
-		if match.Blue != nil {
-			set["blue.team.team"] = match.Blue.Team.Team
-			set["blue.score"] = match.Blue.Score
-			set["blue.winner"] = match.Blue.Score > match.Orange.Score
+			if match.Blue != nil {
+				set["blue.team.team"] = match.Blue.Team.Team
+				set["blue.score"] = match.Blue.Score
+				set["blue.winner"] = match.Blue.Score > match.Orange.Score
+			} else {
+				unset["blue"] = ""
+			}
+
+			if match.Orange != nil {
+				set["orange.team.team"] = match.Orange.Team.Team
+				set["orange.score"] = match.Orange.Score
+				set["orange.winner"] = match.Orange.Score > match.Blue.Score
+			} else {
+				unset["orange"] = ""
+			}
+
+			if match.Format != nil {
+				set["format"] = match.Format
+			} else {
+				unset["format"] = ""
+			}
+
+			set["slug"] = helper.MatchSlug(&match)
+
+			update := bson.M{"$set": set}
+			if len(unset) > 0 {
+				update["$unset"] = unset
+			}
+
+			if _, err := h.Octane.Matches().UpdateOne(bson.M{"_id": match.ID}, update); err != nil {
+				continue
+			}
 		} else {
-			unset["blue"] = ""
-		}
+			id := primitive.NewObjectID()
+			match.ID = &id
+			match.Slug = helper.MatchSlug(&match)
 
-		if match.Orange != nil {
-			set["orange.team.team"] = match.Orange.Team.Team
-			set["orange.score"] = match.Orange.Score
-			set["orange.winner"] = match.Orange.Score > match.Blue.Score
-		} else {
-			unset["orange"] = ""
-		}
-
-		if match.Format != nil {
-			set["format"] = match.Format
-		} else {
-			unset["format"] = ""
-		}
-
-		set["slug"] = helper.MatchSlug(&match)
-
-		update := bson.M{"$set": set}
-		if len(unset) > 0 {
-			update["$unset"] = unset
-		}
-
-		if _, err := h.Octane.Matches().UpdateOne(bson.M{"_id": match.ID}, update); err != nil {
-			continue
+			if _, err := h.Octane.Matches().InsertOne(match); err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+				return
+			}
 		}
 
 		helper.UpdateMatch(h.Octane, match.ID, match.ID)
