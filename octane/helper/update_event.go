@@ -27,6 +27,7 @@ func UpdateEvent(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"event": bson.M{
 					"_id":    newEvent.ID,
+					"slug":   newEvent.Slug,
 					"name":   newEvent.Name,
 					"mode":   newEvent.Mode,
 					"region": newEvent.Region,
@@ -48,6 +49,7 @@ func UpdateEvent(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"match.event": bson.M{
 					"_id":    newEvent.ID,
+					"slug":   newEvent.Slug,
 					"name":   newEvent.Name,
 					"mode":   newEvent.Mode,
 					"region": newEvent.Region,
@@ -69,6 +71,7 @@ func UpdateEvent(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"game.match.event": bson.M{
 					"_id":    newEvent.ID,
+					"slug":   newEvent.Slug,
 					"name":   newEvent.Name,
 					"mode":   newEvent.Mode,
 					"region": newEvent.Region,

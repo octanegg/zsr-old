@@ -77,19 +77,25 @@ func (h *handler) CreatePlayer(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
 	var player octane.Player
 	if err := json.Unmarshal(body, &player); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 
 	}
 
-	id, err := h.Octane.Players().InsertOne(player)
-	if err != nil {
+	id := primitive.NewObjectID()
+	player.ID = &id
+	player.Slug = helper.PlayerSlug(&player)
+
+	if _, err := h.Octane.Players().InsertOne(player); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
@@ -108,16 +114,19 @@ func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
 	var player octane.Player
 	if err := json.Unmarshal(body, &player); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 
 	}
 
+	player.Slug = helper.PlayerSlug(&player)
 	id := player.ID
 	player.ID = nil
 
@@ -140,6 +149,7 @@ func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := h.Octane.Players().UpdateOne(bson.M{"_id": id}, update); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 

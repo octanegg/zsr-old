@@ -26,6 +26,7 @@ func UpdateMatch(client octane.Client, old, new *primitive.ObjectID) error {
 		bson.M{
 			"$set": bson.M{
 				"match._id":    newMatch.ID,
+				"match.slug":   newMatch.Slug,
 				"match.format": newMatch.Format,
 			},
 		},
@@ -40,10 +41,61 @@ func UpdateMatch(client octane.Client, old, new *primitive.ObjectID) error {
 		bson.M{
 			"$set": bson.M{
 				"game.match._id":    newMatch.ID,
+				"match.slug":        newMatch.Slug,
 				"game.match.format": newMatch.Format,
 			},
 		},
 	); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpdateMatchAggregate(client octane.Client, id *primitive.ObjectID) error {
+	m, err := client.Matches().FindOne(bson.M{"_id": id})
+	if err != nil {
+		return err
+	}
+	match := m.(octane.Match)
+
+	res, err := client.Games().Find(bson.M{"match._id": id}, nil, nil)
+	if err != nil {
+		return err
+	}
+
+	match.Blue.Score = 0
+	match.Orange.Score = 0
+
+	var games []*octane.Game
+	for _, g := range res {
+		game := g.(octane.Game)
+		games = append(games, &game)
+		if game.Blue.Team.Stats.Core.Goals > game.Orange.Team.Stats.Core.Goals {
+			match.Blue.Score++
+		} else {
+			match.Orange.Score++
+		}
+	}
+
+	var blueStatlines, orangeStatlines []*octane.Statline
+	for _, game := range games {
+		blue, orange := GameToStatlines(game)
+		blueStatlines = append(blueStatlines, blue...)
+		orangeStatlines = append(orangeStatlines, orange...)
+	}
+
+	match.ID = nil
+	match.Blue.Players = StatlinesToAggregatePlayerStats(blueStatlines)
+	match.Orange.Players = StatlinesToAggregatePlayerStats(orangeStatlines)
+	match.Blue.Team.Stats = PlayerStatsToTeamStats(match.Blue.Players)
+	match.Orange.Team.Stats = PlayerStatsToTeamStats(match.Orange.Players)
+	match.ReverseSweepAttempt, match.ReverseSweep = ReverseSweep(games)
+	match.Games = GamesToGameOverviews(games)
+	match.Blue.Winner = match.Blue.Score > match.Orange.Score
+	match.Orange.Winner = match.Orange.Score > match.Blue.Score
+
+	if _, err := client.Matches().UpdateOne(bson.M{"_id": id}, bson.M{"$set": match}); err != nil {
 		return err
 	}
 

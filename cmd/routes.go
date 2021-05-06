@@ -4,12 +4,11 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/octanegg/zsr/internal/deprecated"
 	"github.com/octanegg/zsr/internal/handler"
 	"github.com/rs/cors"
 )
 
-func routes(h handler.Handler, d deprecated.Handler) http.Handler {
+func routes(h handler.Handler) http.Handler {
 	r := mux.NewRouter()
 
 	r.Handle("/", http.FileServer(http.Dir("./docs")))
@@ -48,8 +47,12 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	g := r.PathPrefix("/games").Subrouter()
 	g.HandleFunc("", h.GetGames).
 		Methods(http.MethodGet)
+	g.HandleFunc("", h.CreateGame).
+		Methods(http.MethodPost)
 	g.HandleFunc("/{_id}", h.GetGame).
 		Methods(http.MethodGet)
+	g.HandleFunc("/{_id}", h.UpdateGame).
+		Methods(http.MethodPut)
 
 	// players
 	p := r.PathPrefix("/players").Subrouter()
@@ -93,15 +96,6 @@ func routes(h handler.Handler, d deprecated.Handler) http.Handler {
 	r.HandleFunc("/stats/teams", h.GetTeamStats).Methods(http.MethodGet)
 	r.HandleFunc("/stats/teams/opponents", h.GetTeamOpponentStats).Methods(http.MethodGet)
 	r.HandleFunc("/stats/teams/events", h.GetTeamEventStats).Methods(http.MethodGet)
-
-	// admin
-	s := r.PathPrefix("/deprecated").Subrouter()
-	s.HandleFunc("/matches", d.UpdateMatch).Methods(http.MethodPost)
-	s.HandleFunc("/matches/{id}", d.GetMatch).Methods(http.MethodGet)
-	s.HandleFunc("/matches/{event}/{stage}", d.GetMatches).Methods(http.MethodGet)
-	s.HandleFunc("/games", d.InsertGame).Methods(http.MethodPut)
-	s.HandleFunc("/games", d.DeleteGame).Methods(http.MethodDelete)
-	s.HandleFunc("/games/{match}/{blue}/{orange}", d.GetGames).Methods(http.MethodGet)
 
 	return cors.AllowAll().Handler(r)
 }

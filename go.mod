@@ -7,6 +7,7 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/google/go-cmp v0.5.4 // indirect
 	github.com/gorilla/mux v1.8.0
+	github.com/gosimple/slug v1.9.0
 	github.com/rs/cors v1.7.0
 	github.com/tidwall/pretty v1.0.2 // indirect
 	go.mongodb.org/mongo-driver v1.4.4

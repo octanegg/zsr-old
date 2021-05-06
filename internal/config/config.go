@@ -13,6 +13,9 @@ const (
 	// EnvApiKey .
 	EnvApiKey = "API_KEY"
 
+	// EnvBallchasing .
+	EnvBallchasing = "AUTH_TOKEN"
+
 	// ErrNoObjectFoundForID .
 	ErrNoObjectFoundForID = "no object found for id"
 

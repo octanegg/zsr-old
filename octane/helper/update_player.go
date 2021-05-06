@@ -25,6 +25,7 @@ func UpdatePlayer(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"player.player": bson.M{
 					"_id":     newPlayer.ID,
+					"slug":    newPlayer.Slug,
 					"tag":     newPlayer.Tag,
 					"country": newPlayer.Country,
 				},
@@ -39,6 +40,7 @@ func UpdatePlayer(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"blue.players.$.player": bson.M{
 					"_id":     newPlayer.ID,
+					"slug":    newPlayer.Slug,
 					"tag":     newPlayer.Tag,
 					"country": newPlayer.Country,
 				},
@@ -53,6 +55,7 @@ func UpdatePlayer(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"orange.players.$.player": bson.M{
 					"_id":     newPlayer.ID,
+					"slug":    newPlayer.Slug,
 					"tag":     newPlayer.Tag,
 					"country": newPlayer.Country,
 				},
@@ -67,6 +70,7 @@ func UpdatePlayer(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"blue.players.$.player": bson.M{
 					"_id":     newPlayer.ID,
+					"slug":    newPlayer.Slug,
 					"tag":     newPlayer.Tag,
 					"country": newPlayer.Country,
 				},
@@ -81,6 +85,7 @@ func UpdatePlayer(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"orange.players.$.player": bson.M{
 					"_id":     newPlayer.ID,
+					"slug":    newPlayer.Slug,
 					"tag":     newPlayer.Tag,
 					"country": newPlayer.Country,
 				},

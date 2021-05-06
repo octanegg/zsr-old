@@ -25,6 +25,7 @@ func UpdateTeam(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"team.team": bson.M{
 					"_id":   newTeam.ID,
+					"slug":  newTeam.Slug,
 					"name":  newTeam.Name,
 					"image": newTeam.Image,
 				},
@@ -39,6 +40,7 @@ func UpdateTeam(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"blue.team.team": bson.M{
 					"_id":   newTeam.ID,
+					"slug":  newTeam.Slug,
 					"name":  newTeam.Name,
 					"image": newTeam.Image,
 				},
@@ -53,6 +55,7 @@ func UpdateTeam(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"orange.team.team": bson.M{
 					"_id":   newTeam.ID,
+					"slug":  newTeam.Slug,
 					"name":  newTeam.Name,
 					"image": newTeam.Image,
 				},
@@ -67,6 +70,7 @@ func UpdateTeam(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"blue.team.team": bson.M{
 					"_id":   newTeam.ID,
+					"slug":  newTeam.Slug,
 					"name":  newTeam.Name,
 					"image": newTeam.Image,
 				},
@@ -81,6 +85,7 @@ func UpdateTeam(client octane.Client, old, new *primitive.ObjectID) error {
 			"$set": bson.M{
 				"orange.team.team": bson.M{
 					"_id":   newTeam.ID,
+					"slug":  newTeam.Slug,
 					"name":  newTeam.Name,
 					"image": newTeam.Image,
 				},

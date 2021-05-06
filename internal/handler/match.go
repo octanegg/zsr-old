@@ -94,8 +94,11 @@ func (h *handler) CreateMatch(w http.ResponseWriter, r *http.Request) {
 
 	}
 
-	id, err := h.Octane.Matches().InsertOne(match)
-	if err != nil {
+	id := primitive.NewObjectID()
+	match.ID = &id
+	match.Slug = helper.MatchSlug(&match)
+
+	if _, err := h.Octane.Matches().InsertOne(match); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -153,6 +156,8 @@ func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
 	} else {
 		unset["format"] = ""
 	}
+
+	set["slug"] = helper.MatchSlug(&match)
 
 	update := bson.M{"$set": set}
 	if len(unset) > 0 {
@@ -219,6 +224,8 @@ func (h *handler) UpdateMatches(w http.ResponseWriter, r *http.Request) {
 		} else {
 			unset["format"] = ""
 		}
+
+		set["slug"] = helper.MatchSlug(&match)
 
 		update := bson.M{"$set": set}
 		if len(unset) > 0 {

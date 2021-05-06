@@ -10,6 +10,7 @@ import (
 // Event .
 type Event struct {
 	ID        *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Slug      string              `json:"slug,omitempty" bson:"slug,omitempty"`
 	Name      string              `json:"name,omitempty" bson:"name,omitempty"`
 	StartDate *time.Time          `json:"startDate,omitempty" bson:"start_date,omitempty"`
 	EndDate   *time.Time          `json:"endDate,omitempty" bson:"end_date,omitempty"`
@@ -60,6 +61,7 @@ type Prize struct {
 // Match .
 type Match struct {
 	ID                  *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Slug                string              `json:"slug,omitempty" bson:"slug,omitempty"`
 	OctaneID            string              `json:"octane_id,omitempty" bson:"octane_id,omitempty"`
 	Event               *Event              `json:"event,omitempty" bson:"event,omitempty"`
 	Stage               *Stage              `json:"stage,omitempty" bson:"stage,omitempty"`
@@ -99,16 +101,17 @@ type MatchSide struct {
 
 // Game .
 type Game struct {
-	ID            *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
-	OctaneID      string              `json:"octane_id,omitempty" bson:"octane_id,omitempty"`
-	Number        int                 `json:"number,omitempty" bson:"number,omitempty"`
-	Match         *Match              `json:"match,omitempty" bson:"match,omitempty"`
-	Map           *Map                `json:"map,omitempty" bson:"map,omitempty"`
-	Duration      int                 `json:"duration,omitempty" bson:"duration,omitempty"`
-	Date          *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
-	Blue          *GameSide           `json:"blue,omitempty" bson:"blue,omitempty"`
-	Orange        *GameSide           `json:"orange,omitempty" bson:"orange,omitempty"`
-	BallchasingID string              `json:"ballchasing,omitempty" bson:"ballchasing,omitempty"`
+	ID              *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	OctaneID        string              `json:"octane_id,omitempty" bson:"octane_id,omitempty"`
+	Number          int                 `json:"number,omitempty" bson:"number,omitempty"`
+	Match           *Match              `json:"match,omitempty" bson:"match,omitempty"`
+	Map             *Map                `json:"map,omitempty" bson:"map,omitempty"`
+	Duration        int                 `json:"duration,omitempty" bson:"duration,omitempty"`
+	Date            *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
+	Blue            *GameSide           `json:"blue,omitempty" bson:"blue,omitempty"`
+	Orange          *GameSide           `json:"orange,omitempty" bson:"orange,omitempty"`
+	BallchasingID   string              `json:"ballchasing,omitempty" bson:"ballchasing,omitempty"`
+	FlipBallchasing bool                `json:"flipBallchasing,omitempty" bson:"flip_ballchasing,omitempty"`
 }
 
 // GameSide .
@@ -155,6 +158,7 @@ type Car struct {
 // Player .
 type Player struct {
 	ID         *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Slug       string              `json:"slug,omitempty" bson:"slug,omitempty"`
 	Tag        string              `json:"tag,omitempty" bson:"tag,omitempty"`
 	Name       string              `json:"name,omitempty" bson:"name,omitempty"`
 	Country    string              `json:"country,omitempty" bson:"country,omitempty"`
@@ -173,6 +177,7 @@ type Account struct {
 // Team .
 type Team struct {
 	ID     *primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	Slug   string              `json:"slug,omitempty" bson:"slug,omitempty"`
 	Name   string              `json:"name,omitempty" bson:"name,omitempty"`
 	Region string              `json:"region,omitempty" bson:"region,omitempty"`
 	Image  string              `json:"image,omitempty" bson:"image,omitempty"`

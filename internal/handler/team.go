@@ -78,19 +78,25 @@ func (h *handler) CreateTeam(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
 	var team octane.Team
 	if err := json.Unmarshal(body, &team); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 
 	}
 
-	id, err := h.Octane.Teams().InsertOne(team)
-	if err != nil {
+	id := primitive.NewObjectID()
+	team.ID = &id
+	team.Slug = helper.TeamSlug(&team)
+
+	if _, err := h.Octane.Teams().InsertOne(team); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
@@ -109,21 +115,25 @@ func (h *handler) UpdateTeam(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
 	var team octane.Team
 	if err := json.Unmarshal(body, &team); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 
 	}
 
+	team.Slug = helper.TeamSlug(&team)
 	id := team.ID
 	team.ID = nil
 
 	if _, err := h.Octane.Teams().UpdateOne(bson.M{"_id": id}, bson.M{"$set": team}); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 

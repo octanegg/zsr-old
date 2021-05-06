@@ -61,11 +61,13 @@ type Handler interface {
 	CreatePlayer(http.ResponseWriter, *http.Request)
 	CreateTeam(http.ResponseWriter, *http.Request)
 	CreateMatch(http.ResponseWriter, *http.Request)
+	CreateGame(http.ResponseWriter, *http.Request)
 
 	UpdateEvent(http.ResponseWriter, *http.Request)
 	UpdatePlayer(http.ResponseWriter, *http.Request)
 	UpdateTeam(http.ResponseWriter, *http.Request)
 	UpdateMatch(http.ResponseWriter, *http.Request)
+	UpdateGame(http.ResponseWriter, *http.Request)
 
 	UpdateMatches(http.ResponseWriter, *http.Request)
 }

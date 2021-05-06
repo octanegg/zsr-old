@@ -79,19 +79,25 @@ func (h *handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
 	var event octane.Event
 	if err := json.Unmarshal(body, &event); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 
 	}
 
-	id, err := h.Octane.Events().InsertOne(event)
-	if err != nil {
+	id := primitive.NewObjectID()
+	event.ID = &id
+	event.Slug = helper.EventSlug(&event)
+
+	if _, err := h.Octane.Events().InsertOne(event); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
@@ -110,21 +116,25 @@ func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
 	var event octane.Event
 	if err := json.Unmarshal(body, &event); err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 
 	}
 
+	event.Slug = helper.EventSlug(&event)
 	id := event.ID
 	event.ID = nil
 
 	if _, err := h.Octane.Events().UpdateOne(bson.M{"_id": id}, bson.M{"$set": event}); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 	}
 
