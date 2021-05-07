@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"regexp"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -45,14 +46,20 @@ func (h *handler) GetGames(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetGame(w http.ResponseWriter, r *http.Request) {
-	id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
-		return
+	re := regexp.MustCompile("^[0-9a-fA-F]{24}$")
+
+	filter := bson.M{"slug": mux.Vars(r)["_id"]}
+	if re.MatchString(mux.Vars(r)["_id"]) {
+		id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+			return
+		}
+		filter = bson.M{"_id": id}
 	}
 
-	data, err := h.Octane.Games().FindOne(bson.M{"_id": id})
+	data, err := h.Octane.Games().FindOne(filter)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
