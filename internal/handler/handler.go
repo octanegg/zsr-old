@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/octanegg/zsr/internal/cache"
 	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/collection"
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,6 +21,7 @@ type Error struct {
 
 type handler struct {
 	Octane octane.Client
+	Cache  cache.Cache
 }
 
 // Handler .
@@ -73,8 +75,8 @@ type Handler interface {
 }
 
 // New .
-func New(o octane.Client) Handler {
-	return &handler{o}
+func New(o octane.Client, c cache.Cache) Handler {
+	return &handler{o, c}
 }
 
 func sort(v url.Values) bson.M {
