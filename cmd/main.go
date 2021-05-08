@@ -18,11 +18,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c, err := cache.New("octane-cache.dn5vwj.ng.0001.use1.cache.amazonaws.com:6379")
-	// c, err := cache.New("localhost:6379")
-	if err != nil {
-		log.Fatal(err)
-	}
+	c := cache.New("octane-cache.dn5vwj.ng.0001.use1.cache.amazonaws.com:6379")
+	// c := cache.New("localhost:6379")
 
 	r := routes(handler.New(o, c))
 	http.Handle("/", r)

@@ -86,6 +86,7 @@ func BallchasingToPlayerInfos(client octane.Client, players []ballchasing.Player
 		playerInfo := &octane.PlayerInfo{
 			Player: &octane.Player{
 				ID:      player.ID,
+				Slug:    player.Slug,
 				Tag:     player.Tag,
 				Country: player.Country,
 			},
@@ -105,7 +106,9 @@ func BallchasingToPlayerInfos(client octane.Client, players []ballchasing.Player
 	}
 
 	for _, player := range res {
-		player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / teamGoals * 100
+		if teamGoals > 0 {
+			player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / teamGoals * 100
+		}
 	}
 	return res, nil
 }
@@ -124,6 +127,7 @@ func BallchasingToPlayer(client octane.Client, b *ballchasing.Player) (*octane.P
 		player := p.(octane.Player)
 		return &octane.Player{
 			ID:      player.ID,
+			Slug:    player.Slug,
 			Tag:     player.Tag,
 			Country: player.Country,
 		}, nil
@@ -153,6 +157,7 @@ func BallchasingToPlayer(client octane.Client, b *ballchasing.Player) (*octane.P
 
 		return &octane.Player{
 			ID:      player.ID,
+			Slug:    player.Slug,
 			Tag:     player.Tag,
 			Country: player.Country,
 		}, nil
@@ -169,13 +174,15 @@ func BallchasingToPlayer(client octane.Client, b *ballchasing.Player) (*octane.P
 			},
 		},
 	}
+	newPlayer.Slug = PlayerSlug(newPlayer)
 
 	if _, err := client.Players().InsertOne(newPlayer); err != nil {
 		return nil, err
 	}
 
 	return &octane.Player{
-		ID:  newPlayer.ID,
-		Tag: newPlayer.Tag,
+		ID:   newPlayer.ID,
+		Slug: PlayerSlug(newPlayer),
+		Tag:  newPlayer.Tag,
 	}, nil
 }

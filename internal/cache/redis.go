@@ -18,27 +18,29 @@ type Cache interface {
 	Get(string) string
 }
 
-func New(address string) (Cache, error) {
-	r := redis.NewClient(&redis.Options{
-		Addr: address,
-	})
-
-	if err := r.Ping(context.TODO()).Err(); err != nil {
-		return nil, err
-	}
-
+func New(address string) Cache {
 	return &cache{
-		Redis: r,
-	}, nil
+		Redis: redis.NewClient(&redis.Options{
+			Addr: address,
+		}),
+	}
 }
 
 func (c *cache) Set(key, val string) {
+	if c.Redis == nil {
+		return
+	}
+
 	if err := c.Redis.Set(context.TODO(), key, val, 0).Err(); err != nil {
 		fmt.Println(err)
 	}
 }
 
 func (c *cache) SetJSON(key string, i interface{}) {
+	if c.Redis == nil {
+		return
+	}
+
 	b, err := json.Marshal(i)
 	if err != nil {
 		fmt.Println(err)
@@ -47,10 +49,15 @@ func (c *cache) SetJSON(key string, i interface{}) {
 }
 
 func (c *cache) Get(key string) string {
+	if c.Redis == nil {
+		return ""
+	}
+
 	val, err := c.Redis.Get(context.TODO(), key).Result()
 	if err != nil && err != redis.Nil {
 		fmt.Println(err)
 		return ""
 	}
+
 	return val
 }
