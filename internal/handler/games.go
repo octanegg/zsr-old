@@ -68,6 +68,44 @@ func (h *handler) GetGame(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(data)
 }
 
+func (h *handler) DeleteGame(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	g, err := h.Octane.Games().FindOne(bson.M{"_id": id})
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+	game := g.(octane.Game)
+
+	if _, err := h.Octane.Games().Delete(bson.M{"_id": id}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	if _, err := h.Octane.Statlines().Delete(bson.M{"game._id": id}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+
+	helper.UpdateMatchAggregate(h.Octane, game.Match.ID)
+}
+
 func (h *handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
 		w.WriteHeader(http.StatusUnauthorized)
@@ -130,7 +168,7 @@ func (h *handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 		ID string `json:"_id"`
 	}{id.Hex()})
 
-	helper.UpdateGame(h.Octane, game.ID)
+	helper.UpdateGame(h.Octane, id)
 	helper.UpdateMatchAggregate(h.Octane, game.Match.ID)
 }
 
@@ -199,7 +237,7 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	helper.UpdateGame(h.Octane, game.ID)
+	helper.UpdateGame(h.Octane, &id)
 	helper.UpdateMatchAggregate(h.Octane, game.Match.ID)
 }
 

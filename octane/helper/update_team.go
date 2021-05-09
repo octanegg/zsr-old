@@ -13,11 +13,14 @@ func UpdateTeam(client octane.Client, old, new *primitive.ObjectID) error {
 	}
 	oldTeam := o.(octane.Team)
 
-	n, err := client.Teams().FindOne(bson.M{"_id": new})
-	if err != nil {
-		return err
+	newTeam := o.(octane.Team)
+	if old.Hex() != new.Hex() {
+		n, err := client.Teams().FindOne(bson.M{"_id": new})
+		if err != nil {
+			return err
+		}
+		newTeam = n.(octane.Team)
 	}
-	newTeam := n.(octane.Team)
 
 	if _, err := client.Statlines().Update(
 		bson.M{"team.team._id": oldTeam.ID},

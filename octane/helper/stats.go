@@ -439,6 +439,10 @@ func StatlinesToAggregatePlayerStats(statlines []*octane.Statline) []*octane.Pla
 }
 
 func ReverseSweep(games []*octane.Game) (bool, bool) {
+	if games[0].Match.Format == nil {
+		return false, false
+	}
+
 	format := games[0].Match.Format.Length
 
 	if len(games) != format {

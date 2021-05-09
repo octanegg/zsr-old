@@ -13,11 +13,14 @@ func UpdateEvent(client octane.Client, old, new *primitive.ObjectID) error {
 	}
 	oldEvent := o.(octane.Event)
 
-	n, err := client.Events().FindOne(bson.M{"_id": new})
-	if err != nil {
-		return err
+	newEvent := o.(octane.Event)
+	if old.Hex() != new.Hex() {
+		n, err := client.Events().FindOne(bson.M{"_id": new})
+		if err != nil {
+			return err
+		}
+		newEvent = n.(octane.Event)
 	}
-	newEvent := n.(octane.Event)
 
 	if _, err := client.Matches().Update(
 		bson.M{

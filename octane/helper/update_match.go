@@ -13,11 +13,14 @@ func UpdateMatch(client octane.Client, old, new *primitive.ObjectID) error {
 	}
 	oldMatch := o.(octane.Match)
 
-	n, err := client.Matches().FindOne(bson.M{"_id": new})
-	if err != nil {
-		return err
+	newMatch := o.(octane.Match)
+	if old.Hex() != new.Hex() {
+		n, err := client.Matches().FindOne(bson.M{"_id": new})
+		if err != nil {
+			return err
+		}
+		newMatch = n.(octane.Match)
 	}
-	newMatch := n.(octane.Match)
 
 	if _, err := client.Games().Update(
 		bson.M{

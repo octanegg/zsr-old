@@ -27,6 +27,8 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodGet)
 	e.HandleFunc("/{_id}", h.UpdateEvent).
 		Methods(http.MethodPut)
+	e.HandleFunc("/{_id}", h.DeleteEvent).
+		Methods(http.MethodDelete)
 	e.HandleFunc("/{_id}/participants", h.GetEventParticipants).
 		Methods(http.MethodGet)
 
@@ -42,6 +44,8 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodGet)
 	m.HandleFunc("/{_id}", h.UpdateMatch).
 		Methods(http.MethodPut)
+	m.HandleFunc("/{_id}", h.DeleteMatch).
+		Methods(http.MethodDelete)
 
 	// games
 	g := r.PathPrefix("/games").Subrouter()
@@ -53,6 +57,8 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodGet)
 	g.HandleFunc("/{_id}", h.UpdateGame).
 		Methods(http.MethodPut)
+	g.HandleFunc("/{_id}", h.DeleteGame).
+		Methods(http.MethodDelete)
 
 	// players
 	p := r.PathPrefix("/players").Subrouter()

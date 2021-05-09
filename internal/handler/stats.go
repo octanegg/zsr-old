@@ -277,11 +277,20 @@ func statlinesFilter(v url.Values) bson.M {
 		filter.Strings("game.match.event.tier", v["tier"]),
 		filter.Strings("game.match.event.region", v["region"]),
 		filter.Ints("game.match.event.mode", v["mode"]),
-		filter.ObjectIDs("game.match.event._id", v["event"]),
+		filter.Or(
+			filter.ObjectIDs("game.match.event._id", v["event"]),
+			filter.Strings("game.match.event.slug", v["event"]),
+		),
 		filter.Ints("game.match.stage._id", v["stage"]),
-		filter.ObjectIDs("player.player._id", v["player"]),
+		filter.Or(
+			filter.ObjectIDs("player.player._id", v["player"]),
+			filter.Strings("player.player.slug", v["player"]),
+		),
 		filter.Strings("player.player.country", v["nationality"]),
-		filter.ObjectIDs("team.team._id", v["team"]),
+		filter.Or(
+			filter.ObjectIDs("team.team._id", v["team"]),
+			filter.Strings("team.team.slug", v["team"]),
+		),
 		filter.ObjectIDs("opponent.team._id", v["opponent"]),
 		filter.Dates("game.date", v.Get("before"), v.Get("after")),
 		filter.Bool("team.winner", v.Get("winner")),

@@ -155,6 +155,10 @@ func ObjectIDs(key string, vals []string) *Field {
 		}
 	}
 
+	if len(a) == 0 {
+		return nil
+	}
+
 	return &Field{
 		Key:   key,
 		Value: bson.M{"$in": a},

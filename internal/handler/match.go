@@ -53,7 +53,7 @@ func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
-	re := regexp.MustCompile("^[0-9a-fA-F]{24}$")
+	re := regexp.MustCompile("/^[0-9a-fA-F]{24}$/")
 
 	filter := bson.M{"slug": mux.Vars(r)["_id"]}
 	if re.MatchString(mux.Vars(r)["_id"]) {
@@ -79,6 +79,40 @@ func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(data)
+}
+
+func (h *handler) DeleteMatch(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	if _, err := h.Octane.Matches().Delete(bson.M{"_id": id}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	if _, err := h.Octane.Games().Delete(bson.M{"match._id": id}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	if _, err := h.Octane.Statlines().Delete(bson.M{"game.match._id": id}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *handler) CreateMatch(w http.ResponseWriter, r *http.Request) {
@@ -281,19 +315,27 @@ func matchesFilter(v url.Values) bson.M {
 		filter.ExplicitAnd(
 			filter.Or(
 				filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])),
+				filter.ElemMatch("blue.players", filter.Strings("player.slug", v["player"])),
 				filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])),
+				filter.ElemMatch("orange.players", filter.Strings("player.slug", v["player"])),
 			),
 			filter.Or(
 				filter.And(filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
+				filter.And(filter.ElemMatch("blue.players", filter.Strings("player.slug", v["player"])), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
 				filter.And(filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
+				filter.And(filter.ElemMatch("orange.players", filter.Strings("player.slug", v["player"])), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
 			),
 			filter.Or(
 				filter.ObjectIDs("blue.team.team._id", v["team"]),
+				filter.Strings("blue.team.team.slug", v["team"]),
 				filter.ObjectIDs("orange.team.team._id", v["team"]),
+				filter.Strings("orange.team.team.slug", v["team"]),
 			),
 			filter.Or(
 				filter.And(filter.ObjectIDs("blue.team.team._id", v["team"]), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
+				filter.And(filter.Strings("blue.team.team.slug", v["team"]), filter.ObjectIDs("orange.team.team._id", v["opponent"])),
 				filter.And(filter.ObjectIDs("orange.team.team._id", v["team"]), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
+				filter.And(filter.Strings("orange.team.team.slug", v["team"]), filter.ObjectIDs("blue.team.team._id", v["opponent"])),
 			),
 		),
 	)

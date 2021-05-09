@@ -13,11 +13,14 @@ func UpdatePlayer(client octane.Client, old, new *primitive.ObjectID) error {
 	}
 	oldPlayer := o.(octane.Player)
 
-	n, err := client.Players().FindOne(bson.M{"_id": new})
-	if err != nil {
-		return err
+	newPlayer := o.(octane.Player)
+	if old.Hex() != new.Hex() {
+		n, err := client.Players().FindOne(bson.M{"_id": new})
+		if err != nil {
+			return err
+		}
+		newPlayer = n.(octane.Player)
 	}
-	newPlayer := n.(octane.Player)
 
 	if _, err := client.Statlines().Update(
 		bson.M{"player.player._id": oldPlayer.ID},
