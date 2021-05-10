@@ -76,6 +76,7 @@ type Handler interface {
 	DeleteGame(http.ResponseWriter, *http.Request)
 
 	UpdateMatches(http.ResponseWriter, *http.Request)
+	MergePlayers(http.ResponseWriter, *http.Request)
 }
 
 // New .

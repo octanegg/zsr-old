@@ -245,6 +245,51 @@ func (h *handler) GetPlayerOpponents(w http.ResponseWriter, r *http.Request) {
 	}{teams})
 }
 
+func (h *handler) MergePlayers(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get(config.HeaderApiKey) != os.Getenv(config.EnvApiKey) {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
+	newID, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	body, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	var merge struct {
+		ID *primitive.ObjectID `json:"_id" bson:"_id"`
+	}
+	if err := json.Unmarshal(body, &merge); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+
+	}
+
+	if err := helper.UpdatePlayer(h.Octane, merge.ID, &newID); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	if _, err := h.Octane.Players().Delete(bson.M{"_id": merge.ID}); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
 func playersFilter(v url.Values) bson.M {
 	return filter.New(
 		filter.Strings("country", v["country"]),

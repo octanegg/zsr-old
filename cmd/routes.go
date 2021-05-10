@@ -74,6 +74,8 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodGet)
 	p.HandleFunc("/{_id}/opponents", h.GetPlayerOpponents).
 		Methods(http.MethodGet)
+	p.HandleFunc("/{_id}/merge", h.MergePlayers).
+		Methods(http.MethodPost)
 
 	// teams
 	t := r.PathPrefix("/teams").Subrouter()
