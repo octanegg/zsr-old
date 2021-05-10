@@ -53,7 +53,7 @@ func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
-	re := regexp.MustCompile("/^[0-9a-fA-F]{24}$/")
+	re := regexp.MustCompile("^[0-9a-fA-F]{24}$")
 
 	filter := bson.M{"slug": mux.Vars(r)["_id"]}
 	if re.MatchString(mux.Vars(r)["_id"]) {
@@ -65,6 +65,7 @@ func (h *handler) GetMatch(w http.ResponseWriter, r *http.Request) {
 		}
 		filter = bson.M{"_id": id}
 	}
+
 	data, err := h.Octane.Matches().FindOne(filter)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

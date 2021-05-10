@@ -120,12 +120,14 @@ var (
 
 	// TeamStats .
 	TeamStatsMapping = map[string]map[string]string{
-		"core":        TeamCoreMapping,
-		"ball":        TeamBallMapping,
-		"boost":       TeamBoostMapping,
-		"movement":    TeamMovementMapping,
-		"positioning": TeamPositioningMapping,
-		"demo":        TeamDemolitionsMapping,
+		"core":         TeamCoreMapping,
+		"against":      TeamAgainstMapping,
+		"differential": TeamDifferentialMapping,
+		"ball":         TeamBallMapping,
+		"boost":        TeamBoostMapping,
+		"movement":     TeamMovementMapping,
+		"positioning":  TeamPositioningMapping,
+		"demo":         TeamDemolitionsMapping,
 	}
 
 	// TeamBall .
@@ -142,6 +144,25 @@ var (
 		"saves":              "saves",
 		"shots":              "shots",
 		"shootingPercentage": "shooting_percentage",
+	}
+
+	// TeamAgainstMapping .
+	TeamAgainstMapping = map[string]string{
+		"scoreAgainst":              "score",
+		"goalsAgainst":              "goals",
+		"assistsAgainst":            "assists",
+		"savesAgainst":              "saves",
+		"shotsAgainst":              "shots",
+		"shootingPercentageAgainst": "shooting_percentage",
+	}
+
+	// TeamDifferentialMapping .
+	TeamDifferentialMapping = map[string]string{
+		"scoreDifferential":   "score",
+		"goalsDifferential":   "goals",
+		"assistsDifferential": "assists",
+		"savesDifferential":   "saves",
+		"shotsDifferential":   "shots",
 	}
 
 	// TeamBoost .
@@ -201,43 +222,26 @@ var (
 	}
 )
 
-var FieldsToAverage = []string{
-	"shootingPercentage",
-	"goalParticipation",
-	"rating",
+func PlayerStatMapping(stat string) (string, string) {
+	for groupName, group := range PlayerStatsMapping {
+		for k, v := range group {
+			if k == stat {
+				return groupName, v
+			}
+		}
+	}
+
+	return "", ""
 }
 
-var FieldsToAverageOverReplays = []string{
-	"bpm",
-	"bcpm",
-	"avgSpeed",
-	"avgSpeedPercentage",
-	"percentSlowSpeed",
-	"avgDistanceToBall",
-	"avgDistanceToBallPossession",
-	"avgDistanceToBallNoPossession",
-	"avgDistanceToMates",
-	"avgPowerslideDuration",
-	"percentZeroBoost",
-	"percentFullBoost",
-	"percentBoost0To25",
-	"percentBoost25To50",
-	"percentBoost50To75",
-	"percentBoost75To100",
-	"percentBoostSpeed",
-	"percentSupersonicSpeed",
-	"percentGround",
-	"percentLowAir",
-	"percentHighAir",
-	"percentDefensiveThird",
-	"percentOffensiveThird",
-	"percentNeutralThird",
-	"percentDefensiveHalf",
-	"percentOffensiveHalf",
-	"percentBehindBall",
-	"percentInfrontBall",
-	"percentMostBack",
-	"percentMostForward",
-	"percentClosestToBall",
-	"percentFarthestFromBall",
+func TeamStatMapping(stat string) (string, string) {
+	for groupName, group := range TeamStatsMapping {
+		for k, v := range group {
+			if k == stat {
+				return groupName, v
+			}
+		}
+	}
+
+	return "", ""
 }

@@ -23,14 +23,14 @@ func (h *handler) GetPlayerStats(w http.ResponseWriter, r *http.Request) {
 
 	f := statlinesFilter(v)
 
-	key := util.HashSlice([]interface{}{"player", f, "$player.player._id", having, v.Get("cluster")})
+	key := util.HashSlice([]interface{}{"player", f, "$player.player._id", having, v["stat"]})
 	val := h.Cache.Get(key)
 	if val != "" {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.PlayerAggregate(f, "$player.player._id", having, v.Get("cluster"))
+	pipeline := pipelines.PlayerStatsX(f, bson.M{"player": "$player.player._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -60,14 +60,14 @@ func (h *handler) GetPlayerTeamStats(w http.ResponseWriter, r *http.Request) {
 
 	f := statlinesFilter(v)
 
-	key := util.HashSlice([]interface{}{"player", f, "$team.team._id", having, v.Get("cluster")})
+	key := util.HashSlice([]interface{}{"player", f, "$team.team._id", having, v["stat"]})
 	val := h.Cache.Get(key)
 	if val != "" {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.PlayerAggregate(f, "$team.team._id", having, v.Get("cluster"))
+	pipeline := pipelines.PlayerStatsX(f, bson.M{"player": "$player.player._id", "team": "$team.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -97,14 +97,14 @@ func (h *handler) GetPlayerOpponentStats(w http.ResponseWriter, r *http.Request)
 
 	f := statlinesFilter(v)
 
-	key := util.HashSlice([]interface{}{"player", f, "$opponent.team._id", having, v.Get("cluster")})
+	key := util.HashSlice([]interface{}{"player", f, "$opponent.team._id", having, v["stat"]})
 	val := h.Cache.Get(key)
 	if val != "" {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.PlayerAggregate(f, "$opponent.team._id", having, v.Get("cluster"))
+	pipeline := pipelines.PlayerStatsX(f, bson.M{"player": "$player.player._id", "opponent": "$opponent.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -134,14 +134,14 @@ func (h *handler) GetPlayerEventStats(w http.ResponseWriter, r *http.Request) {
 
 	f := statlinesFilter(v)
 
-	key := util.HashSlice([]interface{}{"player", f, "$game.match.event._id", having, v.Get("cluster")})
+	key := util.HashSlice([]interface{}{"player", f, "$game.match.event._id", having, v["stat"]})
 	val := h.Cache.Get(key)
 	if val != "" {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.PlayerAggregate(f, "$game.match.event._id", having, v.Get("cluster"))
+	pipeline := pipelines.PlayerStatsX(f, bson.M{"player": "$player.player._id", "event": "$game.match.event._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -171,14 +171,14 @@ func (h *handler) GetTeamStats(w http.ResponseWriter, r *http.Request) {
 
 	f := statlinesFilter(v)
 
-	key := util.HashSlice([]interface{}{"team", f, "$team.team._id", having, v.Get("cluster")})
+	key := util.HashSlice([]interface{}{"team", f, "$team.team._id", having, v["stat"]})
 	val := h.Cache.Get(key)
 	if val != "" {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.TeamAggregate(f, "$team.team._id", having, v.Get("cluster"))
+	pipeline := pipelines.TeamStatsX(f, bson.M{"team": "$team.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -208,14 +208,14 @@ func (h *handler) GetTeamOpponentStats(w http.ResponseWriter, r *http.Request) {
 
 	f := statlinesFilter(v)
 
-	key := util.HashSlice([]interface{}{"team", f, "$opponent.team._id", having, v.Get("cluster")})
+	key := util.HashSlice([]interface{}{"team", f, "$opponent.team._id", having, v["stat"]})
 	val := h.Cache.Get(key)
 	if val != "" {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.TeamAggregate(f, "$opponent.team._id", having, v.Get("cluster"))
+	pipeline := pipelines.TeamStatsX(f, bson.M{"team": "$team.team._id", "opponent": "$opponent.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -245,14 +245,14 @@ func (h *handler) GetTeamEventStats(w http.ResponseWriter, r *http.Request) {
 
 	f := statlinesFilter(v)
 
-	key := util.HashSlice([]interface{}{"team", f, "$game.match.event._id", having, v.Get("cluster")})
+	key := util.HashSlice([]interface{}{"team", f, "$game.match.event._id", having, v["stat"]})
 	val := h.Cache.Get(key)
 	if val != "" {
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.TeamAggregate(f, "$game.match.event._id", having, v.Get("cluster"))
+	pipeline := pipelines.TeamStatsX(f, bson.M{"team": "$team.team._id", "event": "$game.match.event._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

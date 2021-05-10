@@ -10,6 +10,9 @@ const (
 	// EnvOldDBURI .
 	EnvOldDBURI = "OLD_DB_URI"
 
+	// EnvCacheURI .
+	EnvCacheURI = "CACHE_URI"
+
 	// EnvApiKey .
 	EnvApiKey = "API_KEY"
 

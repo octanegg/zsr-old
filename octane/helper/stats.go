@@ -211,18 +211,20 @@ func GameToStatlines(game *octane.Game) ([]*octane.Statline, []*octane.Statline)
 				BallchasingID: game.BallchasingID,
 			},
 			Team: &octane.StatlineSide{
-				Score:   game.Blue.Team.Stats.Core.Goals,
-				Winner:  game.Blue.Winner,
-				Team:    game.Blue.Team.Team,
-				Stats:   game.Blue.Team.Stats,
-				Players: PlayerStatsToPlayer(game.Blue.Players),
+				Score:       game.Blue.Team.Stats.Core.Goals,
+				Winner:      game.Blue.Winner,
+				MatchWinner: game.Blue.MatchWinner,
+				Team:        game.Blue.Team.Team,
+				Stats:       game.Blue.Team.Stats,
+				Players:     PlayerStatsToPlayer(game.Blue.Players),
 			},
 			Opponent: &octane.StatlineSide{
-				Score:   game.Orange.Team.Stats.Core.Goals,
-				Winner:  game.Orange.Winner,
-				Team:    game.Orange.Team.Team,
-				Stats:   game.Orange.Team.Stats,
-				Players: PlayerStatsToPlayer(game.Orange.Players),
+				Score:       game.Orange.Team.Stats.Core.Goals,
+				Winner:      game.Orange.Winner,
+				MatchWinner: game.Orange.MatchWinner,
+				Team:        game.Orange.Team.Team,
+				Stats:       game.Orange.Team.Stats,
+				Players:     PlayerStatsToPlayer(game.Orange.Players),
 			},
 			Player: p,
 		})
@@ -240,18 +242,20 @@ func GameToStatlines(game *octane.Game) ([]*octane.Statline, []*octane.Statline)
 				BallchasingID: game.BallchasingID,
 			},
 			Team: &octane.StatlineSide{
-				Score:   game.Orange.Team.Stats.Core.Goals,
-				Winner:  game.Orange.Winner,
-				Team:    game.Orange.Team.Team,
-				Stats:   game.Orange.Team.Stats,
-				Players: PlayerStatsToPlayer(game.Orange.Players),
+				Score:       game.Orange.Team.Stats.Core.Goals,
+				Winner:      game.Orange.Winner,
+				MatchWinner: game.Orange.MatchWinner,
+				Team:        game.Orange.Team.Team,
+				Stats:       game.Orange.Team.Stats,
+				Players:     PlayerStatsToPlayer(game.Orange.Players),
 			},
 			Opponent: &octane.StatlineSide{
-				Score:   game.Blue.Team.Stats.Core.Goals,
-				Winner:  game.Blue.Winner,
-				Team:    game.Blue.Team.Team,
-				Stats:   game.Blue.Team.Stats,
-				Players: PlayerStatsToPlayer(game.Blue.Players),
+				Score:       game.Blue.Team.Stats.Core.Goals,
+				Winner:      game.Blue.Winner,
+				MatchWinner: game.Blue.MatchWinner,
+				Team:        game.Blue.Team.Team,
+				Stats:       game.Blue.Team.Stats,
+				Players:     PlayerStatsToPlayer(game.Blue.Players),
 			},
 			Player: p,
 		})
@@ -439,7 +443,7 @@ func StatlinesToAggregatePlayerStats(statlines []*octane.Statline) []*octane.Pla
 }
 
 func ReverseSweep(games []*octane.Game) (bool, bool) {
-	if games[0].Match.Format == nil {
+	if games == nil || len(games) == 0 || games[0].Match.Format == nil {
 		return false, false
 	}
 

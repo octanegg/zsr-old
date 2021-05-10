@@ -9,7 +9,8 @@ import (
 )
 
 type cache struct {
-	Redis *redis.Client
+	Redis   *redis.Client
+	Enabled bool
 }
 
 type Cache interface {
@@ -19,15 +20,23 @@ type Cache interface {
 }
 
 func New(address string) Cache {
+	r := redis.NewClient(&redis.Options{
+		Addr: address,
+	})
+
+	if r.Ping(context.TODO()).Err() != nil {
+		return &cache{
+			Enabled: false,
+		}
+	}
 	return &cache{
-		Redis: redis.NewClient(&redis.Options{
-			Addr: address,
-		}),
+		Redis:   r,
+		Enabled: true,
 	}
 }
 
 func (c *cache) Set(key, val string) {
-	if c.Redis == nil {
+	if !c.Enabled {
 		return
 	}
 
@@ -37,7 +46,7 @@ func (c *cache) Set(key, val string) {
 }
 
 func (c *cache) SetJSON(key string, i interface{}) {
-	if c.Redis == nil {
+	if !c.Enabled {
 		return
 	}
 
@@ -49,7 +58,7 @@ func (c *cache) SetJSON(key string, i interface{}) {
 }
 
 func (c *cache) Get(key string) string {
-	if c.Redis == nil {
+	if !c.Enabled {
 		return ""
 	}
 

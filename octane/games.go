@@ -23,9 +23,10 @@ type Game struct {
 
 // GameSide .
 type GameSide struct {
-	Winner  bool          `json:"winner,omitempty" bson:"winner,omitempty"`
-	Team    *TeamInfo     `json:"team,omitempty" bson:"team,omitempty"`
-	Players []*PlayerInfo `json:"players,omitempty" bson:"players,omitempty"`
+	Winner      bool          `json:"winner,omitempty" bson:"winner,omitempty"`
+	MatchWinner bool          `json:"matchWinner,omitempty" bson:"match_winner,omitempty"`
+	Team        *TeamInfo     `json:"team,omitempty" bson:"team,omitempty"`
+	Players     []*PlayerInfo `json:"players,omitempty" bson:"players,omitempty"`
 }
 
 // Map .

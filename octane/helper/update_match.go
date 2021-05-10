@@ -22,15 +22,23 @@ func UpdateMatch(client octane.Client, old, new *primitive.ObjectID) error {
 		newMatch = n.(octane.Match)
 	}
 
+	var blueWinner, orangeWinner bool
+	if newMatch.Blue != nil && newMatch.Orange != nil {
+		blueWinner = newMatch.Blue.Score > newMatch.Orange.Score
+		orangeWinner = newMatch.Orange.Score > newMatch.Blue.Score
+	}
+
 	if _, err := client.Games().Update(
 		bson.M{
 			"match._id": oldMatch.ID,
 		},
 		bson.M{
 			"$set": bson.M{
-				"match._id":    newMatch.ID,
-				"match.slug":   newMatch.Slug,
-				"match.format": newMatch.Format,
+				"match._id":           newMatch.ID,
+				"match.slug":          newMatch.Slug,
+				"match.format":        newMatch.Format,
+				"blue.match_winner":   blueWinner,
+				"orange.match_winner": orangeWinner,
 			},
 		},
 	); err != nil {
@@ -44,7 +52,7 @@ func UpdateMatch(client octane.Client, old, new *primitive.ObjectID) error {
 		bson.M{
 			"$set": bson.M{
 				"game.match._id":    newMatch.ID,
-				"match.slug":        newMatch.Slug,
+				"game.match.slug":   newMatch.Slug,
 				"game.match.format": newMatch.Format,
 			},
 		},
@@ -61,6 +69,10 @@ func UpdateMatchAggregate(client octane.Client, id *primitive.ObjectID) error {
 		return err
 	}
 	match := m.(octane.Match)
+
+	if match.Blue == nil || match.Orange == nil {
+		return nil
+	}
 
 	res, err := client.Games().Find(bson.M{"match._id": id}, nil, nil)
 	if err != nil {
