@@ -46,6 +46,10 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodPut)
 	m.HandleFunc("/{_id}", h.DeleteMatch).
 		Methods(http.MethodDelete)
+	m.HandleFunc("/{_id}/games", h.GetMatchGames).
+		Methods(http.MethodGet)
+	m.HandleFunc("/{_id}/games/{number}", h.GetMatchGame).
+		Methods(http.MethodGet)
 
 	// games
 	g := r.PathPrefix("/games").Subrouter()

@@ -77,6 +77,9 @@ type Handler interface {
 
 	UpdateMatches(http.ResponseWriter, *http.Request)
 	MergePlayers(http.ResponseWriter, *http.Request)
+
+	GetMatchGame(http.ResponseWriter, *http.Request)
+	GetMatchGames(http.ResponseWriter, *http.Request)
 }
 
 // New .

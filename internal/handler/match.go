@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"regexp"
+	"strconv"
 	"time"
 
 	"github.com/gorilla/mux"
@@ -297,6 +298,65 @@ func (h *handler) UpdateMatches(w http.ResponseWriter, r *http.Request) {
 
 		helper.UpdateMatch(h.Octane, match.ID, match.ID)
 	}
+}
+
+func (h *handler) GetMatchGames(w http.ResponseWriter, r *http.Request) {
+	re := regexp.MustCompile("^[0-9a-fA-F]{24}$")
+
+	filter := bson.M{"match.slug": mux.Vars(r)["_id"]}
+	if re.MatchString(mux.Vars(r)["_id"]) {
+		id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+			return
+		}
+		filter = bson.M{"match._id": id}
+	}
+
+	data, err := h.Octane.Games().Find(filter, nil, nil)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(struct {
+		Games []interface{} `json:"games"`
+	}{data})
+}
+
+func (h *handler) GetMatchGame(w http.ResponseWriter, r *http.Request) {
+	re := regexp.MustCompile("^[0-9a-fA-F]{24}$")
+
+	filter := bson.M{"match.slug": mux.Vars(r)["_id"]}
+	if re.MatchString(mux.Vars(r)["_id"]) {
+		id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+			return
+		}
+		filter = bson.M{"match._id": id}
+	}
+
+	filter["number"], _ = strconv.Atoi(mux.Vars(r)["number"])
+
+	data, err := h.Octane.Games().FindOne(filter)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	if data == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(data)
 }
 
 func matchesFilter(v url.Values) bson.M {
