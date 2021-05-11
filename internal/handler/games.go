@@ -142,7 +142,7 @@ func (h *handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 		for _, player := range game.Blue.Players {
 			player.Advanced = &octane.AdvancedStats{}
 			if game.Blue.Team.Stats.Core.Goals > 0 {
-				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Blue.Team.Stats.Core.Goals)
+				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Blue.Team.Stats.Core.Goals) * 100
 			}
 			player.Advanced.Rating = helper.Rating(player)
 		}
@@ -150,7 +150,7 @@ func (h *handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 		for _, player := range game.Orange.Players {
 			player.Advanced = &octane.AdvancedStats{}
 			if game.Orange.Team.Stats.Core.Goals > 0 {
-				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Orange.Team.Stats.Core.Goals)
+				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Orange.Team.Stats.Core.Goals) * 100
 			}
 			player.Advanced.Rating = helper.Rating(player)
 		}
@@ -215,7 +215,7 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 		for _, player := range game.Blue.Players {
 			player.Advanced = &octane.AdvancedStats{}
 			if game.Blue.Team.Stats.Core.Goals > 0 {
-				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Blue.Team.Stats.Core.Goals)
+				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Blue.Team.Stats.Core.Goals) * 100
 			}
 			player.Advanced.Rating = helper.Rating(player)
 		}
@@ -223,7 +223,7 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 		for _, player := range game.Orange.Players {
 			player.Advanced = &octane.AdvancedStats{}
 			if game.Orange.Team.Stats.Core.Goals > 0 {
-				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Orange.Team.Stats.Core.Goals)
+				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Orange.Team.Stats.Core.Goals) * 100
 			}
 			player.Advanced.Rating = helper.Rating(player)
 		}

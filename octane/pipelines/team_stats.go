@@ -10,8 +10,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-// TeamStatsX .
-func TeamStatsX(filter, group, having bson.M, _stats []string) *Pipeline {
+// TeamStats .
+func TeamStats(filter, group, having bson.M, _stats []string) *Pipeline {
 	_group := bson.M{
 		"_id": group,
 		"team": bson.M{

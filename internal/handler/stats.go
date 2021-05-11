@@ -30,7 +30,7 @@ func (h *handler) GetPlayerStats(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.PlayerStatsX(f, bson.M{"player": "$player.player._id"}, having, v["stat"])
+	pipeline := pipelines.PlayerStats(f, bson.M{"player": "$player.player._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -67,7 +67,7 @@ func (h *handler) GetPlayerTeamStats(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.PlayerStatsX(f, bson.M{"player": "$player.player._id", "team": "$team.team._id"}, having, v["stat"])
+	pipeline := pipelines.PlayerStats(f, bson.M{"player": "$player.player._id", "team": "$team.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -104,7 +104,7 @@ func (h *handler) GetPlayerOpponentStats(w http.ResponseWriter, r *http.Request)
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.PlayerStatsX(f, bson.M{"player": "$player.player._id", "opponent": "$opponent.team._id"}, having, v["stat"])
+	pipeline := pipelines.PlayerStats(f, bson.M{"player": "$player.player._id", "opponent": "$opponent.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -141,7 +141,7 @@ func (h *handler) GetPlayerEventStats(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.PlayerStatsX(f, bson.M{"player": "$player.player._id", "event": "$game.match.event._id"}, having, v["stat"])
+	pipeline := pipelines.PlayerStats(f, bson.M{"player": "$player.player._id", "event": "$game.match.event._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -178,7 +178,7 @@ func (h *handler) GetTeamStats(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.TeamStatsX(f, bson.M{"team": "$team.team._id"}, having, v["stat"])
+	pipeline := pipelines.TeamStats(f, bson.M{"team": "$team.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -215,7 +215,7 @@ func (h *handler) GetTeamOpponentStats(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.TeamStatsX(f, bson.M{"team": "$team.team._id", "opponent": "$opponent.team._id"}, having, v["stat"])
+	pipeline := pipelines.TeamStats(f, bson.M{"team": "$team.team._id", "opponent": "$opponent.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -252,7 +252,7 @@ func (h *handler) GetTeamEventStats(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte(val))
 	}
 
-	pipeline := pipelines.TeamStatsX(f, bson.M{"team": "$team.team._id", "event": "$game.match.event._id"}, having, v["stat"])
+	pipeline := pipelines.TeamStats(f, bson.M{"team": "$team.team._id", "event": "$game.match.event._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

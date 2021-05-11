@@ -101,7 +101,6 @@ func BallchasingToPlayerInfos(client octane.Client, players []ballchasing.Player
 		}
 
 		teamGoals += playerInfo.Stats.Core.Goals
-		playerInfo.Advanced.Rating = Rating(playerInfo)
 		res = append(res, playerInfo)
 	}
 
@@ -109,6 +108,7 @@ func BallchasingToPlayerInfos(client octane.Client, players []ballchasing.Player
 		if teamGoals > 0 {
 			player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / teamGoals * 100
 		}
+		player.Advanced.Rating = Rating(player)
 	}
 	return res, nil
 }

@@ -4,12 +4,14 @@ import (
 	"time"
 
 	"github.com/octanegg/zsr/octane"
+	"github.com/octanegg/zsr/octane/stats"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 // PlayerGameRecords .
 func PlayerGameRecords(filter bson.M, stat string) *Pipeline {
+	_, statMapping := stats.PlayerStatMapping(stat)
 	pipeline := New(
 		Match(filter),
 		Project(bson.M{
@@ -19,7 +21,7 @@ func PlayerGameRecords(filter bson.M, stat string) *Pipeline {
 			"opponent": "$opponent.team",
 			"winner":   "$team.winner",
 			"player":   "$player.player",
-			"stat":     GetPlayerStatsMapping(stat),
+			"stat":     statMapping,
 		}),
 		Sort("stat", true),
 		Limit(25),
@@ -52,6 +54,7 @@ func PlayerSeriesRecords(filter bson.M, stat string) *Pipeline {
 		op = "$avg"
 	}
 
+	_, statMapping := stats.PlayerStatMapping(stat)
 	pipeline := New(
 		Match(filter),
 		Group(bson.M{
@@ -78,7 +81,7 @@ func PlayerSeriesRecords(filter bson.M, stat string) *Pipeline {
 				"$first": "$player.player",
 			},
 			"stat": bson.M{
-				op: GetPlayerStatsMapping(stat),
+				op: statMapping,
 			},
 		}),
 		Sort("stat", true),
