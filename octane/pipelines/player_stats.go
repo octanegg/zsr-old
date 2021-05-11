@@ -139,14 +139,14 @@ func PlayerStats(filter, group, having bson.M, _stats []string) *Pipeline {
 				StartDate *time.Time      `json:"startDate" bson:"start_date"`
 				EndDate   *time.Time      `json:"endDate" bson:"end_date"`
 				Games     struct {
-					Total   int `json:"total" bson:"total"`
-					Replays int `json:"replays" bson:"replays"`
-					Wins    int `json:"wins" bson:"wins"`
+					Total   float64 `json:"total" bson:"total"`
+					Replays float64 `json:"replays" bson:"replays"`
+					Wins    float64 `json:"wins" bson:"wins"`
 				} `json:"games" bson:"games"`
 				Matches struct {
-					Total   int `json:"total" bson:"total"`
-					Replays int `json:"replays" bson:"replays"`
-					Wins    int `json:"wins" bson:"wins"`
+					Total   float64 `json:"total" bson:"total"`
+					Replays float64 `json:"replays" bson:"replays"`
+					Wins    float64 `json:"wins" bson:"wins"`
 				} `json:"matches" bson:"match"`
 				Stats map[string]float64 `json:"stats" bson:"stats"`
 			}

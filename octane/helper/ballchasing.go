@@ -47,12 +47,26 @@ func UseBallchasing(client octane.Client, game *octane.Game) (*octane.Game, erro
 	if err != nil {
 		return nil, err
 	}
+
+	if len(game.Blue.Players) > 0 {
+		for i, player := range game.Blue.Players {
+			bluePlayers[i].Player = player.Player
+		}
+	}
+
 	game.Blue.Players = bluePlayers
 
 	orangePlayers, err := BallchasingToPlayerInfos(client, replay.Orange.Players)
 	if err != nil {
 		return nil, err
 	}
+
+	if len(game.Orange.Players) > 0 {
+		for i, player := range game.Orange.Players {
+			orangePlayers[i].Player = player.Player
+		}
+	}
+
 	game.Orange.Players = orangePlayers
 
 	game.Blue.Team.Stats = PlayerStatsToTeamStats(game.Blue.Players)
