@@ -22,6 +22,22 @@ func UpdateTeam(client octane.Client, old, new *primitive.ObjectID) error {
 		newTeam = n.(octane.Team)
 	}
 
+	if _, err := client.Players().Update(
+		bson.M{"team._id": oldTeam.ID},
+		bson.M{
+			"$set": bson.M{
+				"team": bson.M{
+					"_id":    newTeam.ID,
+					"slug":   newTeam.Slug,
+					"name":   newTeam.Name,
+					"region": newTeam.Region,
+					"image":  newTeam.Image,
+				},
+			},
+		}); err != nil {
+		return err
+	}
+
 	if _, err := client.Statlines().Update(
 		bson.M{"team.team._id": oldTeam.ID},
 		bson.M{

@@ -48,7 +48,7 @@ func UseBallchasing(client octane.Client, game *octane.Game) (*octane.Game, erro
 		return nil, err
 	}
 
-	if len(game.Blue.Players) > 0 {
+	if len(game.Blue.Players) == len(bluePlayers) {
 		for i, player := range game.Blue.Players {
 			bluePlayers[i].Player = player.Player
 		}
@@ -61,7 +61,7 @@ func UseBallchasing(client octane.Client, game *octane.Game) (*octane.Game, erro
 		return nil, err
 	}
 
-	if len(game.Orange.Players) > 0 {
+	if len(game.Orange.Players) == len(orangePlayers) {
 		for i, player := range game.Orange.Players {
 			orangePlayers[i].Player = player.Player
 		}
@@ -74,16 +74,17 @@ func UseBallchasing(client octane.Client, game *octane.Game) (*octane.Game, erro
 	game.Blue.Winner = game.Blue.Team.Stats.Core.Goals > game.Orange.Team.Stats.Core.Goals
 	game.Orange.Winner = game.Orange.Team.Stats.Core.Goals > game.Blue.Team.Stats.Core.Goals
 
-	game.Blue.Team.Stats.Ball = &octane.TeamBall{
-		PossessionTime: replay.Blue.Stats.Ball.PossessionTime,
-		TimeInSide:     replay.Blue.Stats.Ball.TimeInSide,
-	}
+	if replay.Blue.Stats.Ball != nil && replay.Orange.Stats.Ball != nil {
+		game.Blue.Team.Stats.Ball = &octane.TeamBall{
+			PossessionTime: replay.Blue.Stats.Ball.PossessionTime,
+			TimeInSide:     replay.Blue.Stats.Ball.TimeInSide,
+		}
 
-	game.Orange.Team.Stats.Ball = &octane.TeamBall{
-		PossessionTime: replay.Orange.Stats.Ball.PossessionTime,
-		TimeInSide:     replay.Orange.Stats.Ball.TimeInSide,
+		game.Orange.Team.Stats.Ball = &octane.TeamBall{
+			PossessionTime: replay.Orange.Stats.Ball.PossessionTime,
+			TimeInSide:     replay.Orange.Stats.Ball.TimeInSide,
+		}
 	}
-
 	return game, nil
 }
 
