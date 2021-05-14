@@ -1,6 +1,7 @@
 package pipelines
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/octanegg/zsr/octane"
@@ -11,30 +12,38 @@ import (
 
 // TeamGameRecords .
 func TeamGameRecords(filter bson.M, stat string) *Pipeline {
-	_, statMapping := stats.TeamStatMapping(stat)
+	group := bson.M{
+		"_id": bson.M{
+			"game": "$game._id",
+			"team": "$team.team._id",
+		},
+		"game": bson.M{
+			"$first": "$game",
+		},
+		"team": bson.M{
+			"$first": "$team.team",
+		},
+		"opponent": bson.M{
+			"$first": "$opponent.team",
+		},
+		"winner": bson.M{
+			"$first": "$team.winner",
+		},
+	}
+
+	groupName, statMapping := stats.TeamStatMapping(stat)
+	group["stat"] = bson.M{
+		"$sum": fmt.Sprintf("$player.stats.%s.%s", groupName, statMapping),
+	}
+	if groupName == "advanced" {
+		group["stat"] = bson.M{
+			"$sum": fmt.Sprintf("$player.%s.%s", groupName, statMapping),
+		}
+	}
+
 	pipeline := New(
 		Match(filter),
-		Group(bson.M{
-			"_id": bson.M{
-				"game": "$game._id",
-				"team": "$team.team._id",
-			},
-			"game": bson.M{
-				"$first": "$game",
-			},
-			"team": bson.M{
-				"$first": "$team.team",
-			},
-			"opponent": bson.M{
-				"$first": "$opponent.team",
-			},
-			"winner": bson.M{
-				"$first": "$team.winner",
-			},
-			"stat": bson.M{
-				"$sum": statMapping,
-			},
-		}),
+		Group(group),
 		Project(bson.M{
 			"game":     "$game",
 			"team":     "$team",
@@ -66,33 +75,41 @@ func TeamGameRecords(filter bson.M, stat string) *Pipeline {
 
 // TeamSeriesRecords .
 func TeamSeriesRecords(filter bson.M, stat string) *Pipeline {
-	_, statMapping := stats.TeamStatMapping(stat)
+	group := bson.M{
+		"_id": bson.M{
+			"match":  "$game.match._id",
+			"player": "$team.team._id",
+		},
+		"match": bson.M{
+			"$first": "$game.match",
+		},
+		"date": bson.M{
+			"$first": "$game.date",
+		},
+		"team": bson.M{
+			"$first": "$team.team",
+		},
+		"opponent": bson.M{
+			"$first": "$opponent.team",
+		},
+		"winner": bson.M{
+			"$first": "$team.winner",
+		},
+	}
+
+	groupName, statMapping := stats.TeamStatMapping(stat)
+	group["stat"] = bson.M{
+		"$sum": fmt.Sprintf("$player.stats.%s.%s", groupName, statMapping),
+	}
+	if groupName == "advanced" {
+		group["stat"] = bson.M{
+			"$sum": fmt.Sprintf("$player.%s.%s", groupName, statMapping),
+		}
+	}
+
 	pipeline := New(
 		Match(filter),
-		Group(bson.M{
-			"_id": bson.M{
-				"match":  "$game.match._id",
-				"player": "$team.team._id",
-			},
-			"match": bson.M{
-				"$first": "$game.match",
-			},
-			"date": bson.M{
-				"$first": "$game.date",
-			},
-			"team": bson.M{
-				"$first": "$team.team",
-			},
-			"opponent": bson.M{
-				"$first": "$opponent.team",
-			},
-			"winner": bson.M{
-				"$first": "$team.winner",
-			},
-			"stat": bson.M{
-				"$sum": statMapping,
-			},
-		}),
+		Group(group),
 		Project(bson.M{
 			"match":    "$match",
 			"date":     "$date",
@@ -114,7 +131,7 @@ func TeamSeriesRecords(filter bson.M, stat string) *Pipeline {
 				Team     *octane.Team  `json:"team,omitempty" bson:"team,omitempty"`
 				Opponent *octane.Team  `json:"opponent,omitempty" bson:"opponent,omitempty"`
 				Winner   bool          `json:"winner,omitempty" bson:"winner,omitempty"`
-				Stat     float64       `json:"stat,omitempty" bson:"stat,omitempty"`
+				Stat     float64       `json:"stat" bson:"stat"`
 			}
 			if err := cursor.Decode(&team); err != nil {
 				return nil, err
