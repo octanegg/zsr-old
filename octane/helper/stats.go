@@ -3,6 +3,7 @@ package helper
 import (
 	"github.com/octanegg/zsr/ballchasing"
 	"github.com/octanegg/zsr/octane"
+	"github.com/octanegg/zsr/octane/pipelines"
 )
 
 func Rating(stats *octane.PlayerInfo) float64 {
@@ -483,4 +484,23 @@ func GamesToGameOverviews(games []*octane.Game) []*octane.GameOverview {
 		})
 	}
 	return gameOverviews
+}
+
+func AverageScore(o octane.Client, core *octane.PlayerCore) (float64, error) {
+	pipeline := pipelines.AverageScore(int(core.Goals), int(core.Assists), int(core.Saves), int(core.Shots))
+
+	data, err := o.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(data) == 0 {
+		return 0, nil
+	}
+
+	s := data[0].(struct {
+		Score float64 `json:"score" bson:"score"`
+	})
+
+	return s.Score, nil
 }

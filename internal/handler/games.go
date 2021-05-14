@@ -134,6 +134,17 @@ func (h *handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		for _, player := range append(game.Blue.Players, game.Orange.Players...) {
+			if player.Stats.Core.Score == 0 {
+				player.Stats.Core.Score, err = helper.AverageScore(h.Octane, player.Stats.Core)
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+					return
+				}
+			}
+		}
+
 		game.Blue.Team.Stats = helper.PlayerStatsToTeamStats(game.Blue.Players)
 		game.Orange.Team.Stats = helper.PlayerStatsToTeamStats(game.Orange.Players)
 		game.Blue.Winner = game.Blue.Team.Stats.Core.Goals > game.Orange.Team.Stats.Core.Goals
@@ -207,6 +218,17 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	} else {
+		for _, player := range append(game.Blue.Players, game.Orange.Players...) {
+			if player.Stats.Core.Score == 0 {
+				player.Stats.Core.Score, err = helper.AverageScore(h.Octane, player.Stats.Core)
+				if err != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+					return
+				}
+			}
+		}
+
 		game.Blue.Team.Stats = helper.PlayerStatsToTeamStats(game.Blue.Players)
 		game.Orange.Team.Stats = helper.PlayerStatsToTeamStats(game.Orange.Players)
 		game.Blue.Winner = game.Blue.Team.Stats.Core.Goals > game.Orange.Team.Stats.Core.Goals
