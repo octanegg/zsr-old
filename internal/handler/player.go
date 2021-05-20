@@ -140,6 +140,14 @@ func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 	update := bson.M{"$set": player}
 	unset := bson.M{}
 
+	if player.Name == "" {
+		unset["name"] = ""
+	}
+
+	if player.Accounts == nil || len(player.Accounts) == 0 {
+		unset["accounts"] = ""
+	}
+
 	if player.Team == nil {
 		unset["team"] = ""
 	}

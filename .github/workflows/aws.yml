@@ -26,7 +26,7 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push image to Amazon ECR
+    - name: Prepare Docker Image
       id: build-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
@@ -40,7 +40,23 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    - name: Fill in the new image ID in the Amazon ECS task definition
+    - name: Prepare Octane ZSR Internal
+      id: task-def-internal
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: task-definition-internal.json
+        container-name: octane-zsr-internal
+        image: ${{ steps.build-image.outputs.image }}
+
+    - name: Deploy Octane ZSR Internal
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.task-def-internal.outputs.task-definition }}
+        service: octane-zsr-internal
+        cluster: octane
+        wait-for-service-stability: true
+
+    - name: Prepare Octane ZSR
       id: task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
@@ -48,7 +64,7 @@ jobs:
         container-name: octane-zsr
         image: ${{ steps.build-image.outputs.image }}
 
-    - name: Deploy Amazon ECS task definition
+    - name: Deploy Octane ZSR
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.task-def.outputs.task-definition }}

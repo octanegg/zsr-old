@@ -19,6 +19,9 @@ const (
 	// EnvBallchasing .
 	EnvBallchasing = "AUTH_TOKEN"
 
+	// EnvIsInternal .
+	EnvIsInternal = "IS_INTERNAL"
+
 	// ErrNoObjectFoundForID .
 	ErrNoObjectFoundForID = "no object found for id"
 
