@@ -2,6 +2,7 @@ package filter
 
 import (
 	"strconv"
+	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -24,6 +25,21 @@ func New(fields ...*Field) bson.M {
 	}
 
 	return filter
+}
+
+// FuzzyStrings .
+func FuzzyStrings(key string, vals []string) *Field {
+	if len(vals) == 0 {
+		return nil
+	}
+
+	return &Field{
+		Key: key,
+		Value: bson.M{
+			"$regex":   strings.Join(vals, "|"),
+			"$options": "i",
+		},
+	}
 }
 
 // Strings .

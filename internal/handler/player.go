@@ -293,7 +293,7 @@ func (h *handler) MergePlayers(w http.ResponseWriter, r *http.Request) {
 func playersFilter(v url.Values) bson.M {
 	return filter.New(
 		filter.Strings("country", v["country"]),
-		filter.Strings("tag", v["tag"]),
+		filter.FuzzyStrings("tag", v["tag"]),
 		filter.ObjectIDs("team._id", v["team"]),
 	)
 }

@@ -70,7 +70,7 @@ func UpdateMatchAggregate(client octane.Client, id *primitive.ObjectID) error {
 	}
 	match := m.(octane.Match)
 
-	if match.Blue == nil || match.Orange == nil {
+	if match.Blue == nil || match.Orange == nil || match.Blue.Team == nil || match.Orange.Team == nil {
 		return nil
 	}
 

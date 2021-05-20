@@ -80,6 +80,8 @@ type Handler interface {
 
 	GetMatchGame(http.ResponseWriter, *http.Request)
 	GetMatchGames(http.ResponseWriter, *http.Request)
+
+	GetEventMatches(http.ResponseWriter, *http.Request)
 }
 
 // New .
@@ -113,8 +115,13 @@ func pagination(v url.Values) *collection.Pagination {
 	page, perPage := v.Get("page"), v.Get("perPage")
 	p, _ := strconv.ParseInt(page, 10, 64)
 	pp, _ := strconv.ParseInt(perPage, 10, 64)
-	if p == 0 || pp == 0 {
-		return nil
+
+	if p == 0 {
+		p = 1
+	}
+
+	if pp == 0 {
+		pp = 50
 	}
 
 	return &collection.Pagination{

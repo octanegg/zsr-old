@@ -190,6 +190,33 @@ func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 	helper.UpdateEvent(h.Octane, id, id)
 }
 
+func (h *handler) GetEventMatches(w http.ResponseWriter, r *http.Request) {
+	re := regexp.MustCompile("^[0-9a-fA-F]{24}$")
+
+	filter := bson.M{"event.slug": mux.Vars(r)["_id"]}
+	if re.MatchString(mux.Vars(r)["_id"]) {
+		id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+			return
+		}
+		filter = bson.M{"event._id": id}
+	}
+
+	data, err := h.Octane.Matches().Find(filter, nil, nil)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(struct {
+		Matches []interface{} `json:"matches"`
+	}{data})
+}
+
 func (h *handler) GetEventParticipants(w http.ResponseWriter, r *http.Request) {
 	re := regexp.MustCompile("^[0-9a-fA-F]{24}$")
 
@@ -227,7 +254,7 @@ func (h *handler) GetEventParticipants(w http.ResponseWriter, r *http.Request) {
 
 func eventsFilter(v url.Values) bson.M {
 	return filter.New(
-		filter.Strings("name", v["name"]),
+		filter.FuzzyStrings("name", v["name"]),
 		filter.Strings("tier", v["tier"]),
 		filter.Strings("region", v["region"]),
 		filter.Ints("mode", v["mode"]),

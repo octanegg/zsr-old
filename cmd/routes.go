@@ -29,6 +29,8 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodPut)
 	e.HandleFunc("/{_id}", h.DeleteEvent).
 		Methods(http.MethodDelete)
+	e.HandleFunc("/{_id}/matches", h.GetEventMatches).
+		Methods(http.MethodGet)
 	e.HandleFunc("/{_id}/participants", h.GetEventParticipants).
 		Methods(http.MethodGet)
 
