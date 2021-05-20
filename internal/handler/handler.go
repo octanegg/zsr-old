@@ -82,6 +82,7 @@ type Handler interface {
 	GetMatchGames(http.ResponseWriter, *http.Request)
 
 	GetEventMatches(http.ResponseWriter, *http.Request)
+	Search(w http.ResponseWriter, r *http.Request)
 }
 
 // New .

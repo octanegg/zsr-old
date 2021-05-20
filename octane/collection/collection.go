@@ -60,7 +60,7 @@ func (c *collection) Find(filter, sort bson.M, pagination *Pagination) ([]interf
 	}
 	defer cursor.Close(context.TODO())
 
-	var data []interface{}
+	data := []interface{}{}
 	if c.Decode == nil {
 		if err := cursor.All(context.TODO(), &data); err != nil {
 			return nil, err
@@ -153,7 +153,7 @@ func (c *collection) Pipeline(pipeline []bson.M, decode func(*mongo.Cursor) (int
 		return nil, err
 	}
 
-	var data []interface{}
+	data := []interface{}{}
 	if decode == nil {
 		if err := cursor.All(context.TODO(), &data); err != nil {
 			return nil, err

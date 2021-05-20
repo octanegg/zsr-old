@@ -111,5 +111,7 @@ func routes(h handler.Handler) http.Handler {
 	r.HandleFunc("/stats/teams/opponents", h.GetTeamOpponentStats).Methods(http.MethodGet)
 	r.HandleFunc("/stats/teams/events", h.GetTeamEventStats).Methods(http.MethodGet)
 
+	r.HandleFunc("/search", h.Search).Methods(http.MethodGet)
+
 	return cors.AllowAll().Handler(r)
 }
