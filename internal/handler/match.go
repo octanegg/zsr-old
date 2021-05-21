@@ -185,7 +185,9 @@ func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
 	if match.Blue != nil {
 		set["blue.team.team"] = match.Blue.Team.Team
 		set["blue.score"] = match.Blue.Score
-		set["blue.winner"] = match.Blue.Score > match.Orange.Score
+		if match.Orange != nil {
+			set["blue.winner"] = match.Blue.Score > match.Orange.Score
+		}
 	} else {
 		unset["blue"] = ""
 	}
@@ -193,7 +195,9 @@ func (h *handler) UpdateMatch(w http.ResponseWriter, r *http.Request) {
 	if match.Orange != nil {
 		set["orange.team.team"] = match.Orange.Team.Team
 		set["orange.score"] = match.Orange.Score
-		set["orange.winner"] = match.Orange.Score > match.Blue.Score
+		if match.Blue != nil {
+			set["orange.winner"] = match.Orange.Score > match.Blue.Score
+		}
 	} else {
 		unset["orange"] = ""
 	}
@@ -255,7 +259,9 @@ func (h *handler) UpdateMatches(w http.ResponseWriter, r *http.Request) {
 			if match.Blue != nil {
 				set["blue.team.team"] = match.Blue.Team.Team
 				set["blue.score"] = match.Blue.Score
-				set["blue.winner"] = match.Blue.Score > match.Orange.Score
+				if match.Orange != nil {
+					set["blue.winner"] = match.Blue.Score > match.Orange.Score
+				}
 			} else {
 				unset["blue"] = ""
 			}
@@ -263,7 +269,9 @@ func (h *handler) UpdateMatches(w http.ResponseWriter, r *http.Request) {
 			if match.Orange != nil {
 				set["orange.team.team"] = match.Orange.Team.Team
 				set["orange.score"] = match.Orange.Score
-				set["orange.winner"] = match.Orange.Score > match.Blue.Score
+				if match.Blue != nil {
+					set["orange.winner"] = match.Orange.Score > match.Blue.Score
+				}
 			} else {
 				unset["orange"] = ""
 			}
