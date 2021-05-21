@@ -18,8 +18,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	c := cache.New(os.Getenv(config.EnvCacheURI))
-	r := routes(handler.New(o, c))
+	r := routes(handler.New(o, cache.NewDisabled()))
 
 	http.Handle("/", r)
 	log.Printf("Starting server on port %d\n", config.ServerPort)

@@ -35,6 +35,12 @@ func New(address string) Cache {
 	}
 }
 
+func NewDisabled() Cache {
+	return &cache{
+		Enabled: false,
+	}
+}
+
 func (c *cache) Set(key, val string) {
 	if !c.Enabled {
 		return

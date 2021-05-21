@@ -3,11 +3,13 @@ package handler
 import (
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/octanegg/zsr/internal/cache"
+	"github.com/octanegg/zsr/internal/config"
 	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/collection"
 	"go.mongodb.org/mongo-driver/bson"
@@ -116,6 +118,10 @@ func pagination(v url.Values) *collection.Pagination {
 	page, perPage := v.Get("page"), v.Get("perPage")
 	p, _ := strconv.ParseInt(page, 10, 64)
 	pp, _ := strconv.ParseInt(perPage, 10, 64)
+
+	if os.Getenv(config.EnvIsInternal) == "true" && (p == 0 || pp == 0) {
+		return nil
+	}
 
 	if p == 0 {
 		p = 1
