@@ -127,6 +127,14 @@ func routes(h handler.Handler) http.Handler {
 			Methods(http.MethodPost)
 		t.HandleFunc("/{_id}", h.UpdateTeam).
 			Methods(http.MethodPut)
+
+		// return cors.AllowAll().Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
+		// 	if strings.Split(req.RemoteAddr, ":")[0] == "100.27.7.107" || req.URL.Path == "/health" {
+		// 		r.ServeHTTP(w, req)
+		// 	} else {
+		// 		w.WriteHeader(http.StatusForbidden)
+		// 	}
+		// }))
 	}
 
 	return cors.AllowAll().Handler(r)
