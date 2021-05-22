@@ -9,7 +9,6 @@ import (
 
 	"github.com/octanegg/zsr/octane/filter"
 	"github.com/octanegg/zsr/octane/pipelines"
-	"github.com/octanegg/zsr/util"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -23,13 +22,6 @@ func (h *handler) GetPlayerStats(w http.ResponseWriter, r *http.Request) {
 
 	f := statlinesFilter(v)
 
-	key := util.HashSlice([]interface{}{"player", f, "$player.player._id", having, v["stat"]})
-	val := h.Cache.Get(key)
-	if val != "" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(val))
-	}
-
 	pipeline := pipelines.PlayerStats(f, bson.M{"player": "$player.player._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
@@ -42,12 +34,8 @@ func (h *handler) GetPlayerStats(w http.ResponseWriter, r *http.Request) {
 		Stats []interface{} `json:"stats"`
 	}{data}
 
-	if val == "" {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
-	}
-
-	h.Cache.SetJSON(key, resp)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (h *handler) GetPlayerTeamStats(w http.ResponseWriter, r *http.Request) {
@@ -59,13 +47,6 @@ func (h *handler) GetPlayerTeamStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	f := statlinesFilter(v)
-
-	key := util.HashSlice([]interface{}{"player", f, "$team.team._id", having, v["stat"]})
-	val := h.Cache.Get(key)
-	if val != "" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(val))
-	}
 
 	pipeline := pipelines.PlayerStats(f, bson.M{"player": "$player.player._id", "team": "$team.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
@@ -79,12 +60,8 @@ func (h *handler) GetPlayerTeamStats(w http.ResponseWriter, r *http.Request) {
 		Stats []interface{} `json:"stats"`
 	}{data}
 
-	if val == "" {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
-	}
-
-	h.Cache.SetJSON(key, resp)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (h *handler) GetPlayerOpponentStats(w http.ResponseWriter, r *http.Request) {
@@ -96,13 +73,6 @@ func (h *handler) GetPlayerOpponentStats(w http.ResponseWriter, r *http.Request)
 	}
 
 	f := statlinesFilter(v)
-
-	key := util.HashSlice([]interface{}{"player", f, "$opponent.team._id", having, v["stat"]})
-	val := h.Cache.Get(key)
-	if val != "" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(val))
-	}
 
 	pipeline := pipelines.PlayerStats(f, bson.M{"player": "$player.player._id", "opponent": "$opponent.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
@@ -116,12 +86,8 @@ func (h *handler) GetPlayerOpponentStats(w http.ResponseWriter, r *http.Request)
 		Stats []interface{} `json:"stats"`
 	}{data}
 
-	if val == "" {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
-	}
-
-	h.Cache.SetJSON(key, resp)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (h *handler) GetPlayerEventStats(w http.ResponseWriter, r *http.Request) {
@@ -133,13 +99,6 @@ func (h *handler) GetPlayerEventStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	f := statlinesFilter(v)
-
-	key := util.HashSlice([]interface{}{"player", f, "$game.match.event._id", having, v["stat"]})
-	val := h.Cache.Get(key)
-	if val != "" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(val))
-	}
 
 	pipeline := pipelines.PlayerStats(f, bson.M{"player": "$player.player._id", "event": "$game.match.event._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
@@ -153,12 +112,8 @@ func (h *handler) GetPlayerEventStats(w http.ResponseWriter, r *http.Request) {
 		Stats []interface{} `json:"stats"`
 	}{data}
 
-	if val == "" {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
-	}
-
-	h.Cache.SetJSON(key, resp)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (h *handler) GetTeamStats(w http.ResponseWriter, r *http.Request) {
@@ -170,13 +125,6 @@ func (h *handler) GetTeamStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	f := statlinesFilter(v)
-
-	key := util.HashSlice([]interface{}{"team", f, "$team.team._id", having, v["stat"]})
-	val := h.Cache.Get(key)
-	if val != "" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(val))
-	}
 
 	pipeline := pipelines.TeamStats(f, bson.M{"team": "$team.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
@@ -190,12 +138,8 @@ func (h *handler) GetTeamStats(w http.ResponseWriter, r *http.Request) {
 		Stats []interface{} `json:"stats"`
 	}{data}
 
-	if val == "" {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
-	}
-
-	h.Cache.SetJSON(key, resp)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (h *handler) GetTeamOpponentStats(w http.ResponseWriter, r *http.Request) {
@@ -207,13 +151,6 @@ func (h *handler) GetTeamOpponentStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	f := statlinesFilter(v)
-
-	key := util.HashSlice([]interface{}{"team", f, "$opponent.team._id", having, v["stat"]})
-	val := h.Cache.Get(key)
-	if val != "" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(val))
-	}
 
 	pipeline := pipelines.TeamStats(f, bson.M{"team": "$team.team._id", "opponent": "$opponent.team._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
@@ -227,12 +164,8 @@ func (h *handler) GetTeamOpponentStats(w http.ResponseWriter, r *http.Request) {
 		Stats []interface{} `json:"stats"`
 	}{data}
 
-	if val == "" {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
-	}
-
-	h.Cache.SetJSON(key, resp)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func (h *handler) GetTeamEventStats(w http.ResponseWriter, r *http.Request) {
@@ -244,13 +177,6 @@ func (h *handler) GetTeamEventStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	f := statlinesFilter(v)
-
-	key := util.HashSlice([]interface{}{"team", f, "$game.match.event._id", having, v["stat"]})
-	val := h.Cache.Get(key)
-	if val != "" {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(val))
-	}
 
 	pipeline := pipelines.TeamStats(f, bson.M{"team": "$team.team._id", "event": "$game.match.event._id"}, having, v["stat"])
 	data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
@@ -264,12 +190,8 @@ func (h *handler) GetTeamEventStats(w http.ResponseWriter, r *http.Request) {
 		Stats []interface{} `json:"stats"`
 	}{data}
 
-	if val == "" {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(resp)
-	}
-
-	h.Cache.SetJSON(key, resp)
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(resp)
 }
 
 func statlinesFilter(v url.Values) bson.M {

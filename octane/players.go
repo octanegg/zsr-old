@@ -13,6 +13,7 @@ type Player struct {
 	Accounts   []*Account          `json:"accounts,omitempty" bson:"accounts,omitempty"`
 	Substitute bool                `json:"substitute,omitempty" bson:"substitute,omitempty"`
 	Coach      bool                `json:"coach,omitempty" bson:"coach,omitempty"`
+	Relevant   bool                `json:"relevant,omitempty" bson:"relevant,omitempty"`
 }
 
 // Account .

@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/octanegg/zsr/internal/cache"
 	"github.com/octanegg/zsr/internal/config"
 	"github.com/octanegg/zsr/internal/handler"
 	"github.com/octanegg/zsr/octane"
@@ -18,7 +17,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	r := routes(handler.New(o, cache.NewDisabled()))
+	r := routes(handler.New(o))
 
 	http.Handle("/", r)
 	log.Printf("Starting server on port %d\n", config.ServerPort)

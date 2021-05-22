@@ -170,5 +170,8 @@ func (h *handler) GetActiveTeams(w http.ResponseWriter, r *http.Request) {
 }
 
 func teamsFilter(v url.Values) bson.M {
-	return filter.New(filter.FuzzyStrings("name", v["name"]))
+	return filter.New(
+		filter.FuzzyStrings("name", v["name"]),
+		filter.Bool("relevant", v.Get("relevant")),
+	)
 }

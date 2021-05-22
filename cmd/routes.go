@@ -90,9 +90,6 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodGet)
 
 	if os.Getenv(config.EnvIsInternal) == "true" {
-		r.HandleFunc("/search", h.Search).
-			Methods(http.MethodGet)
-
 		e.HandleFunc("", h.CreateEvent).
 			Methods(http.MethodPost)
 		e.HandleFunc("/{_id}", h.UpdateEvent).

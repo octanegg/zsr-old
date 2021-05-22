@@ -55,6 +55,9 @@ func PlayerStats(filter, group, having bson.M, _stats []string) *Pipeline {
 				},
 			},
 		},
+		"game_seconds": bson.M{
+			"$sum": "$game.duration",
+		},
 		"matches": bson.M{
 			"$addToSet": "$game.match._id",
 		},
@@ -112,6 +115,7 @@ func PlayerStats(filter, group, having bson.M, _stats []string) *Pipeline {
 				"total":   "$games",
 				"replays": "$game_replays",
 				"wins":    "$game_wins",
+				"seconds": "$game_seconds",
 			},
 			"match": bson.M{
 				"total": bson.M{
@@ -142,6 +146,7 @@ func PlayerStats(filter, group, having bson.M, _stats []string) *Pipeline {
 					Total   float64 `json:"total" bson:"total"`
 					Replays float64 `json:"replays" bson:"replays"`
 					Wins    float64 `json:"wins" bson:"wins"`
+					Seconds float64 `json:"seconds" bson:"seconds"`
 				} `json:"games" bson:"games"`
 				Matches struct {
 					Total   float64 `json:"total" bson:"total"`

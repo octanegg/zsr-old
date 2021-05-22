@@ -160,6 +160,10 @@ func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 		unset["coach"] = ""
 	}
 
+	if !player.Relevant {
+		unset["relevant"] = ""
+	}
+
 	update["$unset"] = unset
 
 	if _, err := h.Octane.Players().UpdateOne(bson.M{"_id": id}, update); err != nil {
@@ -303,5 +307,6 @@ func playersFilter(v url.Values) bson.M {
 		filter.Strings("country", v["country"]),
 		filter.FuzzyStrings("tag", v["tag"]),
 		filter.ObjectIDs("team._id", v["team"]),
+		filter.Bool("relevant", v.Get("relevant")),
 	)
 }

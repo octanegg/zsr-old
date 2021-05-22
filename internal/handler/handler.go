@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/octanegg/zsr/internal/cache"
 	"github.com/octanegg/zsr/internal/config"
 	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/collection"
@@ -23,7 +22,6 @@ type Error struct {
 
 type handler struct {
 	Octane octane.Client
-	Cache  cache.Cache
 }
 
 // Handler .
@@ -84,12 +82,11 @@ type Handler interface {
 	GetMatchGames(http.ResponseWriter, *http.Request)
 
 	GetEventMatches(http.ResponseWriter, *http.Request)
-	Search(w http.ResponseWriter, r *http.Request)
 }
 
 // New .
-func New(o octane.Client, c cache.Cache) Handler {
-	return &handler{o, c}
+func New(o octane.Client) Handler {
+	return &handler{o}
 }
 
 func sort(v url.Values) bson.M {
