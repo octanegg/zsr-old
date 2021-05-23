@@ -18,6 +18,9 @@ func routes(h handler.Handler) http.Handler {
 	r.HandleFunc("/health", h.Health).
 		Methods(http.MethodGet)
 
+	r.HandleFunc("/search", h.Search).
+		Methods(http.MethodGet)
+
 	e := r.PathPrefix("/events").Subrouter()
 	e.HandleFunc("", h.GetEvents).
 		Methods(http.MethodGet)
