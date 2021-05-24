@@ -345,6 +345,9 @@ This API powers Octane.gg and is available for public use. If you're actively us
 
 ## Teams [/teams/active]
 
+- Parameters
+  + region: NA (optional, string) - a region
+
 ### List Active Teams [GET]
 
 * Response 200 (application/json)

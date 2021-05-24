@@ -2,10 +2,8 @@ package main
 
 import (
 	"net/http"
-	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/octanegg/zsr/internal/config"
 	"github.com/octanegg/zsr/internal/handler"
 	"github.com/rs/cors"
 )
@@ -92,50 +90,40 @@ func routes(h handler.Handler) http.Handler {
 	s.HandleFunc("/teams/events", h.GetTeamEventStats).
 		Methods(http.MethodGet)
 
-	if os.Getenv(config.EnvIsInternal) == "true" {
-		e.HandleFunc("", h.CreateEvent).
-			Methods(http.MethodPost)
-		e.HandleFunc("/{_id}", h.UpdateEvent).
-			Methods(http.MethodPut)
-		e.HandleFunc("/{_id}", h.DeleteEvent).
-			Methods(http.MethodDelete)
+	e.HandleFunc("", h.CreateEvent).
+		Methods(http.MethodPost)
+	e.HandleFunc("/{_id}", h.UpdateEvent).
+		Methods(http.MethodPut)
+	e.HandleFunc("/{_id}", h.DeleteEvent).
+		Methods(http.MethodDelete)
 
-		m.HandleFunc("", h.CreateMatch).
-			Methods(http.MethodPost)
-		m.HandleFunc("/{_id}", h.UpdateMatch).
-			Methods(http.MethodPut)
-		m.HandleFunc("/{_id}", h.DeleteMatch).
-			Methods(http.MethodDelete)
-		m.HandleFunc("", h.UpdateMatches).
-			Methods(http.MethodPut)
+	m.HandleFunc("", h.CreateMatch).
+		Methods(http.MethodPost)
+	m.HandleFunc("/{_id}", h.UpdateMatch).
+		Methods(http.MethodPut)
+	m.HandleFunc("/{_id}", h.DeleteMatch).
+		Methods(http.MethodDelete)
+	m.HandleFunc("", h.UpdateMatches).
+		Methods(http.MethodPut)
 
-		g.HandleFunc("", h.CreateGame).
-			Methods(http.MethodPost)
-		g.HandleFunc("/{_id}", h.UpdateGame).
-			Methods(http.MethodPut)
-		g.HandleFunc("/{_id}", h.DeleteGame).
-			Methods(http.MethodDelete)
+	g.HandleFunc("", h.CreateGame).
+		Methods(http.MethodPost)
+	g.HandleFunc("/{_id}", h.UpdateGame).
+		Methods(http.MethodPut)
+	g.HandleFunc("/{_id}", h.DeleteGame).
+		Methods(http.MethodDelete)
 
-		p.HandleFunc("", h.CreatePlayer).
-			Methods(http.MethodPost)
-		p.HandleFunc("/{_id}", h.UpdatePlayer).
-			Methods(http.MethodPut)
-		p.HandleFunc("/{_id}/merge", h.MergePlayers).
-			Methods(http.MethodPost)
+	p.HandleFunc("", h.CreatePlayer).
+		Methods(http.MethodPost)
+	p.HandleFunc("/{_id}", h.UpdatePlayer).
+		Methods(http.MethodPut)
+	p.HandleFunc("/{_id}/merge", h.MergePlayers).
+		Methods(http.MethodPost)
 
-		t.HandleFunc("", h.CreateTeam).
-			Methods(http.MethodPost)
-		t.HandleFunc("/{_id}", h.UpdateTeam).
-			Methods(http.MethodPut)
-
-		// return cors.AllowAll().Handler(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		// 	if strings.Split(req.RemoteAddr, ":")[0] == "100.27.7.107" || req.URL.Path == "/health" {
-		// 		r.ServeHTTP(w, req)
-		// 	} else {
-		// 		w.WriteHeader(http.StatusForbidden)
-		// 	}
-		// }))
-	}
+	t.HandleFunc("", h.CreateTeam).
+		Methods(http.MethodPost)
+	t.HandleFunc("/{_id}", h.UpdateTeam).
+		Methods(http.MethodPut)
 
 	return cors.AllowAll().Handler(r)
 }
