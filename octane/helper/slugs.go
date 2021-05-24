@@ -18,11 +18,11 @@ func MatchSlug(match *octane.Match) string {
 	id := match.ID.Hex()
 	blue, orange := "TBD", "TBD"
 
-	if match.Blue != nil {
+	if match.Blue != nil && match.Blue.Team != nil {
 		blue = match.Blue.Team.Team.Name
 	}
 
-	if match.Orange != nil {
+	if match.Orange != nil && match.Orange.Team != nil {
 		orange = match.Orange.Team.Team.Name
 	}
 

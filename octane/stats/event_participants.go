@@ -12,7 +12,7 @@ func EventParticipants(matches []interface{}, stages []int) []*octane.Participan
 	teams := []string{}
 	for _, m := range matches {
 		match := m.(octane.Match)
-		if match.Blue != nil {
+		if match.Blue != nil && match.Blue.Team != nil {
 			id := match.Blue.Team.Team.ID.Hex()
 			if (len(stages) == 0 || util.ContainsInt(stages, match.Stage.ID)) && !util.ContainsString(teams, id) {
 				teams = append(teams, id)
@@ -26,7 +26,7 @@ func EventParticipants(matches []interface{}, stages []int) []*octane.Participan
 			}
 			participantsMap[id].Players = append(participantsMap[id].Players, getPlayers(participantsMap[id].Players, match.Blue.Players)...)
 		}
-		if match.Orange != nil {
+		if match.Orange != nil && match.Orange.Team != nil {
 			id := match.Orange.Team.Team.ID.Hex()
 			if (len(stages) == 0 || util.ContainsInt(stages, match.Stage.ID)) && !util.ContainsString(teams, id) {
 				teams = append(teams, id)
