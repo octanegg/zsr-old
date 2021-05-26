@@ -3,7 +3,6 @@ package helper
 import (
 	"fmt"
 	"os"
-	"sort"
 
 	"github.com/octanegg/zsr/ballchasing"
 	"github.com/octanegg/zsr/internal/config"
@@ -29,19 +28,27 @@ func UseBallchasing(client octane.Client, game *octane.Game) (*octane.Game, erro
 		Name: replay.MapName,
 	}
 
-	if len(replay.Blue.Players) > game.Match.Event.Mode {
-		sort.SliceStable(replay.Blue.Players, func(i, j int) bool {
-			return replay.Blue.Players[i].Stats.Core.Score > replay.Blue.Players[j].Stats.Core.Score
-		})
-		replay.Blue.Players = replay.Blue.Players[:game.Match.Event.Mode]
-	}
+	// if len(replay.Blue.Players) > game.Match.Event.Mode {
+	// 	sort.SliceStable(replay.Blue.Players, func(i, j int) bool {
+	// 		return replay.Blue.Players[i].Stats.Core.Score > replay.Blue.Players[j].Stats.Core.Score
+	// 	})
+	// 	if len(replay.Orange.Players) >= game.Match.Event.Mode {
+	// 		replay.Blue.Players = replay.Blue.Players[:game.Match.Event.Mode]
+	// 	} else {
+	// 		replay.Blue.Players = replay.Blue.Players[:game.Match.Event.Mode-len(replay.Orange.Players)]
+	// 	}
+	// }
 
-	if len(replay.Orange.Players) > game.Match.Event.Mode {
-		sort.SliceStable(replay.Orange.Players, func(i, j int) bool {
-			return replay.Orange.Players[i].Stats.Core.Score > replay.Orange.Players[j].Stats.Core.Score
-		})
-		replay.Orange.Players = replay.Orange.Players[:game.Match.Event.Mode]
-	}
+	// if len(replay.Orange.Players) > game.Match.Event.Mode {
+	// 	sort.SliceStable(replay.Orange.Players, func(i, j int) bool {
+	// 		return replay.Orange.Players[i].Stats.Core.Score > replay.Orange.Players[j].Stats.Core.Score
+	// 	})
+	// 	if len(replay.Blue.Players) >= game.Match.Event.Mode {
+	// 		replay.Orange.Players = replay.Orange.Players[:game.Match.Event.Mode]
+	// 	} else {
+	// 		replay.Orange.Players = replay.Orange.Players[:game.Match.Event.Mode-len(replay.Blue.Players)]
+	// 	}
+	// }
 
 	bluePlayers, err := BallchasingToPlayerInfos(client, replay.Blue.Players)
 	if err != nil {

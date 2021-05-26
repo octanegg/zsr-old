@@ -74,7 +74,7 @@ func UpdateMatchAggregate(client octane.Client, id *primitive.ObjectID) error {
 		return nil
 	}
 
-	res, err := client.Games().Find(bson.M{"match._id": id}, nil, nil)
+	res, err := client.Games().Find(bson.M{"match._id": id}, bson.M{"number": 1}, nil)
 	if err != nil {
 		return err
 	}

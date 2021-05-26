@@ -210,7 +210,15 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if game.BallchasingID != "" {
+	g, err := h.Octane.Games().FindOne(bson.M{"_id": id})
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
+		return
+	}
+	existingGame := g.(octane.Game)
+
+	if game.BallchasingID != existingGame.BallchasingID {
 		game, err = helper.UseBallchasing(h.Octane, game)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
