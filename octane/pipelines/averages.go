@@ -40,7 +40,9 @@ func Averages() *Pipeline {
 	pipeline := New(
 		Match(filter.New(
 			filter.AfterDate("game.date", "2019-01-01"),
+			filter.Strings("game.match.event.tier", []string{"A", "S"}),
 			filter.Ints("game.match.event.mode", []string{"3"}),
+			filter.Bool("game.match.stage.qualifier", "false"),
 		)),
 		Group(bson.M{
 			"_id": 0,

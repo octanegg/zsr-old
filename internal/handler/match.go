@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -38,12 +37,6 @@ func (h *handler) GetMatches(w http.ResponseWriter, r *http.Request) {
 
 	if p != nil {
 		p.PageSize = len(data)
-	}
-
-	for _, d := range data {
-		if _, err = json.Marshal(d); err != nil {
-			fmt.Printf("%+v\n", d)
-		}
 	}
 
 	w.WriteHeader(http.StatusOK)

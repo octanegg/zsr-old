@@ -84,18 +84,37 @@ func PlayerStats(filter, group, having bson.M, _stats []string) *Pipeline {
 	}
 
 	for _, stat := range _stats {
-		groupName, statMapping := stats.PlayerStatMapping(stat)
-		if statMapping == "" {
-			continue
-		}
+		if stat == "shootingPercentage" {
+			_group["goals"] = bson.M{
+				"$sum": "$player.stats.core.goals",
+			}
+			_group["shots"] = bson.M{
+				"$sum": "$player.stats.core.shots",
+			}
+		} else if stat == "goalParticipation" {
+			_group["goals"] = bson.M{
+				"$sum": "$player.stats.core.goals",
+			}
+			_group["assists"] = bson.M{
+				"$sum": "$player.stats.core.assists",
+			}
+			_group["team_goals"] = bson.M{
+				"$sum": "$team.stats.core.goals",
+			}
+		} else {
+			groupName, statMapping := stats.PlayerStatMapping(stat)
+			if statMapping == "" {
+				continue
+			}
 
-		field := fmt.Sprintf("$player.stats.%s.%s", groupName, statMapping)
-		if groupName == "advanced" {
-			field = fmt.Sprintf("$player.%s.%s", groupName, statMapping)
-		}
+			field := fmt.Sprintf("$player.stats.%s.%s", groupName, statMapping)
+			if groupName == "advanced" {
+				field = fmt.Sprintf("$player.%s.%s", groupName, statMapping)
+			}
 
-		_group[statMapping] = bson.M{
-			"$sum": field,
+			_group[statMapping] = bson.M{
+				"$sum": field,
+			}
 		}
 	}
 
@@ -166,12 +185,35 @@ func PlayerStats(filter, group, having bson.M, _stats []string) *Pipeline {
 func playerStatsMapping(s []string) bson.M {
 	mapping := bson.M{}
 	for _, stat := range s {
-		_, statMapping := stats.PlayerStatMapping(stat)
-		if statMapping == "" {
-			continue
-		}
+		if stat == "shootingPercentage" {
+			mapping[stat] = bson.M{
+				"$multiply": bson.A{
+					bson.M{
+						"$divide": bson.A{"$goals", "$shots"},
+					},
+					100,
+				},
+			}
+		} else if stat == "goalParticipation" {
+			mapping[stat] = bson.M{
+				"$multiply": bson.A{
+					bson.M{
+						"$divide": bson.A{
+							bson.M{"$add": bson.A{"$goals", "$assists"}},
+							"$team_goals",
+						},
+					},
+					100,
+				},
+			}
+		} else {
+			_, statMapping := stats.PlayerStatMapping(stat)
+			if statMapping == "" {
+				continue
+			}
 
-		mapping[stat] = fmt.Sprintf("$%s", statMapping)
+			mapping[stat] = fmt.Sprintf("$%s", statMapping)
+		}
 	}
 
 	return mapping

@@ -87,51 +87,67 @@ func TeamStats(filter, group, having bson.M, _stats []string) *Pipeline {
 	}
 
 	for _, stat := range _stats {
-		groupName, statMapping := stats.TeamStatMapping(stat)
-		if statMapping == "" {
-			continue
-		}
-
-		field := bson.M{
-			"$sum": fmt.Sprintf("$player.stats.%s.%s", groupName, statMapping),
-		}
-
-		if groupName == "against" {
-			field = bson.M{
-				"$sum": bson.M{
-					"$divide": bson.A{
-						fmt.Sprintf("$opponent.stats.core.%s", statMapping),
-						"$game.match.event.mode",
-					},
-				},
+		if stat == "shootingPercentage" {
+			_group["goals"] = bson.M{
+				"$sum": "$team.stats.core.goals",
 			}
-		} else if groupName == "differential" {
-			field = bson.M{
-				"$sum": bson.M{
-					"$divide": bson.A{
-						bson.M{
-							"$subtract": bson.A{
-								fmt.Sprintf("$team.stats.core.%s", statMapping),
-								fmt.Sprintf("$opponent.stats.core.%s", statMapping),
-							},
+			_group["shots"] = bson.M{
+				"$sum": "$team.stats.core.shots",
+			}
+		} else if stat == "shootingPercentageAgainst" {
+			_group["opponent_goals"] = bson.M{
+				"$sum": "$opponent.stats.core.goals",
+			}
+			_group["opponent_shots"] = bson.M{
+				"$sum": "$opponent.stats.core.shots",
+			}
+		} else {
+			groupName, statMapping := stats.TeamStatMapping(stat)
+			if statMapping == "" {
+				continue
+			}
+
+			field := bson.M{
+				"$sum": fmt.Sprintf("$player.stats.%s.%s", groupName, statMapping),
+			}
+
+			if groupName == "against" {
+				field = bson.M{
+					"$sum": bson.M{
+						"$divide": bson.A{
+							fmt.Sprintf("$opponent.stats.core.%s", statMapping),
+							"$game.match.event.mode",
 						},
-						"$game.match.event.mode",
 					},
-				},
+				}
+			} else if groupName == "differential" {
+				field = bson.M{
+					"$sum": bson.M{
+						"$divide": bson.A{
+							bson.M{
+								"$subtract": bson.A{
+									fmt.Sprintf("$team.stats.core.%s", statMapping),
+									fmt.Sprintf("$opponent.stats.core.%s", statMapping),
+								},
+							},
+							"$game.match.event.mode",
+						},
+					},
+				}
+
+			} else if groupName == "ball" || stat == "shootingPercentage" {
+				field = bson.M{
+					"$sum": bson.M{
+						"$divide": bson.A{
+							fmt.Sprintf("$team.stats.%s.%s", groupName, statMapping),
+							"$game.match.event.mode",
+						},
+					},
+				}
 			}
 
-		} else if groupName == "ball" || stat == "shootingPercentage" {
-			field = bson.M{
-				"$sum": bson.M{
-					"$divide": bson.A{
-						fmt.Sprintf("$team.stats.%s.%s", groupName, statMapping),
-						"$game.match.event.mode",
-					},
-				},
-			}
+			_group[statMapping] = field
 		}
-
-		_group[statMapping] = field
 	}
 
 	pipeline := New(
@@ -199,11 +215,31 @@ func TeamStats(filter, group, having bson.M, _stats []string) *Pipeline {
 func teamStatsMapping(s []string) bson.M {
 	mapping := bson.M{}
 	for _, stat := range s {
-		_, statMapping := stats.TeamStatMapping(stat)
-		if statMapping != "" {
-			mapping[stat] = fmt.Sprintf("$%s", statMapping)
+		if stat == "shootingPercentage" {
+			mapping[stat] = bson.M{
+				"$multiply": bson.A{
+					bson.M{
+						"$divide": bson.A{"$goals", "$shots"},
+					},
+					100,
+				},
+			}
+		} else if stat == "shootingPercentageAgainst" {
+			mapping[stat] = bson.M{
+				"$multiply": bson.A{
+					bson.M{
+						"$divide": bson.A{"$opponent_goals", "$opponent_shots"},
+					},
+					100,
+				},
+			}
 		} else {
-			mapping[stat] = fmt.Sprintf("$%s", stat)
+			_, statMapping := stats.TeamStatMapping(stat)
+			if statMapping != "" {
+				mapping[stat] = fmt.Sprintf("$%s", statMapping)
+			} else {
+				mapping[stat] = fmt.Sprintf("$%s", stat)
+			}
 		}
 	}
 

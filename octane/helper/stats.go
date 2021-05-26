@@ -1,8 +1,6 @@
 package helper
 
 import (
-	"encoding/json"
-	"fmt"
 	"math"
 
 	"github.com/octanegg/zsr/ballchasing"
@@ -515,9 +513,6 @@ func Rating(averages interface{}, stats *octane.PlayerInfo) float64 {
 		ShootingPercentage float64 `json:"shootingPercentage" bson:"shootingPercentage"`
 		GoalParticipation  float64 `json:"goalParticipation" bson:"goalParticipation"`
 	})
-
-	x, _ := json.Marshal(average)
-	fmt.Println(string(x))
 
 	rating := float64(0)
 
