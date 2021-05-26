@@ -50,10 +50,6 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodGet)
 	p.HandleFunc("/{_id}", h.GetPlayer).
 		Methods(http.MethodGet)
-	p.HandleFunc("/{_id}/teams", h.GetPlayerTeams).
-		Methods(http.MethodGet)
-	p.HandleFunc("/{_id}/opponents", h.GetPlayerOpponents).
-		Methods(http.MethodGet)
 
 	t := r.PathPrefix("/teams").Subrouter()
 	t.HandleFunc("", h.GetTeams).
