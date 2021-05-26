@@ -1,6 +1,8 @@
 package helper
 
 import (
+	"math"
+
 	"github.com/octanegg/zsr/ballchasing"
 	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/pipelines"
@@ -502,5 +504,5 @@ func AverageScore(o octane.Client, core *octane.PlayerCore) (float64, error) {
 		Score float64 `json:"score" bson:"score"`
 	})
 
-	return s.Score, nil
+	return math.Floor(s.Score), nil
 }
