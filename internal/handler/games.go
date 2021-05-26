@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -14,6 +15,7 @@ import (
 	"github.com/octanegg/zsr/octane/collection"
 	"github.com/octanegg/zsr/octane/filter"
 	"github.com/octanegg/zsr/octane/helper"
+	"github.com/octanegg/zsr/octane/pipelines"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -150,12 +152,27 @@ func (h *handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 		game.Blue.Winner = game.Blue.Team.Stats.Core.Goals > game.Orange.Team.Stats.Core.Goals
 		game.Orange.Winner = game.Orange.Team.Stats.Core.Goals > game.Blue.Team.Stats.Core.Goals
 
+		pipeline := pipelines.Averages()
+		data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), errors.New("no averages found").Error()})
+			return
+		}
+
+		if len(data) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), errors.New("no averages found").Error()})
+			return
+		}
+
 		for _, player := range game.Blue.Players {
 			player.Advanced = &octane.AdvancedStats{}
 			if game.Blue.Team.Stats.Core.Goals > 0 {
 				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Blue.Team.Stats.Core.Goals) * 100
 			}
-			player.Advanced.Rating = helper.Rating(player)
+
+			player.Advanced.Rating = helper.Rating(data[0], player)
 		}
 
 		for _, player := range game.Orange.Players {
@@ -163,7 +180,8 @@ func (h *handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 			if game.Orange.Team.Stats.Core.Goals > 0 {
 				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Orange.Team.Stats.Core.Goals) * 100
 			}
-			player.Advanced.Rating = helper.Rating(player)
+
+			player.Advanced.Rating = helper.Rating(data[0], player)
 		}
 	}
 
@@ -242,12 +260,27 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 		game.Blue.Winner = game.Blue.Team.Stats.Core.Goals > game.Orange.Team.Stats.Core.Goals
 		game.Orange.Winner = game.Orange.Team.Stats.Core.Goals > game.Blue.Team.Stats.Core.Goals
 
+		pipeline := pipelines.Averages()
+		data, err := h.Octane.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), errors.New("no averages found").Error()})
+			return
+		}
+
+		if len(data) == 0 {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(Error{time.Now(), errors.New("no averages found").Error()})
+			return
+		}
+
 		for _, player := range game.Blue.Players {
 			player.Advanced = &octane.AdvancedStats{}
 			if game.Blue.Team.Stats.Core.Goals > 0 {
 				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Blue.Team.Stats.Core.Goals) * 100
 			}
-			player.Advanced.Rating = helper.Rating(player)
+
+			player.Advanced.Rating = helper.Rating(data[0], player)
 		}
 
 		for _, player := range game.Orange.Players {
@@ -255,7 +288,8 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 			if game.Orange.Team.Stats.Core.Goals > 0 {
 				player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / float64(game.Orange.Team.Stats.Core.Goals) * 100
 			}
-			player.Advanced.Rating = helper.Rating(player)
+
+			player.Advanced.Rating = helper.Rating(data[0], player)
 		}
 	}
 

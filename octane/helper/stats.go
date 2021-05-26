@@ -1,16 +1,14 @@
 package helper
 
 import (
+	"encoding/json"
+	"fmt"
 	"math"
 
 	"github.com/octanegg/zsr/ballchasing"
 	"github.com/octanegg/zsr/octane"
 	"github.com/octanegg/zsr/octane/pipelines"
 )
-
-func Rating(stats *octane.PlayerInfo) float64 {
-	return (float64(stats.Stats.Core.Score)/369.8364 + float64(stats.Stats.Core.Goals)/0.6946 + float64(stats.Stats.Core.Assists)/0.5441 + float64(stats.Stats.Core.Saves)/2.7216 + float64(stats.Stats.Core.Shots)/1.5556 + float64(stats.Stats.Core.ShootingPercentage)/25.52 + float64(stats.Advanced.GoalParticipation)/59.44) / 7
-}
 
 func BallchasingToPlayerStats(b *ballchasing.PlayerStats) *octane.PlayerStats {
 	return &octane.PlayerStats{
@@ -488,10 +486,10 @@ func GamesToGameOverviews(games []*octane.Game) []*octane.GameOverview {
 	return gameOverviews
 }
 
-func AverageScore(o octane.Client, core *octane.PlayerCore) (float64, error) {
+func AverageScore(client octane.Client, core *octane.PlayerCore) (float64, error) {
 	pipeline := pipelines.AverageScore(int(core.Goals), int(core.Assists), int(core.Saves), int(core.Shots))
 
-	data, err := o.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
+	data, err := client.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
 	if err != nil {
 		return 0, err
 	}
@@ -505,4 +503,31 @@ func AverageScore(o octane.Client, core *octane.PlayerCore) (float64, error) {
 	})
 
 	return math.Floor(s.Score), nil
+}
+
+func Rating(averages interface{}, stats *octane.PlayerInfo) float64 {
+	average := averages.(struct {
+		Score              float64 `json:"score" bson:"score"`
+		Goals              float64 `json:"goals" bson:"goals"`
+		Assists            float64 `json:"assists" bson:"assists"`
+		Saves              float64 `json:"saves" bson:"saves"`
+		Shots              float64 `json:"shots" bson:"shots"`
+		ShootingPercentage float64 `json:"shootingPercentage" bson:"shootingPercentage"`
+		GoalParticipation  float64 `json:"goalParticipation" bson:"goalParticipation"`
+	})
+
+	x, _ := json.Marshal(average)
+	fmt.Println(string(x))
+
+	rating := float64(0)
+
+	rating += float64(stats.Stats.Core.Score) / average.Score
+	rating += float64(stats.Stats.Core.Goals) / average.Goals
+	rating += float64(stats.Stats.Core.Assists) / average.Assists
+	rating += float64(stats.Stats.Core.Saves) / average.Saves
+	rating += float64(stats.Stats.Core.Shots) / average.Shots
+	rating += float64(stats.Stats.Core.ShootingPercentage/100) / average.ShootingPercentage
+	rating += float64(stats.Advanced.GoalParticipation/100) / average.GoalParticipation
+
+	return rating / 7
 }
