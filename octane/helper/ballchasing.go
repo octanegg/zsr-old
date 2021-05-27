@@ -1,14 +1,12 @@
 package helper
 
 import (
-	"errors"
 	"fmt"
 	"os"
 
 	"github.com/octanegg/zsr/ballchasing"
 	"github.com/octanegg/zsr/internal/config"
 	"github.com/octanegg/zsr/octane"
-	"github.com/octanegg/zsr/octane/pipelines"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -128,22 +126,12 @@ func BallchasingToPlayerInfos(client octane.Client, players []ballchasing.Player
 		res = append(res, playerInfo)
 	}
 
-	pipeline := pipelines.Averages()
-	data, err := client.Statlines().Pipeline(pipeline.Pipeline, pipeline.Decode)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(data) == 0 {
-		return nil, errors.New("no averages found")
-	}
-
 	for _, player := range res {
 		if teamGoals > 0 {
 			player.Advanced.GoalParticipation = float64(player.Stats.Core.Goals+player.Stats.Core.Assists) / teamGoals * 100
 		}
 
-		player.Advanced.Rating = Rating(data[0], player)
+		player.Advanced.Rating = Rating(player)
 	}
 	return res, nil
 }

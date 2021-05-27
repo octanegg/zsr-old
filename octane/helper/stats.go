@@ -503,26 +503,15 @@ func AverageScore(client octane.Client, core *octane.PlayerCore) (float64, error
 	return math.Floor(s.Score), nil
 }
 
-func Rating(averages interface{}, stats *octane.PlayerInfo) float64 {
-	average := averages.(struct {
-		Score              float64 `json:"score" bson:"score"`
-		Goals              float64 `json:"goals" bson:"goals"`
-		Assists            float64 `json:"assists" bson:"assists"`
-		Saves              float64 `json:"saves" bson:"saves"`
-		Shots              float64 `json:"shots" bson:"shots"`
-		ShootingPercentage float64 `json:"shootingPercentage" bson:"shootingPercentage"`
-		GoalParticipation  float64 `json:"goalParticipation" bson:"goalParticipation"`
-	})
-
+func Rating(stats *octane.PlayerInfo) float64 {
 	rating := float64(0)
-
-	rating += float64(stats.Stats.Core.Score) / average.Score
-	rating += float64(stats.Stats.Core.Goals) / average.Goals
-	rating += float64(stats.Stats.Core.Assists) / average.Assists
-	rating += float64(stats.Stats.Core.Saves) / average.Saves
-	rating += float64(stats.Stats.Core.Shots) / average.Shots
-	rating += float64(stats.Stats.Core.ShootingPercentage/100) / average.ShootingPercentage
-	rating += float64(stats.Advanced.GoalParticipation/100) / average.GoalParticipation
+	rating += float64(stats.Stats.Core.Score) / 369.8394212252121
+	rating += float64(stats.Stats.Core.Goals) / 0.6616665799198459
+	rating += float64(stats.Stats.Core.Assists) / 0.5248321449018893
+	rating += float64(stats.Stats.Core.Saves) / 1.5932962056940614
+	rating += float64(stats.Stats.Core.Shots) / 2.7166189559152656
+	rating += float64(stats.Stats.Core.ShootingPercentage) / 24.35625277807581
+	rating += float64(stats.Advanced.GoalParticipation) / 59.77324334387406
 
 	return rating / 7
 }
