@@ -1,6 +1,8 @@
 package octane
 
-import "go.mongodb.org/mongo-driver/bson/primitive"
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 // Team .
 type Team struct {
@@ -9,5 +11,6 @@ type Team struct {
 	Name     string              `json:"name,omitempty" bson:"name,omitempty"`
 	Region   string              `json:"region,omitempty" bson:"region,omitempty"`
 	Image    string              `json:"image,omitempty" bson:"image,omitempty"`
+	Socials  []Social            `json:"socials,omitempty" bson:"socials,omitempty"`
 	Relevant bool                `json:"relevant,omitempty" bson:"relevant,omitempty"`
 }

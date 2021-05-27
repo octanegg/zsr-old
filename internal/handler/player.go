@@ -226,7 +226,10 @@ func playersFilter(v url.Values) bson.M {
 	return filter.New(
 		filter.Strings("country", v["country"]),
 		filter.FuzzyStrings("tag", v["tag"]),
-		filter.ObjectIDs("team._id", v["team"]),
+		filter.Or(
+			filter.ObjectIDs("team._id", v["team"]),
+			filter.Strings("team.slug", v["team"]),
+		),
 		filter.Bool("relevant", v.Get("relevant")),
 	)
 }

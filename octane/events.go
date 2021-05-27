@@ -19,6 +19,7 @@ type Event struct {
 	Tier      string              `json:"tier,omitempty" bson:"tier,omitempty"`
 	Image     string              `json:"image,omitempty" bson:"image,omitempty"`
 	Groups    []string            `json:"groups,omitempty" bson:"groups,omitempty"`
+	Socials   []Social            `json:"socials,omitempty" bson:"socials,omitempty"`
 	Stages    []*Stage            `json:"stages,omitempty" bson:"stages,omitempty"`
 }
 

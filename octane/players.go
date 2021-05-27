@@ -11,6 +11,7 @@ type Player struct {
 	Country    string              `json:"country,omitempty" bson:"country,omitempty"`
 	Team       *Team               `json:"team,omitempty" bson:"team,omitempty"`
 	Accounts   []*Account          `json:"accounts,omitempty" bson:"accounts,omitempty"`
+	Socials    []Social            `json:"socials,omitempty" bson:"socials,omitempty"`
 	Substitute bool                `json:"substitute,omitempty" bson:"substitute,omitempty"`
 	Coach      bool                `json:"coach,omitempty" bson:"coach,omitempty"`
 	Relevant   bool                `json:"relevant,omitempty" bson:"relevant,omitempty"`
@@ -20,4 +21,9 @@ type Player struct {
 type Account struct {
 	Platform string `json:"platform,omitempty" bson:"platform,omitempty"`
 	ID       string `json:"id,omitempty" bson:"id,omitempty"`
+}
+
+type Social struct {
+	Type string `json:"type,omitempty" bson:"type,omitempty"`
+	Link string `json:"link,omitempty" bson:"link,omitempty"`
 }
