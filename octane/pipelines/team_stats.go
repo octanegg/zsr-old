@@ -2,6 +2,7 @@ package pipelines
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/octanegg/zsr/octane"
@@ -102,32 +103,39 @@ func TeamStats(filter, group, having bson.M, _stats []string) *Pipeline {
 				"$sum": "$opponent.stats.core.shots",
 			}
 		} else {
+			stat := stat
+
+			var statType string
+			if strings.Contains(stat, "Against") {
+				stat = stat[:len(stat)-7]
+				statType = "against"
+			} else if strings.Contains(stat, "Differential") {
+				stat = stat[:len(stat)-12]
+				statType = "differential"
+			}
+
 			groupName, statMapping := stats.TeamStatMapping(stat)
 			if statMapping == "" {
 				continue
 			}
 
-			field := bson.M{
-				"$sum": fmt.Sprintf("$player.stats.%s.%s", groupName, statMapping),
-			}
-
-			if groupName == "against" {
-				field = bson.M{
+			if statType == "against" {
+				_group[fmt.Sprintf("%s_against", statMapping)] = bson.M{
 					"$sum": bson.M{
 						"$divide": bson.A{
-							fmt.Sprintf("$opponent.stats.core.%s", statMapping),
+							fmt.Sprintf("$opponent.stats.%s.%s", groupName, statMapping),
 							"$game.match.event.mode",
 						},
 					},
 				}
-			} else if groupName == "differential" {
-				field = bson.M{
+			} else if statType == "differential" {
+				_group[fmt.Sprintf("%s_differential", statMapping)] = bson.M{
 					"$sum": bson.M{
 						"$divide": bson.A{
 							bson.M{
 								"$subtract": bson.A{
-									fmt.Sprintf("$team.stats.core.%s", statMapping),
-									fmt.Sprintf("$opponent.stats.core.%s", statMapping),
+									fmt.Sprintf("$team.stats.%s.%s", groupName, statMapping),
+									fmt.Sprintf("$opponent.stats.%s.%s", groupName, statMapping),
 								},
 							},
 							"$game.match.event.mode",
@@ -135,8 +143,8 @@ func TeamStats(filter, group, having bson.M, _stats []string) *Pipeline {
 					},
 				}
 
-			} else if groupName == "ball" || stat == "shootingPercentage" {
-				field = bson.M{
+			} else if groupName == "ball" {
+				_group[statMapping] = bson.M{
 					"$sum": bson.M{
 						"$divide": bson.A{
 							fmt.Sprintf("$team.stats.%s.%s", groupName, statMapping),
@@ -144,9 +152,11 @@ func TeamStats(filter, group, having bson.M, _stats []string) *Pipeline {
 						},
 					},
 				}
+			} else {
+				_group[statMapping] = bson.M{
+					"$sum": fmt.Sprintf("$player.stats.%s.%s", groupName, statMapping),
+				}
 			}
-
-			_group[statMapping] = field
 		}
 	}
 
@@ -234,11 +244,26 @@ func teamStatsMapping(s []string) bson.M {
 				},
 			}
 		} else {
-			_, statMapping := stats.TeamStatMapping(stat)
-			if statMapping != "" {
-				mapping[stat] = fmt.Sprintf("$%s", statMapping)
-			} else {
+			_stat := stat
+
+			var statType string
+			if strings.Contains(stat, "Against") {
+				_stat = stat[:len(stat)-7]
+				statType = "against"
+			} else if strings.Contains(stat, "Differential") {
+				_stat = stat[:len(stat)-12]
+				statType = "differential"
+			}
+
+			_, statMapping := stats.TeamStatMapping(_stat)
+			if statMapping == "" {
 				mapping[stat] = fmt.Sprintf("$%s", stat)
+			} else if statType == "against" {
+				mapping[stat] = fmt.Sprintf("$%s_against", statMapping)
+			} else if statType == "differential" {
+				mapping[stat] = fmt.Sprintf("$%s_differential", statMapping)
+			} else {
+				mapping[stat] = fmt.Sprintf("$%s", statMapping)
 			}
 		}
 	}
