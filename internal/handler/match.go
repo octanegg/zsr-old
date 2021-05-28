@@ -286,6 +286,7 @@ func (h *handler) UpdateMatches(w http.ResponseWriter, r *http.Request) {
 			set["slug"] = helper.MatchSlug(&match)
 
 			update := bson.M{"$set": set}
+
 			if len(unset) > 0 {
 				update["$unset"] = unset
 			}

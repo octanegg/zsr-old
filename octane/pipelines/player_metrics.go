@@ -49,6 +49,15 @@ func PlayerMetrics(filter bson.M, _stats []string) *Pipeline {
 		"game_seconds": bson.M{
 			"$sum": "$game.duration",
 		},
+		"game_replay_seconds": bson.M{
+			"$sum": bson.M{
+				"$cond": bson.A{
+					bson.M{
+						"$ifNull": bson.A{"$game.ballchasing", false},
+					}, "$game.duration", 0,
+				},
+			},
+		},
 		"matches": bson.M{
 			"$addToSet": "$game.match._id",
 		},
@@ -117,10 +126,11 @@ func PlayerMetrics(filter bson.M, _stats []string) *Pipeline {
 			"player": "$player",
 			"date":   "$date",
 			"games": bson.M{
-				"total":   "$games",
-				"replays": "$game_replays",
-				"wins":    "$game_wins",
-				"seconds": "$game_seconds",
+				"total":          "$games",
+				"replays":        "$game_replays",
+				"wins":           "$game_wins",
+				"seconds":        "$game_seconds",
+				"replay_seconds": "$game__replay_seconds",
 			},
 			"match": bson.M{
 				"total": bson.M{
@@ -143,10 +153,11 @@ func PlayerMetrics(filter bson.M, _stats []string) *Pipeline {
 			var player struct {
 				Date  *time.Time `json:"date" bson:"date"`
 				Games struct {
-					Total   float64 `json:"total" bson:"total"`
-					Replays float64 `json:"replays" bson:"replays"`
-					Wins    float64 `json:"wins" bson:"wins"`
-					Seconds float64 `json:"seconds" bson:"seconds"`
+					Total         float64 `json:"total" bson:"total"`
+					Replays       float64 `json:"replays" bson:"replays"`
+					Wins          float64 `json:"wins" bson:"wins"`
+					Seconds       float64 `json:"seconds" bson:"seconds"`
+					ReplaySeconds float64 `json:"replaySeconds" bson:"replay_seconds"`
 				} `json:"games" bson:"games"`
 				Matches struct {
 					Total   float64 `json:"total" bson:"total"`

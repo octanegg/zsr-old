@@ -164,7 +164,9 @@ func (h *handler) UpdatePlayer(w http.ResponseWriter, r *http.Request) {
 		unset["relevant"] = ""
 	}
 
-	update["$unset"] = unset
+	if len(unset) > 0 {
+		update["$unset"] = unset
+	}
 
 	if _, err := h.Octane.Players().UpdateOne(bson.M{"_id": id}, update); err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

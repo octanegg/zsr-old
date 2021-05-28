@@ -62,6 +62,22 @@ func TeamStats(filter, group, having bson.M, _stats []string) *Pipeline {
 				},
 			},
 		},
+		"game_seconds": bson.M{
+			"$sum": bson.M{
+				"$divide": bson.A{"$game.duration", "$game.match.event.mode"},
+			},
+		},
+		"game_replay_seconds": bson.M{
+			"$sum": bson.M{
+				"$cond": bson.A{
+					bson.M{
+						"$ifNull": bson.A{"$game.ballchasing", false},
+					}, bson.M{
+						"$divide": bson.A{"$game.duration", "$game.match.event.mode"},
+					}, 0,
+				},
+			},
+		},
 		"matches": bson.M{
 			"$addToSet": "$game.match._id",
 		},
@@ -90,17 +106,27 @@ func TeamStats(filter, group, having bson.M, _stats []string) *Pipeline {
 	for _, stat := range _stats {
 		if stat == "shootingPercentage" {
 			_group["goals"] = bson.M{
-				"$sum": "$team.stats.core.goals",
+				"$sum": "$player.stats.core.goals",
 			}
 			_group["shots"] = bson.M{
-				"$sum": "$team.stats.core.shots",
+				"$sum": "$player.stats.core.shots",
 			}
 		} else if stat == "shootingPercentageAgainst" {
 			_group["opponent_goals"] = bson.M{
-				"$sum": "$opponent.stats.core.goals",
+				"$sum": bson.M{
+					"$divide": bson.A{
+						"$opponent.stats.core.goals",
+						"$game.match.event.mode",
+					},
+				},
 			}
 			_group["opponent_shots"] = bson.M{
-				"$sum": "$opponent.stats.core.shots",
+				"$sum": bson.M{
+					"$divide": bson.A{
+						"$opponent.stats.core.shots",
+						"$game.match.event.mode",
+					},
+				},
 			}
 		} else {
 			stat := stat
@@ -173,9 +199,11 @@ func TeamStats(filter, group, having bson.M, _stats []string) *Pipeline {
 			"start_date": "$start_date",
 			"end_date":   "$end_date",
 			"games": bson.M{
-				"total":   "$games",
-				"replays": "$game_replays",
-				"wins":    "$game_wins",
+				"total":          "$games",
+				"replays":        "$game_replays",
+				"wins":           "$game_wins",
+				"seconds":        "$game_seconds",
+				"replay_seconds": "$game_replay_seconds",
 			},
 			"match": bson.M{
 				"total": bson.M{
@@ -203,9 +231,11 @@ func TeamStats(filter, group, having bson.M, _stats []string) *Pipeline {
 				StartDate *time.Time       `json:"startDate" bson:"start_date"`
 				EndDate   *time.Time       `json:"endDate" bson:"end_date"`
 				Games     struct {
-					Total   float64 `json:"total" bson:"total"`
-					Replays float64 `json:"replays" bson:"replays"`
-					Wins    float64 `json:"wins" bson:"wins"`
+					Total         float64 `json:"total" bson:"total"`
+					Replays       float64 `json:"replays" bson:"replays"`
+					Wins          float64 `json:"wins" bson:"wins"`
+					Seconds       float64 `json:"seconds" bson:"seconds"`
+					ReplaySeconds float64 `json:"replaySeconds" bson:"replay_seconds"`
 				} `json:"games" bson:"games"`
 				Matches struct {
 					Total   float64 `json:"total" bson:"total"`
