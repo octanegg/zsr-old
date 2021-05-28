@@ -26,6 +26,12 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodGet)
 	e.HandleFunc("/{_id}/matches", h.GetEventMatches).
 		Methods(http.MethodGet)
+	e.HandleFunc("", h.CreateEvent).
+		Methods(http.MethodPost)
+	e.HandleFunc("/{_id}", h.UpdateEvent).
+		Methods(http.MethodPut)
+	e.HandleFunc("/{_id}", h.DeleteEvent).
+		Methods(http.MethodDelete)
 	e.HandleFunc("/{_id}/participants", h.GetEventParticipants).
 		Methods(http.MethodGet)
 
@@ -34,6 +40,14 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodGet)
 	m.HandleFunc("/{_id}", h.GetMatch).
 		Methods(http.MethodGet)
+	m.HandleFunc("", h.CreateMatch).
+		Methods(http.MethodPost)
+	m.HandleFunc("/{_id}", h.UpdateMatch).
+		Methods(http.MethodPut)
+	m.HandleFunc("/{_id}", h.DeleteMatch).
+		Methods(http.MethodDelete)
+	m.HandleFunc("", h.UpdateMatches).
+		Methods(http.MethodPut)
 	m.HandleFunc("/{_id}/games", h.GetMatchGames).
 		Methods(http.MethodGet)
 	m.HandleFunc("/{_id}/games/{number}", h.GetMatchGame).
@@ -44,12 +58,24 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodGet)
 	g.HandleFunc("/{_id}", h.GetGame).
 		Methods(http.MethodGet)
+	g.HandleFunc("", h.CreateGame).
+		Methods(http.MethodPost)
+	g.HandleFunc("/{_id}", h.UpdateGame).
+		Methods(http.MethodPut)
+	g.HandleFunc("/{_id}", h.DeleteGame).
+		Methods(http.MethodDelete)
 
 	p := r.PathPrefix("/players").Subrouter()
 	p.HandleFunc("", h.GetPlayers).
 		Methods(http.MethodGet)
 	p.HandleFunc("/{_id}", h.GetPlayer).
 		Methods(http.MethodGet)
+	p.HandleFunc("", h.CreatePlayer).
+		Methods(http.MethodPost)
+	p.HandleFunc("/{_id}", h.UpdatePlayer).
+		Methods(http.MethodPut)
+	p.HandleFunc("/{_id}/merge", h.MergePlayers).
+		Methods(http.MethodPost)
 
 	t := r.PathPrefix("/teams").Subrouter()
 	t.HandleFunc("", h.GetTeams).
@@ -58,6 +84,10 @@ func routes(h handler.Handler) http.Handler {
 		Methods(http.MethodGet)
 	t.HandleFunc("/{_id}", h.GetTeam).
 		Methods(http.MethodGet)
+	t.HandleFunc("", h.CreateTeam).
+		Methods(http.MethodPost)
+	t.HandleFunc("/{_id}", h.UpdateTeam).
+		Methods(http.MethodPut)
 
 	c := r.PathPrefix("/records").Subrouter()
 	c.HandleFunc("/players", h.GetPlayerRecords).
@@ -86,40 +116,11 @@ func routes(h handler.Handler) http.Handler {
 	s.HandleFunc("/teams/events", h.GetTeamEventStats).
 		Methods(http.MethodGet)
 
-	e.HandleFunc("", h.CreateEvent).
-		Methods(http.MethodPost)
-	e.HandleFunc("/{_id}", h.UpdateEvent).
-		Methods(http.MethodPut)
-	e.HandleFunc("/{_id}", h.DeleteEvent).
-		Methods(http.MethodDelete)
-
-	m.HandleFunc("", h.CreateMatch).
-		Methods(http.MethodPost)
-	m.HandleFunc("/{_id}", h.UpdateMatch).
-		Methods(http.MethodPut)
-	m.HandleFunc("/{_id}", h.DeleteMatch).
-		Methods(http.MethodDelete)
-	m.HandleFunc("", h.UpdateMatches).
-		Methods(http.MethodPut)
-
-	g.HandleFunc("", h.CreateGame).
-		Methods(http.MethodPost)
-	g.HandleFunc("/{_id}", h.UpdateGame).
-		Methods(http.MethodPut)
-	g.HandleFunc("/{_id}", h.DeleteGame).
-		Methods(http.MethodDelete)
-
-	p.HandleFunc("", h.CreatePlayer).
-		Methods(http.MethodPost)
-	p.HandleFunc("/{_id}", h.UpdatePlayer).
-		Methods(http.MethodPut)
-	p.HandleFunc("/{_id}/merge", h.MergePlayers).
-		Methods(http.MethodPost)
-
-	t.HandleFunc("", h.CreateTeam).
-		Methods(http.MethodPost)
-	t.HandleFunc("/{_id}", h.UpdateTeam).
-		Methods(http.MethodPut)
+	d := r.PathPrefix("/metrics").Subrouter()
+	d.HandleFunc("/players", h.GetPlayerMetrics).
+		Methods(http.MethodGet)
+	d.HandleFunc("/teams", h.GetTeamMetrics).
+		Methods(http.MethodGet)
 
 	return cors.AllowAll().Handler(r)
 }
