@@ -129,7 +129,11 @@ func pagination(v url.Values) *collection.Pagination {
 	}
 
 	if pp == 0 {
-		pp = 50
+		pp = 100
+	}
+
+	if pp > 500 {
+		pp = 500
 	}
 
 	return &collection.Pagination{
