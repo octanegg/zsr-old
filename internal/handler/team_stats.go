@@ -117,7 +117,6 @@ func statlinesFilter(v url.Values) bson.M {
 					filter.Bool("game.match.stage.qualifier", v.Get("qualifier")),
 					filter.NotEqual("game.match.event.tier", "Qualifier"),
 				),
-				filter.Strings("game.match.event.tier", []string{"Qualifier"}),
 			),
 		),
 		filter.Ints("game.match.stage._id", v["stage"]),

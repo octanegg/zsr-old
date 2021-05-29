@@ -187,23 +187,39 @@ func playerStatsMapping(s []string) bson.M {
 	for _, stat := range s {
 		if stat == "shootingPercentage" {
 			mapping[stat] = bson.M{
-				"$multiply": bson.A{
+				"$cond": bson.A{
 					bson.M{
-						"$divide": bson.A{"$goals", "$shots"},
+						"$gt": bson.A{"$shots", 0},
 					},
-					100,
+					bson.M{
+						"$multiply": bson.A{
+							bson.M{
+								"$divide": bson.A{"$goals", "$shots"},
+							},
+							100,
+						},
+					},
+					0,
 				},
 			}
 		} else if stat == "goalParticipation" {
 			mapping[stat] = bson.M{
-				"$multiply": bson.A{
+				"$cond": bson.A{
 					bson.M{
-						"$divide": bson.A{
-							bson.M{"$add": bson.A{"$goals", "$assists"}},
-							"$team_goals",
+						"$gt": bson.A{"$team_goals", 0},
+					},
+					bson.M{
+						"$multiply": bson.A{
+							bson.M{
+								"$divide": bson.A{
+									bson.M{"$add": bson.A{"$goals", "$assists"}},
+									"$team_goals",
+								},
+							},
+							100,
 						},
 					},
-					100,
+					0,
 				},
 			}
 		} else {
