@@ -219,6 +219,16 @@ func And(fields ...*Field) *Field {
 	}
 }
 
+// NotEqual .
+func NotEqual(key, val string) *Field {
+	return &Field{
+		Key: key,
+		Value: bson.M{
+			"$ne": val,
+		},
+	}
+}
+
 // ExplicitAnd .
 func ExplicitAnd(fields ...*Field) *Field {
 	f := []bson.M{}
