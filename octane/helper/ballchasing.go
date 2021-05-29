@@ -22,6 +22,7 @@ func UseBallchasing(client octane.Client, game *octane.Game) (*octane.Game, erro
 
 	game.BallchasingID = replay.ID
 	game.Duration = 300 + replay.OvertimeSeconds
+	game.Overtime = game.Duration > 300
 	game.Date = &replay.Date
 	game.Map = &octane.Map{
 		ID:   replay.MapCode,

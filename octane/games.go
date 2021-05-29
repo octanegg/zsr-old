@@ -14,6 +14,7 @@ type Game struct {
 	Match           *Match              `json:"match,omitempty" bson:"match,omitempty"`
 	Map             *Map                `json:"map,omitempty" bson:"map,omitempty"`
 	Duration        int                 `json:"duration,omitempty" bson:"duration,omitempty"`
+	Overtime        bool                `json:"overtime,omitempty" bson:"overtime,omitempty"`
 	Date            *time.Time          `json:"date,omitempty" bson:"date,omitempty"`
 	Blue            *GameSide           `json:"blue,omitempty" bson:"blue,omitempty"`
 	Orange          *GameSide           `json:"orange,omitempty" bson:"orange,omitempty"`

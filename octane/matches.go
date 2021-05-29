@@ -30,6 +30,7 @@ type GameOverview struct {
 	Blue          float64             `json:"blue" bson:"blue"`
 	Orange        float64             `json:"orange" bson:"orange"`
 	Duration      int                 `json:"duration,omitempty" bson:"duration,omitempty"`
+	Overtime      bool                `json:"overtime,omitempty" bson:"overtime,omitempty"`
 	BallchasingID string              `json:"ballchasing,omitempty" bson:"ballchasing,omitempty"`
 }
 

@@ -149,6 +149,7 @@ func (h *handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 		game.Orange.Team.Stats = helper.PlayerStatsToTeamStats(game.Orange.Players)
 		game.Blue.Winner = game.Blue.Team.Stats.Core.Goals > game.Orange.Team.Stats.Core.Goals
 		game.Orange.Winner = game.Orange.Team.Stats.Core.Goals > game.Blue.Team.Stats.Core.Goals
+		game.Overtime = game.Duration > 300
 
 		for _, player := range game.Blue.Players {
 			player.Advanced = &octane.AdvancedStats{}
@@ -243,6 +244,7 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 		game.Orange.Team.Stats = helper.PlayerStatsToTeamStats(game.Orange.Players)
 		game.Blue.Winner = game.Blue.Team.Stats.Core.Goals > game.Orange.Team.Stats.Core.Goals
 		game.Orange.Winner = game.Orange.Team.Stats.Core.Goals > game.Blue.Team.Stats.Core.Goals
+		game.Overtime = game.Duration > 300
 
 		for _, player := range game.Blue.Players {
 			player.Advanced = &octane.AdvancedStats{}

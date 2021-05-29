@@ -207,6 +207,7 @@ func GameToStatlines(game *octane.Game) ([]*octane.Statline, []*octane.Statline)
 				Date:          game.Date,
 				Map:           game.Map,
 				Duration:      game.Duration,
+				Overtime:      game.Overtime,
 				BallchasingID: game.BallchasingID,
 			},
 			Team: &octane.StatlineSide{
@@ -238,6 +239,7 @@ func GameToStatlines(game *octane.Game) ([]*octane.Statline, []*octane.Statline)
 				Date:          game.Date,
 				Map:           game.Map,
 				Duration:      game.Duration,
+				Overtime:      game.Overtime,
 				BallchasingID: game.BallchasingID,
 			},
 			Team: &octane.StatlineSide{
@@ -478,6 +480,7 @@ func GamesToGameOverviews(games []*octane.Game) []*octane.GameOverview {
 			Blue:          game.Blue.Team.Stats.Core.Goals,
 			Orange:        game.Orange.Team.Stats.Core.Goals,
 			Duration:      game.Duration,
+			Overtime:      game.Overtime,
 			BallchasingID: game.BallchasingID,
 		})
 	}
