@@ -22,15 +22,17 @@ func PlayerGameRecords(filter bson.M, stat string) *Pipeline {
 	}
 
 	groupName, statMapping := stats.PlayerStatMapping(stat)
-	project["stat"] = fmt.Sprintf("$player.stats.%s.%s", groupName, statMapping)
+	_stat := fmt.Sprintf("player.stats.%s.%s", groupName, statMapping)
 	if groupName == "advanced" {
-		project["stat"] = fmt.Sprintf("$player.%s.%s", groupName, statMapping)
+		_stat = fmt.Sprintf("player.%s.%s", groupName, statMapping)
 	}
+
+	project["stat"] = fmt.Sprintf("$%s", _stat)
 
 	pipeline := New(
 		Match(filter),
+		Sort(_stat, true),
 		Project(project),
-		Sort("stat", true),
 		Limit(25),
 	)
 
