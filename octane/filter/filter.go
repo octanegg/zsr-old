@@ -229,6 +229,25 @@ func NotEqual(key, val string) *Field {
 	}
 }
 
+// Exists .
+func Exists(key string) *Field {
+	return &Field{
+		Key: key,
+		Value: bson.M{
+			"$exists": true,
+		},
+	}
+}
+
+// If .
+func If(b bool, field *Field) *Field {
+	if b {
+		return field
+	}
+
+	return nil
+}
+
 // ExplicitAnd .
 func ExplicitAnd(fields ...*Field) *Field {
 	f := []bson.M{}

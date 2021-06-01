@@ -80,6 +80,8 @@ This API powers Octane.gg and is available for public use. If you're actively us
 - Parameters
   + id: 5f35882d53fbbb5894b43040 (required, string) - an event id
 
+    + stage: 1 (number, optional) - a stage id
+
 ### Get Event Matches [GET]
 
 - Response 200 (application/json)
@@ -156,6 +158,8 @@ This API powers Octane.gg and is available for public use. If you're actively us
     + team: 6020bc70f1e4807cc70023c7 (string, optional) - a team id
 
     + opponent 6020bc70f1e4807cc70023a0 (string, optional) - an opponent team id
+    
+    + tbd: false (boolean, optional) - no tbd matches
     
     + sort: name (string, optional) - field to sort by
     

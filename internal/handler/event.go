@@ -193,7 +193,12 @@ func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 func (h *handler) GetEventMatches(w http.ResponseWriter, r *http.Request) {
 	re := regexp.MustCompile("^[0-9a-fA-F]{24}$")
 
-	filter := bson.M{"event.slug": mux.Vars(r)["_id"]}
+	v := r.URL.Query()
+	filter := filter.New(
+		filter.Ints("stage._id", v["stage"]),
+	)
+
+	filter["event.slug"] = mux.Vars(r)["_id"]
 	if re.MatchString(mux.Vars(r)["_id"]) {
 		id, err := primitive.ObjectIDFromHex(mux.Vars(r)["_id"])
 		if err != nil {
@@ -201,7 +206,7 @@ func (h *handler) GetEventMatches(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 			return
 		}
-		filter = bson.M{"event._id": id}
+		filter["event.slug"] = id
 	}
 
 	data, err := h.Octane.Matches().Find(filter, nil, nil)
