@@ -34,6 +34,7 @@ type Stage struct {
 	Prize      *Prize      `json:"prize,omitempty" bson:"prize,omitempty"`
 	Liquipedia string      `json:"liquipedia,omitempty" bson:"liquipedia,omitempty"`
 	Qualifier  bool        `json:"qualifier,omitempty" bson:"qualifier,omitempty"`
+	LAN        bool        `json:"lan,omitempty" bson:"lan,omitempty"`
 	Location   *Location   `json:"location,omitempty" bson:"location,omitempty"`
 	Substages  []*Substage `json:"substages,omitempty" bson:"substages,omitempty"`
 }

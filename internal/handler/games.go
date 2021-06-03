@@ -290,6 +290,8 @@ func gamesFilter(v url.Values) bson.M {
 		filter.Ints("match.format.length", v["bestOf"]),
 		filter.Strings("match.event.groups", v["group"]),
 		filter.Bool("match.stage.qualifier", v.Get("qualifier")),
+		filter.Bool("match.stage.lan", v.Get("lan")),
+		filter.Bool("overtime", v.Get("overtime")),
 		filter.ExplicitAnd(
 			filter.Or(
 				filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])),

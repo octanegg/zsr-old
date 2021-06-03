@@ -389,6 +389,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
 
     + qualifier: true (boolean, optional) - stage is a qualifier
 
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
+
     + winner: true (boolean, optional) - game or series winnner
 
     + nationality: us (string, optional) - a 2-letter country code
@@ -461,6 +465,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
 
     + qualifier: true (boolean, optional) - stage is a qualifier
 
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
+
     + winner: true (boolean, optional) - game or series winnner
 
     + nationality: us (string, optional) - a 2-letter country code
@@ -523,6 +531,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
     + match: 6043152fa09e7fba40d2ae62 (string, optional) - a match id
 
     + qualifier: true (boolean, optional) - stage is a qualifier
+
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
     
     + tier: `S` (enum[string], optional) - an event tier  
         + Members
@@ -585,6 +597,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
     + match: 6043152fa09e7fba40d2ae62 (string, optional) - a match id
 
     + qualifier: true (boolean, optional) - stage is a qualifier
+
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
     
     + tier: `S` (enum[string], optional) - an event tier  
         + Members
@@ -650,6 +666,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
     + match: 6043152fa09e7fba40d2ae62 (string, optional) - a match id
 
     + qualifier: true (boolean, optional) - stage is a qualifier
+
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
 
     + winner: true (boolean, optional) - game or series winnner
 
@@ -718,6 +738,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
 
     + qualifier: true (boolean, optional) - stage is a qualifier
 
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
+
     + winner: true (boolean, optional) - game or series winnner
 
     + nationality: us (string, optional) - a 2-letter country code
@@ -785,6 +809,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
     + match: 6043152fa09e7fba40d2ae62 (string, optional) - a match id
 
     + qualifier: true (boolean, optional) - stage is a qualifier
+
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
 
     + winner: true (boolean, optional) - game or series winnner
 
@@ -855,6 +883,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
 
     + qualifier: true (boolean, optional) - stage is a qualifier
 
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
+
     + winner: true (boolean, optional) - game or series winnner
 
     + nationality: us (string, optional) - a 2-letter country code
@@ -924,6 +956,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
 
     + qualifier: true (boolean, optional) - stage is a qualifier
 
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
+
     + winner: true (boolean, optional) - game or series winnner
 
     + nationality: us (string, optional) - a 2-letter country code
@@ -990,6 +1026,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
 
     + qualifier: true (boolean, optional) - stage is a qualifier
 
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
+
     + winner: true (boolean, optional) - game or series winnner
 
     + nationality: us (string, optional) - a 2-letter country code
@@ -1055,6 +1095,10 @@ This API powers Octane.gg and is available for public use. If you're actively us
     + match: 6043152fa09e7fba40d2ae62 (string, optional) - a match id
 
     + qualifier: true (boolean, optional) - stage is a qualifier
+
+    + overtime: true (boolean, optional) - game was overtime
+
+    + lan: true (boolean, optional) - game was on lan
 
     + winner: true (boolean, optional) - game or series winnner
 

@@ -382,6 +382,7 @@ func matchesFilter(v url.Values) bson.M {
 		filter.Bool("reverse_sweep", v.Get("reverseSweep")),
 		filter.Bool("reverse_sweep_attempt", v.Get("reverseSweepAttempt")),
 		filter.Bool("stage.qualifier", v.Get("qualifier")),
+		filter.Bool("stage.lan", v.Get("lan")),
 		filter.If(v.Get("tbd") == "false", filter.ExplicitAnd(
 			filter.Exists("blue.team"),
 			filter.Exists("orange.team"),

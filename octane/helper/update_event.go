@@ -88,5 +88,67 @@ func UpdateEvent(client octane.Client, old, new *primitive.ObjectID) error {
 		return err
 	}
 
+	for i, stage := range oldEvent.Stages {
+		if _, err := client.Matches().Update(
+			bson.M{
+				"event._id": oldEvent.ID,
+				"stage._id": stage.ID,
+			},
+			bson.M{
+				"$set": bson.M{
+					"stage": bson.M{
+						"_id":       newEvent.Stages[i].ID,
+						"name":      newEvent.Stages[i].Name,
+						"format":    newEvent.Stages[i].Format,
+						"qualifier": newEvent.Stages[i].Qualifier,
+						"lan":       newEvent.Stages[i].LAN,
+					},
+				},
+			},
+		); err != nil {
+			return err
+		}
+
+		if _, err := client.Games().Update(
+			bson.M{
+				"match.event._id": oldEvent.ID,
+				"match.stage._id": stage.ID,
+			},
+			bson.M{
+				"$set": bson.M{
+					"match.stage": bson.M{
+						"_id":       newEvent.Stages[i].ID,
+						"name":      newEvent.Stages[i].Name,
+						"format":    newEvent.Stages[i].Format,
+						"qualifier": newEvent.Stages[i].Qualifier,
+						"lan":       newEvent.Stages[i].LAN,
+					},
+				},
+			},
+		); err != nil {
+			return err
+		}
+
+		if _, err := client.Statlines().Update(
+			bson.M{
+				"game.match.event._id": oldEvent.ID,
+				"game.match.stage._id": stage.ID,
+			},
+			bson.M{
+				"$set": bson.M{
+					"game.match.stage": bson.M{
+						"_id":       newEvent.Stages[i].ID,
+						"name":      newEvent.Stages[i].Name,
+						"format":    newEvent.Stages[i].Format,
+						"qualifier": newEvent.Stages[i].Qualifier,
+						"lan":       newEvent.Stages[i].LAN,
+					},
+				},
+			},
+		); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }

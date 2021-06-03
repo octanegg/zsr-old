@@ -119,6 +119,7 @@ func statlinesFilter(v url.Values) bson.M {
 				),
 			),
 		),
+		filter.Bool("game.match.stage.lan", v.Get("lan")),
 		filter.Bool("game.overtime", v.Get("overtime")),
 		filter.Ints("game.match.stage._id", v["stage"]),
 		filter.Strings("player.player.country", v["nationality"]),
