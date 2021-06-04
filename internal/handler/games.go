@@ -279,7 +279,6 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 
 func gamesFilter(v url.Values) bson.M {
 	return filter.New(
-		filter.ObjectIDs("match.event._id", v["event"]),
 		filter.Strings("match.event.tier", v["tier"]),
 		filter.Strings("match.event.region", v["region"]),
 		filter.Ints("match.event.mode", v["mode"]),
@@ -293,6 +292,10 @@ func gamesFilter(v url.Values) bson.M {
 		filter.Bool("match.stage.lan", v.Get("lan")),
 		filter.Bool("overtime", v.Get("overtime")),
 		filter.ExplicitAnd(
+			filter.Or(
+				filter.ObjectIDs("match.event._id", v["event"]),
+				filter.Strings("match.event.slug", v["event"]),
+			),
 			filter.Or(
 				filter.ElemMatch("blue.players", filter.ObjectIDs("player._id", v["player"])),
 				filter.ElemMatch("orange.players", filter.ObjectIDs("player._id", v["player"])),
