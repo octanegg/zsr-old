@@ -61,7 +61,7 @@ func TeamMetrics(filter bson.M, _stats []string) *Pipeline {
 				"$cond": bson.A{
 					bson.M{
 						"$ifNull": bson.A{"$game.ballchasing", false},
-					}, "$game.match._id", bson.TypeNull,
+					}, "$game.match._id", "$$REMOVE",
 				},
 			},
 		},
@@ -72,7 +72,7 @@ func TeamMetrics(filter bson.M, _stats []string) *Pipeline {
 						"$eq": bson.A{
 							"$team.match_winner", true,
 						},
-					}, "$game.match._id", bson.TypeNull,
+					}, "$game.match._id", "$$REMOVE",
 				},
 			},
 		},

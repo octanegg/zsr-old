@@ -138,6 +138,12 @@ func (h *handler) CreateEvent(w http.ResponseWriter, r *http.Request) {
 
 	}
 
+	for _, stage := range event.Stages {
+		if stage.Location != nil {
+			stage.LAN = true
+		}
+	}
+
 	id := primitive.NewObjectID()
 	event.ID = &id
 	event.Slug = helper.EventSlug(&event)
@@ -173,6 +179,12 @@ func (h *handler) UpdateEvent(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(Error{time.Now(), err.Error()})
 		return
 
+	}
+
+	for _, stage := range event.Stages {
+		if stage.Location != nil {
+			stage.LAN = true
+		}
 	}
 
 	event.Slug = helper.EventSlug(&event)
@@ -268,5 +280,6 @@ func eventsFilter(v url.Values) bson.M {
 		filter.BeforeDate("start_date", v.Get("date")),
 		filter.AfterDate("start_date", v.Get("after")),
 		filter.BeforeDate("end_date", v.Get("before")),
+		filter.Bool("stages.lan", v.Get("lan")),
 	)
 }
