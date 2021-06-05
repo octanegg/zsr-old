@@ -86,7 +86,7 @@ func PlayerStats(filter, group, having bson.M, _stats []string) *Pipeline {
 						"$eq": bson.A{
 							"$team.match_winner", true,
 						},
-					}, "$game.match", "$$REMOVE",
+					}, "$game.match._id", "$$REMOVE",
 				},
 			},
 		},

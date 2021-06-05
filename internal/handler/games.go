@@ -183,6 +183,7 @@ func (h *handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 	}{id.Hex()})
 
 	helper.UpdateGame(h.Octane, id)
+	helper.UpdateMatch(h.Octane, game.Match.ID, game.Match.ID)
 	helper.UpdateMatchAggregate(h.Octane, game.Match.ID)
 }
 
@@ -274,6 +275,7 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	helper.UpdateGame(h.Octane, &id)
+	helper.UpdateMatch(h.Octane, game.Match.ID, game.Match.ID)
 	helper.UpdateMatchAggregate(h.Octane, game.Match.ID)
 }
 
