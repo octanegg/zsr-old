@@ -8,8 +8,9 @@ import (
 )
 
 func EventParticipants(matches []interface{}, stages []int) []*octane.Participant {
-	participantsMap := make(map[string]*octane.Participant)
+	playerMatchCount, participantsMap := make(map[string]int), make(map[string]*octane.Participant)
 	teams := []string{}
+
 	for _, m := range matches {
 		match := m.(octane.Match)
 		if match.Blue != nil && match.Blue.Team != nil {
@@ -24,6 +25,11 @@ func EventParticipants(matches []interface{}, stages []int) []*octane.Participan
 					Players: []*octane.Player{},
 				}
 			}
+			
+			for _, player := range match.Blue.Players {
+				playerMatchCount[player.Player.ID.Hex()] += 1
+			}
+
 			participantsMap[id].Players = append(participantsMap[id].Players, getPlayers(participantsMap[id].Players, match.Blue.Players)...)
 		}
 		if match.Orange != nil && match.Orange.Team != nil {
@@ -38,6 +44,11 @@ func EventParticipants(matches []interface{}, stages []int) []*octane.Participan
 					Players: []*octane.Player{},
 				}
 			}
+
+			for _, player := range match.Orange.Players {
+				playerMatchCount[player.Player.ID.Hex()] += 1
+			}
+
 			participantsMap[id].Players = append(participantsMap[id].Players, getPlayers(participantsMap[id].Players, match.Orange.Players)...)
 		}
 	}
@@ -65,7 +76,11 @@ func EventParticipants(matches []interface{}, stages []int) []*octane.Participan
 				return !a.Substitute
 			}
 
-			return a.Tag < b.Tag
+			if playerMatchCount[a.ID.Hex()] == playerMatchCount[b.ID.Hex()] {
+				return a.Tag < b.Tag
+			}
+
+			return playerMatchCount[a.ID.Hex()] > playerMatchCount[b.ID.Hex()]
 		})
 
 		if len(participant.Players) > 0 {

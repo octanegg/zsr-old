@@ -101,6 +101,10 @@ func statlinesFilter(v url.Values) bson.M {
 				filter.Strings("game.match.event.slug", v["event"]),
 			),
 			filter.Or(
+				filter.ObjectIDs("game.match._id", v["match"]),
+				filter.Strings("game.match.slug", v["match"]),
+			),
+			filter.Or(
 				filter.ObjectIDs("player.player._id", v["player"]),
 				filter.Strings("player.player.slug", v["player"]),
 			),
