@@ -182,9 +182,9 @@ func (h *handler) CreateGame(w http.ResponseWriter, r *http.Request) {
 		ID string `json:"_id"`
 	}{id.Hex()})
 
-	helper.UpdateGame(h.Octane, id)
 	helper.UpdateMatch(h.Octane, game.Match.ID, game.Match.ID)
 	helper.UpdateMatchAggregate(h.Octane, game.Match.ID)
+	helper.UpdateGame(h.Octane, id)
 }
 
 func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
@@ -274,9 +274,9 @@ func (h *handler) UpdateGame(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 
-	helper.UpdateGame(h.Octane, &id)
 	helper.UpdateMatch(h.Octane, game.Match.ID, game.Match.ID)
 	helper.UpdateMatchAggregate(h.Octane, game.Match.ID)
+	helper.UpdateGame(h.Octane, &id)
 }
 
 func gamesFilter(v url.Values) bson.M {
