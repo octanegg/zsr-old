@@ -16,6 +16,7 @@ type client struct {
 	PlayersCollection   collection.Collection
 	TeamsCollection     collection.Collection
 	StatlinesCollection collection.Collection
+	RecordsCollection   collection.Collection
 }
 
 // Client .
@@ -26,6 +27,7 @@ type Client interface {
 	Players() collection.Collection
 	Teams() collection.Collection
 	Statlines() collection.Collection
+	Records() collection.Collection
 }
 
 // New .
@@ -65,6 +67,10 @@ func New(uri string) (Client, error) {
 			db.Collection("statlines"),
 			toStatlines,
 		)
+		records = collection.New(
+			db.Collection("records"),
+			toStatlines,
+		)
 	)
 
 	return &client{
@@ -75,6 +81,7 @@ func New(uri string) (Client, error) {
 		PlayersCollection:   players,
 		TeamsCollection:     teams,
 		StatlinesCollection: statlines,
+		RecordsCollection: records,
 	}, nil
 }
 
@@ -100,6 +107,10 @@ func (c *client) Teams() collection.Collection {
 
 func (c *client) Statlines() collection.Collection {
 	return c.StatlinesCollection
+}
+
+func (c *client) Records() collection.Collection {
+	return c.RecordsCollection
 }
 
 func toEvents(cursor *mongo.Cursor) (interface{}, error) {
@@ -148,4 +159,13 @@ func toStatlines(cursor *mongo.Cursor) (interface{}, error) {
 		return nil, err
 	}
 	return statline, nil
+}
+
+
+func toRecords(cursor *mongo.Cursor) (interface{}, error) {
+	var record Record
+	if err := cursor.Decode(&record); err != nil {
+		return nil, err
+	}
+	return record, nil
 }

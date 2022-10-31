@@ -14,9 +14,13 @@ func UpdateGame(client octane.Client, id *primitive.ObjectID) error {
 	game := g.(octane.Game)
 
 	var statlines []interface{}
+	var records []interface{}
 	blue, orange := GameToStatlines(&game)
 	for _, statline := range append(blue, orange...) {
 		statlines = append(statlines, statline)
+	}
+	for _, record := range StatlinesToRecords(append(blue, orange...)) {
+		records = append(records, record)
 	}
 
 	if _, err := client.Statlines().Delete(bson.M{"game._id": game.ID}); err != nil {
@@ -26,6 +30,16 @@ func UpdateGame(client octane.Client, id *primitive.ObjectID) error {
 	if _, err := client.Statlines().Insert(statlines); err != nil {
 		return err
 	}
+
+
+	if _, err := client.Records().Delete(bson.M{"game._id": game.ID}); err != nil {
+		return err
+	}
+
+	if _, err := client.Records().Insert(records); err != nil {
+		return err
+	}
+
 
 	return nil
 }

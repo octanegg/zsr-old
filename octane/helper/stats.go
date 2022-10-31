@@ -1,6 +1,7 @@
 package helper
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/octanegg/zsr/ballchasing"
@@ -517,4 +518,195 @@ func Rating(stats *octane.PlayerInfo) float64 {
 	rating += float64(stats.Advanced.GoalParticipation) / 59.77324334387406
 
 	return rating / 7
+}
+
+func StatlinesToRecords(statlines []*octane.Statline) []*octane.Record {
+	var records []*octane.Record
+	playerRecords := map[string]map[string]map[string]float64{}
+	teamRecords := map[string]map[string]map[string]float64{}
+
+	for _, statline := range statlines {
+		stats := statline.Player.Stats
+
+		if playerRecords[statline.Player.Player.ID.Hex()] == nil {
+			playerRecords[statline.Player.Player.ID.Hex()] = map[string]map[string]float64{}
+		}
+
+		if playerRecords[statline.Player.Player.ID.Hex()][statline.Game.Match.ID.Hex()] == nil {
+			playerRecords[statline.Player.Player.ID.Hex()][statline.Game.Match.ID.Hex()] = map[string]float64{}
+		}
+
+		if teamRecords[statline.Team.Team.ID.Hex()] == nil {
+			teamRecords[statline.Team.Team.ID.Hex()] = map[string]map[string]float64{}
+		}
+
+		if teamRecords[statline.Team.Team.ID.Hex()][statline.Game.Match.ID.Hex()] == nil {
+			teamRecords[statline.Team.Team.ID.Hex()][statline.Game.Match.ID.Hex()] = map[string]float64{}
+		}
+
+		if teamRecords[statline.Team.Team.ID.Hex()][statline.Game.Match.ID.Hex()+fmt.Sprint(statline.Game.Number)] == nil {
+			teamRecords[statline.Team.Team.ID.Hex()][statline.Game.Match.ID.Hex()+fmt.Sprint(statline.Game.Number)] = map[string]float64{}
+		}
+
+		playerRecords[statline.Player.Player.ID.Hex()][statline.Game.Match.ID.Hex()]["games"] += 1
+		playerRecords[statline.Player.Player.ID.Hex()][statline.Game.Match.ID.Hex()]["duration"] += float64(statline.Game.Duration)
+
+		createRecord := func(stat string, value float64) *octane.Record {
+			teamRecords[statline.Team.Team.ID.Hex()][statline.Game.Match.ID.Hex()][stat] += value
+			teamRecords[statline.Team.Team.ID.Hex()][statline.Game.Match.ID.Hex()+fmt.Sprint(statline.Game.Number)][stat] += value
+			playerRecords[statline.Player.Player.ID.Hex()][statline.Game.Match.ID.Hex()][stat] += value
+			return &octane.Record{
+				Game: &octane.Game{
+					ID:     statline.Game.ID,
+					Number: statline.Game.Number,
+					Match: &octane.Match{
+						ID:                  statline.Game.Match.ID,
+						Slug:                statline.Game.Match.Slug,
+						Event:               statline.Game.Match.Event,
+						Stage:               statline.Game.Match.Stage,
+						Substage:            statline.Game.Match.Substage,
+						Date:                statline.Game.Match.Date,
+						Format:              statline.Game.Match.Format,
+						Blue:                statline.Game.Match.Blue,
+						Orange:              statline.Game.Match.Orange,
+						Number:              statline.Game.Match.Number,
+						ReverseSweep:        statline.Game.Match.ReverseSweep,
+						ReverseSweepAttempt: statline.Game.Match.ReverseSweepAttempt,
+					},
+					Map:      statline.Game.Map,
+					Duration: statline.Game.Duration,
+					Overtime: statline.Game.Overtime,
+					Date:     statline.Game.Date,
+				},
+				Team: &octane.RecordSide{
+					Score:       statline.Team.Score,
+					Team:        statline.Team.Team,
+					Winner:      statline.Team.Winner,
+					MatchWinner: statline.Team.MatchWinner,
+					Players:     statline.Team.Players,
+				},
+				Opponent: &octane.RecordSide{
+					Score:       statline.Opponent.Score,
+					Team:        statline.Opponent.Team,
+					Winner:      statline.Opponent.Winner,
+					MatchWinner: statline.Opponent.MatchWinner,
+					Players:     statline.Opponent.Players,
+				},
+				Player:      statline.Player.Player,
+				Stat:        stat,
+				PlayerValue: value,
+			}
+		}
+
+		records = append(records, createRecord("score", stats.Core.Score))
+		records = append(records, createRecord("goals", stats.Core.Goals))
+		records = append(records, createRecord("assists", stats.Core.Assists))
+		records = append(records, createRecord("saves", stats.Core.Saves))
+		records = append(records, createRecord("shots", stats.Core.Shots))
+		records = append(records, createRecord("shooting_percentage", stats.Core.ShootingPercentage))
+		records = append(records, createRecord("goal_participation", statline.Player.Advanced.GoalParticipation))
+		records = append(records, createRecord("rating", statline.Player.Advanced.Rating))
+
+		if stats.Boost != nil {
+			records = append(records, createRecord("bpm", stats.Boost.Bpm))
+			records = append(records, createRecord("bcpm", stats.Boost.Bcpm))
+			records = append(records, createRecord("avg_amount", stats.Boost.AvgAmount))
+			records = append(records, createRecord("amount_collected", stats.Boost.AmountCollected))
+			records = append(records, createRecord("amount_stolen", stats.Boost.AmountStolen))
+			records = append(records, createRecord("amount_collected_big", stats.Boost.AmountCollectedBig))
+			records = append(records, createRecord("amount_stolen_big", stats.Boost.AmountStolenBig))
+			records = append(records, createRecord("amount_collected_small", stats.Boost.AmountCollectedSmall))
+			records = append(records, createRecord("amount_stolen_small", stats.Boost.AmountStolenSmall))
+			records = append(records, createRecord("count_collected_big", stats.Boost.CountCollectedBig))
+			records = append(records, createRecord("count_stolen_big", stats.Boost.CountStolenBig))
+			records = append(records, createRecord("count_collected_small", stats.Boost.CountCollectedSmall))
+			records = append(records, createRecord("count_stolen_small", stats.Boost.CountStolenSmall))
+			records = append(records, createRecord("amount_overfill", stats.Boost.AmountOverfill))
+			records = append(records, createRecord("amount_overfill_stolen", stats.Boost.AmountOverfillStolen))
+			records = append(records, createRecord("amount_used_while_supersonic", stats.Boost.AmountUsedWhileSupersonic))
+			records = append(records, createRecord("time_zero_boost", stats.Boost.TimeZeroBoost))
+			records = append(records, createRecord("percent_zero_boost", stats.Boost.PercentZeroBoost))
+			records = append(records, createRecord("time_full_boost", stats.Boost.TimeFullBoost))
+			records = append(records, createRecord("percent_full_boost", stats.Boost.PercentFullBoost))
+			records = append(records, createRecord("time_boost_0_25", stats.Boost.TimeBoost025))
+			records = append(records, createRecord("time_boost_25_50", stats.Boost.TimeBoost2550))
+			records = append(records, createRecord("time_boost_50_75", stats.Boost.TimeBoost5075))
+			records = append(records, createRecord("time_boost_75_100", stats.Boost.TimeBoost75100))
+			records = append(records, createRecord("percent_boost_0_25", stats.Boost.PercentBoost025))
+			records = append(records, createRecord("percent_boost_25_50", stats.Boost.PercentBoost2550))
+			records = append(records, createRecord("percent_boost_50_75", stats.Boost.PercentBoost5075))
+			records = append(records, createRecord("percent_boost_75_100", stats.Boost.PercentBoost75100))
+		}
+
+		if stats.Movement != nil {
+			records = append(records, createRecord("avg_speed", stats.Movement.AvgSpeed))
+			records = append(records, createRecord("total_distance", stats.Movement.TotalDistance))
+			records = append(records, createRecord("time_supersonic_speed", stats.Movement.TimeSupersonicSpeed))
+			records = append(records, createRecord("time_boost_speed", stats.Movement.TimeBoostSpeed))
+			records = append(records, createRecord("time_slow_speed", stats.Movement.TimeSlowSpeed))
+			records = append(records, createRecord("time_ground", stats.Movement.TimeGround))
+			records = append(records, createRecord("time_low_air", stats.Movement.TimeLowAir))
+			records = append(records, createRecord("time_high_air", stats.Movement.TimeHighAir))
+			records = append(records, createRecord("time_powerslide", stats.Movement.TimePowerslide))
+			records = append(records, createRecord("count_powerslide", stats.Movement.CountPowerslide))
+			records = append(records, createRecord("avg_powerslide_duration", stats.Movement.AvgPowerslideDuration))
+			records = append(records, createRecord("avg_speed_percentage", stats.Movement.AvgSpeedPercentage))
+			records = append(records, createRecord("percent_slow_speed", stats.Movement.PercentSlowSpeed))
+			records = append(records, createRecord("percent_boost_speed", stats.Movement.PercentBoostSpeed))
+			records = append(records, createRecord("percent_supersonic_speed", stats.Movement.PercentSupersonicSpeed))
+			records = append(records, createRecord("percent_ground", stats.Movement.PercentGround))
+			records = append(records, createRecord("percent_low_air", stats.Movement.PercentLowAir))
+			records = append(records, createRecord("percent_high_air", stats.Movement.PercentHighAir))
+		}
+
+		if stats.Positioning != nil {
+			records = append(records, createRecord("avg_distance_to_ball", stats.Positioning.AvgDistanceToBall))
+			records = append(records, createRecord("avg_distance_to_ball_possession", stats.Positioning.AvgDistanceToBallPossession))
+			records = append(records, createRecord("avg_distance_to_ball_no_possession", stats.Positioning.AvgDistanceToBallNoPossession))
+			records = append(records, createRecord("time_defensive_third", stats.Positioning.TimeDefensiveThird))
+			records = append(records, createRecord("time_neutral_third", stats.Positioning.TimeNeutralThird))
+			records = append(records, createRecord("time_offensive_third", stats.Positioning.TimeOffensiveThird))
+			records = append(records, createRecord("time_defensive_half", stats.Positioning.TimeDefensiveHalf))
+			records = append(records, createRecord("time_offensive_half", stats.Positioning.TimeOffensiveHalf))
+			records = append(records, createRecord("time_behind_ball", stats.Positioning.TimeBehindBall))
+			records = append(records, createRecord("time_infront_ball", stats.Positioning.TimeInfrontBall))
+			records = append(records, createRecord("time_most_back", stats.Positioning.TimeMostBack))
+			records = append(records, createRecord("time_most_forward", stats.Positioning.TimeMostForward))
+			records = append(records, createRecord("goals_against_while_last_defender", stats.Positioning.GoalsAgainstWhileLastDefender))
+			records = append(records, createRecord("time_closest_to_ball", stats.Positioning.TimeClosestToBall))
+			records = append(records, createRecord("time_farthest_from_ball", stats.Positioning.TimeFarthestFromBall))
+			records = append(records, createRecord("percent_defensive_third", stats.Positioning.PercentDefensiveThird))
+			records = append(records, createRecord("percent_offensive_third", stats.Positioning.PercentOffensiveThird))
+			records = append(records, createRecord("percent_neutral_third", stats.Positioning.PercentNeutralThird))
+			records = append(records, createRecord("percent_defensive_half", stats.Positioning.PercentDefensiveHalf))
+			records = append(records, createRecord("percent_offensive_half", stats.Positioning.PercentOffensiveHalf))
+			records = append(records, createRecord("percent_behind_ball", stats.Positioning.PercentBehindBall))
+			records = append(records, createRecord("percent_infront_ball", stats.Positioning.PercentInfrontBall))
+			records = append(records, createRecord("percent_most_back", stats.Positioning.PercentMostBack))
+			records = append(records, createRecord("percent_most_forward", stats.Positioning.PercentMostForward))
+			records = append(records, createRecord("percent_closest_to_ball", stats.Positioning.PercentClosestToBall))
+			records = append(records, createRecord("percent_farthest_from_ball", stats.Positioning.PercentFarthestFromBall))
+		}
+
+		if stats.Demolitions != nil {
+			records = append(records, createRecord("inflicted", stats.Demolitions.Inflicted))
+			records = append(records, createRecord("taken", stats.Demolitions.Taken))
+		}
+	}
+
+	for _, record := range records {
+		record.Duration = playerRecords[record.Player.ID.Hex()][record.Game.Match.ID.Hex()]["duration"]
+		record.PlayerMatchValue = playerRecords[record.Player.ID.Hex()][record.Game.Match.ID.Hex()][record.Stat]
+		record.PlayerMatchAverage = record.PlayerMatchValue / playerRecords[record.Player.ID.Hex()][record.Game.Match.ID.Hex()]["games"]
+		record.TeamValue = teamRecords[record.Team.Team.ID.Hex()][record.Game.Match.ID.Hex()+fmt.Sprint(record.Game.Number)][record.Stat]
+		record.TeamMatchValue = teamRecords[record.Team.Team.ID.Hex()][record.Game.Match.ID.Hex()][record.Stat]
+		record.TeamMatchAverage = record.TeamMatchValue / playerRecords[record.Player.ID.Hex()][record.Game.Match.ID.Hex()]["games"]
+		record.GameValue = teamRecords[record.Team.Team.ID.Hex()][record.Game.Match.ID.Hex()+fmt.Sprint(record.Game.Number)][record.Stat] + teamRecords[record.Opponent.Team.ID.Hex()][record.Game.Match.ID.Hex()+fmt.Sprint(record.Game.Number)][record.Stat]
+		record.GameDifferential = teamRecords[record.Team.Team.ID.Hex()][record.Game.Match.ID.Hex()+fmt.Sprint(record.Game.Number)][record.Stat] - teamRecords[record.Opponent.Team.ID.Hex()][record.Game.Match.ID.Hex()+fmt.Sprint(record.Game.Number)][record.Stat]
+		record.GameAverage = record.GameValue / playerRecords[record.Player.ID.Hex()][record.Game.Match.ID.Hex()]["games"]
+		record.MatchValue = teamRecords[record.Team.Team.ID.Hex()][record.Game.Match.ID.Hex()][record.Stat] + teamRecords[record.Opponent.Team.ID.Hex()][record.Game.Match.ID.Hex()+fmt.Sprint(record.Game.Number)][record.Stat]
+		record.MatchDifferential = teamRecords[record.Team.Team.ID.Hex()][record.Game.Match.ID.Hex()][record.Stat] - teamRecords[record.Opponent.Team.ID.Hex()][record.Game.Match.ID.Hex()+fmt.Sprint(record.Game.Number)][record.Stat]
+	}
+
+	return records
 }
